@@ -1,0 +1,186 @@
+/*
+    PayPaste — Головні стилі
+    Підтримка: 320px (мобільні) до 1920px+ (десктоп)
+*/
+body {
+    background-color: #dcdcdc; 
+    font-family: Tahoma, "Trebuchet MS", sans-serif;
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+    margin: 0;
+}
+
+/* 
+   Рекламний банер
+*/
+.ad-banner {
+    background: #ffcc00;
+    border: 3px dashed #ff0000;
+    padding: 15px;
+    font-weight: bold;
+    font-size: 1.2em;
+    overflow: hidden;
+}
+
+.ad-banner a {
+    color: #ff0000;
+    text-decoration: none;
+}
+
+.ad-banner a:hover {
+    text-decoration: underline;
+}
+
+/* 
+   Анімація блимання
+*/
+.blink-text {
+    animation: blinker 3s linear infinite;
+}
+
+@keyframes blinker {
+    50% { opacity: 0; }
+}
+
+/* 
+   Основний контент
+*/
+.main-content {
+    flex: 1 0 auto;
+}
+
+footer {
+    flex-shrink: 0;
+}
+
+textarea {
+    resize: vertical;
+}
+
+.btn {
+    white-space: normal;
+    word-wrap: break-word;
+}
+
+/* 
+   Навбар — мобільна гамбургер-кнопка
+*/
+.navbar-toggle {
+    border-color: #888 !important;
+}
+
+.navbar-toggle .icon-bar {
+    background-color: #ccc !important;
+}
+
+/* 
+   Бейджики у футері — адаптація
+*/
+.old-school-badges {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 4px;
+}
+
+.old-school-badges img {
+    display: block;
+}
+
+/*
+   Мобільна адаптація — < 768px
+*/
+@media (max-width: 767px) {
+
+    /* Контейнер без зайвих відступів */
+    .container,
+    .container-fluid {
+        padding-left: 10px;
+        padding-right: 10px;
+    }
+
+    /* Рекламний банер — менший шрифт на мобільному */
+    .ad-banner {
+        font-size: 0.9em;
+        padding: 10px;
+        margin-bottom: 15px;
+    }
+
+    /* Навбар: виправити форму виходу всередині collapse */
+    .navbar-collapse form {
+        margin: 5px 15px !important;
+    }
+
+    .navbar-collapse .navbar-text {
+        margin-left: 15px;
+        float: none;
+    }
+
+    /* Таблиця в налаштуваннях */
+    .table-responsive {
+        overflow-x: auto;
+    }
+
+    /* Картки паст */
+    .list-group-item h4 {
+        font-size: 1em;
+    }
+
+    /* Футер */
+    footer p {
+        font-size: 0.85em;
+    }
+
+    .old-school-badges img {
+        width: 80px;
+        height: 28px;
+    }
+
+    /* Форми — повна ширина на мобільному */
+    .form-group .col-sm-4,
+    .form-group .col-sm-8 {
+        text-align: left;
+    }
+
+    /* Кнопки не вилізають за межі */
+    .btn-block-mobile {
+        display: block;
+        width: 100%;
+        margin-bottom: 5px;
+    }
+
+    /* Панелі кредитів */
+    .panel {
+        margin-bottom: 10px;
+    }
+}
+
+/* 
+   Дуже малі екрани — < 480px
+*/
+@media (max-width: 480px) {
+
+    .navbar-brand {
+        font-size: 14px;
+    }
+
+    h1 { font-size: 1.5em; }
+    h2 { font-size: 1.3em; }
+    h3 { font-size: 1.1em; }
+
+    .ad-banner {
+        font-size: 0.8em;
+        padding: 8px;
+    }
+
+    .old-school-badges img {
+        width: 72px;
+        height: 25px;
+    }
+
+    /* Текстові поля пасти */
+    textarea {
+        min-height: 150px;
+    }
+}

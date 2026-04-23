@@ -1,0 +1,68 @@
+<?php
+session_start();
+// Завантаження моделей
+require_once __DIR__ . '/includes/models/Paste.php';
+require_once __DIR__ . '/includes/models/User.php';
+
+// Обробка POST-запитів (unlock_paste)
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    require_once __DIR__ . '/includes/controllers/PasteController.php';
+    $controller = new PasteController();
+    $controller->handleRequest();
+}
+
+// Отримання ID пасти з параметрів запиту
+$id = $_GET['id'] ?? null;
+$paste = $id ? Paste::findById($id) : null;
+
+// Отримання користувача з сесії
+$user = isset($_SESSION['user_id']) ? User::findById($_SESSION['user_id']) : null;
+$is_author = false;
+$has_unlocked = false;
+$is_admin = ($user && $user->role === 'admin');
+
+// Перевірка пасти
+if (!$paste) {
+    header("HTTP/1.0 404 Not Found");
+} elseif ($paste->isExpired()) {
+    header("HTTP/1.0 404 Not Found");
+    // $paste залишається, щоб шаблон відрендерив плашку з попередженням про протермінування
+} elseif ($paste->is_private) {
+    if ($user) {
+        $is_author = ($paste->user_id === $user->id);
+    }
+    // Серверна перевірка доступу до приватної пасти
+    if (!$is_author && !$is_admin) {
+        header("HTTP/1.0 403 Forbidden");
+        $paste = null; // Ховаємо контент
+        $_SESSION['error'] = "У вас немає доступу до цієї приватної пасти.";
+        header("Location: index.php");
+        exit;
+    }
+}
+
+if ($paste) {
+    if ($user) {
+        $is_author = ($paste->user_id === $user->id);
+        $has_unlocked = $user->hasUnlocked($paste->id);
+    }
+    // Перевірка на Рекламний Квест (тільки для безкоштовних паст, які не авторські і не адмінські)
+    $ads_watched = $_SESSION['ads_watched'] ?? 0;
+    $requires_quest = (!$paste->is_paid && !$is_author && !$is_admin && $ads_watched < 3);
+
+    // SEO Дані
+    $page_title = htmlspecialchars($paste->title);
+    $page_description = "Перегляд пасти '" . htmlspecialchars($paste->title) . "' на PayPaste. Автор: " . ($paste->user_id ? "Зареєстрований користувач" : "Анонім");
+
+    // Встановлюємо флаг для шаблону
+    $is_locked = $paste->is_paid && !$is_author && !$has_unlocked && !$is_admin;
+} else {
+    $is_locked = false;
+    $requires_quest = false;
+    $page_title = "Пасту не знайдено";
+}
+
+// Завантаження всіх View і головного шаблону перегляду пасти
+require_once __DIR__ . '/templates/header.php';
+require_once __DIR__ . '/templates/paste_view.php';
+require_once __DIR__ . '/templates/footer.php';

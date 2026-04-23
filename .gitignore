@@ -1,0 +1,22 @@
+# Секретні дані
+.env
+
+# Завантажені файли
+uploads/
+
+# Дані (старий JSON формат)
+data/
+
+# Системні файли
+.DS_Store
+Thumbs.db
+*.log
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# AI assistants
+.agents/
