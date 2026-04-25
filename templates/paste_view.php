@@ -75,11 +75,11 @@
                     
                     <?php
                     // Перевірка чи є прикріплений файл
-                    $files = glob(__DIR__ . '/../uploads/' . $paste->id . '.*');
+                    $files = glob(__DIR__ . '/../data/uploads/' . $paste->id . '.*');
                     if (!empty($files)):
                         $filePath = $files[0];
                         $fileName = basename($filePath);
-                        $fileUrl = 'uploads/' . $fileName;
+                        $fileUrl = 'api/download.php?id=' . $paste->id;
                         $ext = strtolower(pathinfo($fileName, PATHINFO_EXTENSION));
                     ?>
                         <div style="margin-top: 15px; padding: 15px; border: 2px dashed #888; background: #f9f9f9;">

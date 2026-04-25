@@ -144,7 +144,7 @@ class PasteController { // Клас контролера паст
                     throw new Exception("Файл занадто великий! Максимум 5 МБ.");
                 }
                 
-                $uploadDir = __DIR__ . '/../../uploads/';
+                $uploadDir = __DIR__ . '/../../data/uploads/';
                 if (!is_dir($uploadDir)) {
                     mkdir($uploadDir, 0755, true);
                 }
