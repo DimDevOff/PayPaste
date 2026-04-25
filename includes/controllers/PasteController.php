@@ -152,12 +152,25 @@ class PasteController { // Клас контролера паст
                 $fileName = $_FILES['attachment']['name'];
                 $fileExt = strtolower(pathinfo($fileName, PATHINFO_EXTENSION));
                 
-                $allowedExts = ['jpg', 'jpeg', 'png', 'gif', 'zip', 'pdf', 'txt'];
-                if (in_array($fileExt, $allowedExts)) {
-                    $targetFile = $uploadDir . $paste->id . '.' . $fileExt;
-                    if (!move_uploaded_file($_FILES['attachment']['tmp_name'], $targetFile)) {
-                        throw new Exception("Не вдалося зберегти файл.");
-                    }
+                // Перевірка MIME-типу
+                $detectedMime = mime_content_type($_FILES['attachment']['tmp_name']);
+                $allowedMimeTypes = [
+                    'jpg'  => ['image/jpeg'],
+                    'jpeg' => ['image/jpeg'],
+                    'png'  => ['image/png'],
+                    'gif'  => ['image/gif'],
+                    'zip'  => ['application/zip', 'application/x-zip-compressed', 'application/x-zip'],
+                    'pdf'  => ['application/pdf'],
+                    'txt'  => ['text/plain']
+                ];
+
+                if (!isset($allowedMimeTypes[$fileExt]) || !in_array($detectedMime, $allowedMimeTypes[$fileExt])) {
+                    throw new Exception("Недопустимий контент файлу для розширення .$fileExt (виявлено: $detectedMime)");
+                }
+
+                $targetFile = $uploadDir . $paste->id . '.' . $fileExt;
+                if (!move_uploaded_file($_FILES['attachment']['tmp_name'], $targetFile)) {
+                    throw new Exception("Не вдалося зберегти файл.");
                 }
             }
 
