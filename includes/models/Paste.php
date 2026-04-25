@@ -134,6 +134,18 @@ class Paste {
      */
     public static function delete_paste_by_admin($id) {
         $pdo = DB::getInstance()->getPDO();
+
+        // Видалення прикріплених файлів з диска
+        $uploadDir = __DIR__ . '/../../data/uploads/';
+        $files = glob($uploadDir . $id . '.*');
+        if ($files) {
+            foreach ($files as $file) {
+                if (is_file($file)) {
+                    unlink($file);
+                }
+            }
+        }
+
         $stmt = $pdo->prepare("DELETE FROM pastes WHERE id = ?");
         $stmt->execute([$id]);
         return true;
