@@ -49,14 +49,10 @@
                 <li><a href="create.php" title="Створити пасту">📝 Нова паста</a></li>
             </ul>
             <ul class="nav navbar-nav navbar-right">
-                <?php if(isset($_SESSION['user_id'])): ?>
-                    <?php 
-                       require_once __DIR__ . '/../includes/models/User.php';
-                       $currentUser = User::findById($_SESSION['user_id']);
-                    ?>
-                    <li><p class="navbar-text">💰 <?= $currentUser ? $currentUser->credits : 0 ?> Кредитів</p></li>
+                <?php if($currentUser = getCurrentUser()): ?>
+                    <li><p class="navbar-text">💰 <?= $currentUser->credits ?> Кредитів</p></li>
                     <li><a href="credits.php" style="color:#ffcc00; font-weight:bold;" title="Поповнити">➕ Поповнити</a></li>
-                    <li><a href="settings.php" title="Налаштування">👤 <?= $currentUser ? htmlspecialchars($currentUser->nickname) : 'User' ?></a></li>
+                    <li><a href="settings.php" title="Налаштування">👤 <?= htmlspecialchars($currentUser->nickname) ?></a></li>
                     <li>
                         <form action="login.php" method="POST" style="margin: 8px 15px;">
                             <?= csrf_field() ?>

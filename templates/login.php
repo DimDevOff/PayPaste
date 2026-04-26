@@ -1,3 +1,7 @@
+<?php
+$old = $_SESSION['old_input'] ?? [];
+unset($_SESSION['old_input']);
+?>
 <div class="row">
     <div class="col-md-6 col-md-offset-3">
         <div class="panel panel-primary" style="border: 2px solid #555;">
@@ -40,12 +44,12 @@
                     
                     <div class="form-group">
                         <label>E-mail:</label>
-                        <input type="email" name="email" class="form-control" required placeholder="example@mail.com" value="<?= htmlspecialchars($_COOKIE['remember_email'] ?? '') ?>">
+                        <input type="email" name="email" class="form-control" required placeholder="example@mail.com" value="<?= htmlspecialchars($old['email'] ?? $_COOKIE['remember_email'] ?? '') ?>">
                     </div>
                     
                     <div class="form-group reg-only">
                         <label>Нік:</label>
-                        <input type="text" name="nickname" class="form-control" placeholder="Крутий_Хакер_2007">
+                        <input type="text" name="nickname" class="form-control" placeholder="Крутий_Хакер_2007" value="<?= htmlspecialchars($old['nickname'] ?? '') ?>">
                     </div>
                     
                     <div class="form-group">

@@ -28,10 +28,9 @@ class AuthController { // Клас контролера авторизації
     Якщо всі перевірки пройдені, то користувач реєструється.
     */
     private function register($email, $password, $confirm, $nickname) {
+        $_SESSION['old_input'] = ['email' => $email, 'nickname' => $nickname];
+        
         $email = trim($email);
-        $password = trim($password);
-        $confirm = trim($confirm);
-        $nickname = htmlspecialchars(trim($nickname));
         
         if (empty($email) || empty($password) || empty($confirm)) {
             $_SESSION['error'] = "Всі поля обов'язкові!";
@@ -75,6 +74,7 @@ class AuthController { // Клас контролера авторизації
 
         $_SESSION['user_id'] = $user->id;
         $_SESSION['role'] = $user->role;
+        unset($_SESSION['old_input']);
         $_SESSION['success'] = "Реєстрація успішна! Вам нараховано 100 кредитів.";
         header("Location: index.php");
         exit;
@@ -86,8 +86,9 @@ class AuthController { // Клас контролера авторизації
     Якщо всі перевірки пройдені, то користувач входить.
     */
     private function login($email, $password, $remember = false) {
+        $_SESSION['old_input'] = ['email' => $email];
+        
         $email = trim($email);
-        $password = trim($password);
         
         if (empty($email) || empty($password)) {
             $_SESSION['error'] = "Введіть email та пароль!";
@@ -99,6 +100,7 @@ class AuthController { // Клас контролера авторизації
         if ($user && password_verify($password, $user->password_hash)) {
             $_SESSION['user_id'] = $user->id;
             $_SESSION['role'] = $user->role;
+            unset($_SESSION['old_input']);
             
             // Робота з кукі (авторизація на 14 днів)
             if ($remember) {

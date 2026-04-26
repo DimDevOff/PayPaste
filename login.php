@@ -1,6 +1,5 @@
 <?php
-session_start();
-// Завантаження контролера авторизації
+require_once __DIR__ . '/includes/bootstrap.php';
 require_once __DIR__ . '/includes/controllers/AuthController.php';
 
 $controller = new AuthController();

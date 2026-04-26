@@ -1,8 +1,5 @@
 <?php
-session_start();
-// Завантаження моделей
-require_once __DIR__ . '/includes/models/Paste.php';
-require_once __DIR__ . '/includes/models/User.php';
+require_once __DIR__ . '/includes/bootstrap.php';
 
 // Обробка POST-запитів (unlock_paste)
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -16,7 +13,7 @@ $id = $_GET['id'] ?? null;
 $paste = $id ? Paste::findById($id) : null;
 
 // Отримання користувача з сесії
-$user = isset($_SESSION['user_id']) ? User::findById($_SESSION['user_id']) : null;
+$user = getCurrentUser();
 $is_author = false;
 $has_unlocked = false;
 $is_admin = ($user && $user->role === 'admin');

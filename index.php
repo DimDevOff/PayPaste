@@ -1,6 +1,5 @@
 <?php
-session_start();
-// Завантаження кореневого контролера
+require_once __DIR__ . '/includes/bootstrap.php';
 require_once __DIR__ . '/includes/controllers/PasteController.php';
 
 $controller = new PasteController();

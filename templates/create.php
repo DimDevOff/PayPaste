@@ -1,3 +1,7 @@
+<?php
+$old = $_SESSION['old_input'] ?? [];
+unset($_SESSION['old_input']);
+?>
 <h2 style="border-bottom: 2px solid #ccc; padding-bottom: 5px;">Нова паста</h2>
 <form action="create.php" method="POST" enctype="multipart/form-data">
     <?= csrf_field() ?>
@@ -5,12 +9,12 @@
     
     <div class="form-group">
         <label>Текст</label>
-        <textarea class="form-control" name="content" rows="15" required style="font-family: monospace; background: #fafafa;"></textarea>
+        <textarea class="form-control" name="content" rows="15" required style="font-family: monospace; background: #fafafa;"><?= htmlspecialchars($old['content'] ?? '') ?></textarea>
     </div>
     
     <div class="form-group">
         <label>Назва / Тема (опціонально)</label>
-        <input type="text" class="form-control" name="title" placeholder="Без назви">
+        <input type="text" class="form-control" name="title" placeholder="Без назви" value="<?= htmlspecialchars($old['title'] ?? '') ?>">
     </div>
 
     <div class="form-group" style="background:#f9f9f9; padding:10px; border:1px solid #ddd;">
@@ -20,19 +24,19 @@
 
     <div class="checkbox">
         <label>
-            <input type="checkbox" name="is_private" value="1"> <strong>Приватна</strong> (тільки за посиланням, сховається з публічного списку)
+            <input type="checkbox" name="is_private" value="1" <?= isset($old['is_private']) ? 'checked' : '' ?>> <strong>Приватна</strong> (тільки за посиланням, сховається з публічного списку)
         </label>
     </div>
 
     <div class="checkbox" style="background:#ffeeee; padding:10px; border:1px dashed red;">
         <label class="text-danger">
-            <input type="checkbox" name="is_paid" id="is_paid" value="1"> <strong>💲 Платна паста</strong>
+            <input type="checkbox" name="is_paid" id="is_paid" value="1" <?= isset($old['is_paid']) ? 'checked' : '' ?>> <strong>💲 Платна паста</strong>
             <br><small>Увага: Написання пасти коштує 1 кредит за 10 символів вашого тексту. А також ви зможете встановити ціну за перегляд іншими.</small>
         </label>
-        <div id="view_cost_container" style="display:none; margin-top: 10px;">
+        <div id="view_cost_container" style="<?= isset($old['is_paid']) ? 'display:block;' : 'display:none;' ?> margin-top: 10px;">
             <label>Ціна за перегляд (в кредитах):</label>
             <div class="col-xs-12 col-sm-4" style="padding-left:0;">
-                <input type="number" class="form-control" name="view_cost" id="view_cost" min="1">
+                <input type="number" class="form-control" name="view_cost" id="view_cost" min="1" value="<?= htmlspecialchars($old['view_cost'] ?? '') ?>" <?= isset($old['is_paid']) ? 'required' : '' ?>>
             </div>
         </div>
     </div>
@@ -40,13 +44,21 @@
     <div class="form-group" style="background:#eef5ff; padding:10px; border:1px dashed #337ab7; margin-top:10px;">
         <label class="text-primary"><strong>⏰ Час життя пасти</strong></label>
         <select class="form-control" name="expires_in">
-            <option value="0">♾️ Вічна (без обмежень)</option>
-            <option value="10">🕐 10 хвилин</option>
-            <option value="30">🕐 30 хвилин</option>
-            <option value="60">🕐 1 година</option>
-            <option value="360">🕐 6 годин</option>
-            <option value="1440">🕐 24 години</option>
-            <option value="10080">🕐 7 днів</option>
+            <?php 
+                $expires_options = [
+                    '0' => '♾️ Вічна (без обмежень)',
+                    '10' => '🕐 10 хвилин',
+                    '30' => '🕐 30 хвилин',
+                    '60' => '🕐 1 година',
+                    '360' => '🕐 6 годин',
+                    '1440' => '🕐 24 години',
+                    '10080' => '🕐 7 днів'
+                ];
+                $selected_expires = $old['expires_in'] ?? '0';
+                foreach($expires_options as $val => $label): 
+            ?>
+                <option value="<?= $val ?>" <?= $selected_expires == $val ? 'selected' : '' ?>><?= $label ?></option>
+            <?php endforeach; ?>
         </select>
         <small class="text-muted">Після вибраного часу паста автоматично стане недоступною.</small>
     </div>

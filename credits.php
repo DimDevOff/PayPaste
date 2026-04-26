@@ -1,16 +1,12 @@
 <?php
-session_start();
-// Завантаження моделей
-require_once __DIR__ . '/includes/models/User.php';
+require_once __DIR__ . '/includes/bootstrap.php';
 
-// Перевірка авторизації
-if (!isset($_SESSION['user_id'])) {
+$user = getCurrentUser();
+if (!$user) {
     $_SESSION['error'] = "Увійдіть, щоб поповнити баланс!";
     header("Location: login.php");
     exit;
 }
-
-$user = User::findById($_SESSION['user_id']);
 
 // Генерація ID замовлення
 $order_id = 'order_' . substr(md5($user->id . time()), 0, 8);

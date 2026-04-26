@@ -27,12 +27,14 @@ class PasteController { // Клас контролера паст
     Якщо всі перевірки пройдені, то користувач створює пасту.
     */
     private function create($data) {
+        $_SESSION['old_input'] = $data; // Збереження введених даних для UX
+        
         $title = trim($data['title'] ?? 'Без назви');
         if ($title === '') $title = 'Без назви';
         
         if (mb_strlen($title) > 255) {
             $_SESSION['error'] = "Назва пасти занадто довга!";
-            header("Location: index.php");
+            header("Location: create.php");
             exit;
         }
 
@@ -47,13 +49,13 @@ class PasteController { // Клас контролера паст
 
         if (empty($content)) {
             $_SESSION['error'] = "Паста не може бути порожньою!";
-            header("Location: index.php");
+            header("Location: create.php");
             exit;
         }
 
         if (mb_strlen($content) > 100000) {
             $_SESSION['error'] = "Контент пасти занадто великий!";
-            header("Location: index.php");
+            header("Location: create.php");
             exit;
         }
 
@@ -62,7 +64,8 @@ class PasteController { // Клас контролера паст
         if ($is_paid) {
             if (!$user_id) {
                 $_SESSION['error'] = "Тільки авторизовані користувачі можуть створювати платні пасти!";
-                return;
+                header("Location: login.php");
+                exit;
             }
             $user = User::findById($user_id);
             $length = mb_strlen($content);
@@ -70,13 +73,15 @@ class PasteController { // Клас контролера паст
             
             if ($user->credits < $creation_cost) {
                 $_SESSION['error'] = "Недостатньо кредитів для створення! Потрібно $creation_cost, а у вас {$user->credits}.";
-                return;
+                header("Location: create.php");
+                exit;
             }
             
             $view_cost = isset($data['view_cost']) ? (int)$data['view_cost'] : 0;
             if ($view_cost <= 0) {
                 $_SESSION['error'] = "Вкажіть коректну вартість перегляду!";
-                return;
+                header("Location: create.php");
+                exit;
             }
 
         // Списання кредитів за створення
@@ -100,7 +105,7 @@ class PasteController { // Клас контролера паст
         
         if ($expires_in < 0) {
             $_SESSION['error'] = "Час життя пасти не може бути від'ємним!";
-            header("Location: index.php");
+            header("Location: create.php");
             exit;
         }
         
@@ -175,6 +180,7 @@ class PasteController { // Клас контролера паст
             }
 
             $pdo->commit(); // Успішне завершення транзакції
+            unset($_SESSION['old_input']); // Очищення введених даних при успіху
             header("Location: view.php?id=" . $paste->id);
             exit;
 
@@ -183,7 +189,7 @@ class PasteController { // Клас контролера паст
                 $pdo->rollBack(); // Відкат змін у разі помилки
             }
             $_SESSION['error'] = "Помилка створення пасти: " . $e->getMessage();
-            header("Location: index.php");
+            header("Location: create.php");
             exit;
         }
     }
