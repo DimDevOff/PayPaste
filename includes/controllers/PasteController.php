@@ -83,20 +83,6 @@ class PasteController { // Клас контролера паст
                 header("Location: create.php");
                 exit;
             }
-
-        // Списання кредитів за створення
-            $user->credits -= $creation_cost;
-            $user->save();
-            
-            // Фіксація транзакції (creation_fee)
-            require_once __DIR__ . '/../models/Transaction.php';
-            $tx = new Transaction([
-                'user_id' => $user->id,
-                'amount' => -$creation_cost,
-                'type' => 'creation_fee',
-                'description' => 'Плата за створення платної пасти'
-            ]);
-            $tx->save();
         }
 
         // Обчислення часу життя пасти (TTL)
