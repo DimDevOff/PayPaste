@@ -4,21 +4,25 @@ include_once "../includes/models/Paste.php";
 include_once "../includes/models/User.php";
 require_once "../includes/csrf.php";
 
-// Параметри пагінації
+// Параметри фільтрації та пагінації
+$search      = trim($_GET['search'] ?? '');
 $perPage     = 25;
 $currentPage = max(1, (int) ($_GET['page'] ?? 1));
 $offset      = ($currentPage - 1) * $perPage;
 
-$totalCount = Paste::countAll();
+$totalCount = Paste::countAll($search);
 $totalPages = max(1, (int) ceil($totalCount / $perPage));
 $currentPage = min($currentPage, $totalPages);
 
-$pastes = Paste::getAllPastes($perPage, $offset);
+$pastes = Paste::getAllPastes($perPage, $offset, $search);
 
 // Побудова URL для пагінації
 if (!function_exists('buildUrl')) {
     function buildUrl(array $params): string {
-        $base = array_filter(['page' => $_GET['page'] ?? '']);
+        $base = [
+            'page' => $_GET['page'] ?? '',
+            'search' => $_GET['search'] ?? ''
+        ];
         $merged = array_merge($base, $params);
         $merged = array_filter($merged, fn($v) => $v !== '' && $v !== null);
         return '?' . http_build_query($merged);
@@ -59,10 +63,33 @@ if (!function_exists('buildUrl')) {
 </nav>
 
 <div class="container" style="padding-bottom:40px;">
-    <h2 class="page-header">
-        📝 Управління Пастами
-        <small><?= number_format($totalCount) ?> записів</small>
-    </h2>
+    <div class="row">
+        <div class="col-md-6">
+            <h2 class="page-header" style="margin-top:0; border:none;">
+                📝 Управління Пастами
+                <small><?= number_format($totalCount) ?> записів</small>
+            </h2>
+        </div>
+        <div class="col-md-6 text-right">
+            <form action="" method="GET" class="form-inline" style="margin-top:20px;">
+                <div class="input-group">
+                    <input type="text" name="search" class="form-control" placeholder="Заголовок або вміст..." 
+                           value="<?= htmlspecialchars($search) ?>">
+                    <span class="input-group-btn">
+                        <button class="btn btn-primary" type="submit">
+                            <span class="glyphicon glyphicon-search"></span> Пошук
+                        </button>
+                        <?php if ($search !== ''): ?>
+                            <a href="pastes.php" class="btn btn-default" title="Очистити">
+                                <span class="glyphicon glyphicon-remove"></span>
+                            </a>
+                        <?php endif; ?>
+                    </span>
+                </div>
+            </form>
+        </div>
+    </div>
+    <hr>
 
     <div class="panel panel-default">
         <div class="panel-body" style="padding:0;">

@@ -177,8 +177,13 @@ class User {
     /**
      * Підрахунок загальної кількості користувачів (для адмін-панелі)
      */
-    public static function countAll() {
+    public static function countAll($search = '') {
         $pdo = DB::getInstance()->getPDO();
+        if ($search !== '') {
+            $stmt = $pdo->prepare("SELECT COUNT(*) FROM users WHERE email LIKE ? OR nickname LIKE ?");
+            $stmt->execute(['%' . $search . '%', '%' . $search . '%']);
+            return $stmt->fetchColumn();
+        }
         return $pdo->query("SELECT COUNT(*) FROM users")->fetchColumn();
     }
 
@@ -188,9 +193,22 @@ class User {
      * @param int $offset
      * @return array
      */
-    public static function getAll($limit = 25, $offset = 0) {
+    public static function getAll($limit = 25, $offset = 0, $search = '') {
         $pdo = DB::getInstance()->getPDO();
-        $stmt = $pdo->prepare("SELECT * FROM users ORDER BY id DESC LIMIT :limit OFFSET :offset");
+        $sql = "SELECT * FROM users";
+        $params = [];
+        
+        if ($search !== '') {
+            $sql .= " WHERE email LIKE :search OR nickname LIKE :search";
+            $params[':search'] = '%' . $search . '%';
+        }
+        
+        $sql .= " ORDER BY id DESC LIMIT :limit OFFSET :offset";
+        
+        $stmt = $pdo->prepare($sql);
+        foreach ($params as $key => $val) {
+            $stmt->bindValue($key, $val);
+        }
         $stmt->bindValue(':limit', (int)$limit, PDO::PARAM_INT);
         $stmt->bindValue(':offset', (int)$offset, PDO::PARAM_INT);
         $stmt->execute();

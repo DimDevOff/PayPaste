@@ -121,8 +121,13 @@ class Paste {
     /**
      * Підрахунок загальної кількості паст у системі.
      */
-    public static function countAll() {
+    public static function countAll($search = '') {
         $pdo = DB::getInstance()->getPDO();
+        if ($search !== '') {
+            $stmt = $pdo->prepare("SELECT COUNT(*) FROM pastes WHERE title LIKE ? OR content LIKE ?");
+            $stmt->execute(['%' . $search . '%', '%' . $search . '%']);
+            return $stmt->fetchColumn();
+        }
         return $pdo->query("SELECT COUNT(*) FROM pastes")->fetchColumn();
     }
 
@@ -132,9 +137,22 @@ class Paste {
      * @param int $offset
      * @return array
      */
-    public static function getAllPastes($limit = 25, $offset = 0) {
+    public static function getAllPastes($limit = 25, $offset = 0, $search = '') {
         $pdo = DB::getInstance()->getPDO();
-        $stmt = $pdo->prepare("SELECT * FROM pastes ORDER BY created_at DESC LIMIT :limit OFFSET :offset");
+        $sql = "SELECT * FROM pastes";
+        $params = [];
+
+        if ($search !== '') {
+            $sql .= " WHERE title LIKE :search OR content LIKE :search";
+            $params[':search'] = '%' . $search . '%';
+        }
+
+        $sql .= " ORDER BY created_at DESC LIMIT :limit OFFSET :offset";
+
+        $stmt = $pdo->prepare($sql);
+        foreach ($params as $key => $val) {
+            $stmt->bindValue($key, $val);
+        }
         $stmt->bindValue(':limit', (int)$limit, PDO::PARAM_INT);
         $stmt->bindValue(':offset', (int)$offset, PDO::PARAM_INT);
         $stmt->execute();
