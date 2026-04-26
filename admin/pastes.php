@@ -4,7 +4,26 @@ include_once "../includes/models/Paste.php";
 include_once "../includes/models/User.php";
 require_once "../includes/csrf.php";
 
-$pastes = Paste::getAllPastes();
+// Параметри пагінації
+$perPage     = 25;
+$currentPage = max(1, (int) ($_GET['page'] ?? 1));
+$offset      = ($currentPage - 1) * $perPage;
+
+$totalCount = Paste::countAll();
+$totalPages = max(1, (int) ceil($totalCount / $perPage));
+$currentPage = min($currentPage, $totalPages);
+
+$pastes = Paste::getAllPastes($perPage, $offset);
+
+// Побудова URL для пагінації
+if (!function_exists('buildUrl')) {
+    function buildUrl(array $params): string {
+        $base = array_filter(['page' => $_GET['page'] ?? '']);
+        $merged = array_merge($base, $params);
+        $merged = array_filter($merged, fn($v) => $v !== '' && $v !== null);
+        return '?' . http_build_query($merged);
+    }
+}
 ?>
 <!DOCTYPE html>
 <html lang="uk">
@@ -15,6 +34,8 @@ $pastes = Paste::getAllPastes();
     <style>
         body { background: #f4f6f9; }
         .table > tbody > tr > td { vertical-align: middle; }
+        .pagination { margin: 0; }
+        .page-info { line-height: 34px; }
     </style>
 </head>
 <body>
@@ -40,7 +61,7 @@ $pastes = Paste::getAllPastes();
 <div class="container" style="padding-bottom:40px;">
     <h2 class="page-header">
         📝 Управління Пастами
-        <small><?= count($pastes) ?> записів</small>
+        <small><?= number_format($totalCount) ?> записів</small>
     </h2>
 
     <div class="panel panel-default">
@@ -104,6 +125,39 @@ $pastes = Paste::getAllPastes();
             </table>
         </div>
     </div>
+
+    <!-- Пагінація -->
+    <?php if ($totalPages > 1): ?>
+    <div class="row">
+        <div class="col-sm-6 page-info text-muted">
+            Сторінка <?= $currentPage ?> з <?= $totalPages ?>
+            (<?= number_format($totalCount) ?> записів)
+        </div>
+        <div class="col-sm-6 text-right">
+            <ul class="pagination">
+                <?php if ($currentPage > 1): ?>
+                <li><a href="<?= buildUrl(['page' => 1]) ?>">&laquo;</a></li>
+                <li><a href="<?= buildUrl(['page' => $currentPage - 1]) ?>">&lsaquo;</a></li>
+                <?php endif; ?>
+
+                <?php
+                $start = max(1, $currentPage - 2);
+                $end   = min($totalPages, $currentPage + 2);
+                for ($p = $start; $p <= $end; $p++):
+                ?>
+                <li class="<?= $p === $currentPage ? 'active' : '' ?>">
+                    <a href="<?= buildUrl(['page' => $p]) ?>"><?= $p ?></a>
+                </li>
+                <?php endfor; ?>
+
+                <?php if ($currentPage < $totalPages): ?>
+                <li><a href="<?= buildUrl(['page' => $currentPage + 1]) ?>">&rsaquo;</a></li>
+                <li><a href="<?= buildUrl(['page' => $totalPages]) ?>">&raquo;</a></li>
+                <?php endif; ?>
+            </ul>
+        </div>
+    </div>
+    <?php endif; ?>
 </div>
 
 </body>

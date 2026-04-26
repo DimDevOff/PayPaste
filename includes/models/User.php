@@ -183,11 +183,18 @@ class User {
     }
 
     /**
-     * Отримання списку всіх користувачів
+     * Отримання списку всіх користувачів з підтримкою пагінації.
+     * @param int $limit
+     * @param int $offset
+     * @return array
      */
-    public static function getAll() {
+    public static function getAll($limit = 25, $offset = 0) {
         $pdo = DB::getInstance()->getPDO();
-        return $pdo->query("SELECT * FROM users")->fetchAll();
+        $stmt = $pdo->prepare("SELECT * FROM users ORDER BY id DESC LIMIT :limit OFFSET :offset");
+        $stmt->bindValue(':limit', (int)$limit, PDO::PARAM_INT);
+        $stmt->bindValue(':offset', (int)$offset, PDO::PARAM_INT);
+        $stmt->execute();
+        return $stmt->fetchAll();
     }
 
     /**

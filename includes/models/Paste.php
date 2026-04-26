@@ -88,10 +88,15 @@ class Paste {
     
     /**
      * Отримання списку всіх публічних та активних паст.
+     * @param int $limit Максимальна кількість записів
+     * @return Paste[]
      */
-    public static function findAllPublic() {
+    public static function findAllPublic($limit = 20) {
         $pdo = DB::getInstance()->getPDO();
-        $stmt = $pdo->query("SELECT * FROM pastes WHERE is_private = 0 AND (expires_at IS NULL OR expires_at > NOW()) ORDER BY created_at DESC");
+        $stmt = $pdo->prepare("SELECT * FROM pastes WHERE is_private = 0 AND (expires_at IS NULL OR expires_at > NOW()) ORDER BY created_at DESC LIMIT :limit");
+        $stmt->bindValue(':limit', (int)$limit, PDO::PARAM_INT);
+        $stmt->execute();
+        
         $result = [];
         while ($row = $stmt->fetch()) {
             $result[] = self::instantiateFromRow($row);
@@ -122,11 +127,18 @@ class Paste {
     }
 
     /**
-     * Отримання масиву всіх паст (для адмін-панелі).
+     * Отримання масиву всіх паст (для адмін-панелі) з підтримкою пагінації.
+     * @param int $limit
+     * @param int $offset
+     * @return array
      */
-    public static function getAllPastes() {
+    public static function getAllPastes($limit = 25, $offset = 0) {
         $pdo = DB::getInstance()->getPDO();
-        return $pdo->query("SELECT * FROM pastes")->fetchAll();
+        $stmt = $pdo->prepare("SELECT * FROM pastes ORDER BY created_at DESC LIMIT :limit OFFSET :offset");
+        $stmt->bindValue(':limit', (int)$limit, PDO::PARAM_INT);
+        $stmt->bindValue(':offset', (int)$offset, PDO::PARAM_INT);
+        $stmt->execute();
+        return $stmt->fetchAll();
     }
 
     /**

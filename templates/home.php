@@ -4,8 +4,8 @@
         <div class="list-group">
             <?php 
                require_once __DIR__ . '/../includes/models/Paste.php';
-               $pastes = Paste::findAllPublic();
-               foreach(array_slice($pastes, 0, 20) as $p):
+               $pastes = Paste::findAllPublic(20);
+               foreach($pastes as $p):
             ?>
             <a href="view.php?id=<?= $p->id ?>" class="list-group-item">
                 <h4 class="list-group-item-heading" style="word-wrap:break-word;"><?= htmlspecialchars($p->title ?: 'Без назви') ?></h4>
