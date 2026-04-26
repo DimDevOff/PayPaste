@@ -157,5 +157,23 @@ class Paste {
     public function delete() {
         self::delete_paste_by_admin($this->id);
     }
+
+    /**
+     * Очищення протермінованих паст та їх файлів.
+     * Викликається через Cron скриптом cron/cleanup.php.
+     */
+    public static function cleanupExpired() {
+        $pdo = DB::getInstance()->getPDO();
+        $stmt = $pdo->query("SELECT id FROM pastes WHERE expires_at IS NOT NULL AND expires_at <= NOW()");
+        $ids = $stmt->fetchAll(PDO::FETCH_COLUMN);
+        
+        $count = 0;
+        foreach ($ids as $id) {
+            if (self::delete_paste_by_admin($id)) {
+                $count++;
+            }
+        }
+        return $count;
+    }
 }
 

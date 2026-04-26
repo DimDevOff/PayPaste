@@ -81,6 +81,34 @@
 └── index.php           # Головна сторінка
 ```
 
+## ⏰ Автоматизація очищення (TTL)
+
+Для того, щоб пасти з терміном дії, що минув, автоматично видалялися з бази даних та диска, необхідно налаштувати регулярний запуск скрипта `cron/cleanup.php`.
+
+### Налаштування на Windows (PowerShell)
+
+Запустіть PowerShell від імені Адміністратора та виконайте наступну команду, щоб створити завдання у Планувальнику завдань Windows (запуск щогодини):
+
+```powershell
+$action = New-ScheduledTaskAction -Execute "C:\xampp\php\php.exe" -Argument "C:\xampp\htdocs\test.local\proj\cron\cleanup.php --force"
+$trigger = New-ScheduledTaskTrigger -Once -At (Get-Date) -RepetitionInterval (New-TimeSpan -Hours 1)
+Register-ScheduledTask -Action $action -Trigger $trigger -TaskName "PayPaste_Cleanup" -Description "Очищення старих паст щогодини"
+```
+
+### Налаштування на Linux (Cron)
+
+Додайте наступний рядок до вашого `crontab -e`:
+
+```bash
+0 * * * * php /шлях/до/проекту/cron/cleanup.php --force > /dev/null 2>&1
+```
+
+### Ручний запуск (для тестування)
+
+```bash
+C:\xampp\php\php.exe cron/cleanup.php --force
+```
+
 ## 📄 Ліцензія
 
 Цей проект створений виключно в навчальних цілях.
