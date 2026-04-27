@@ -50,7 +50,9 @@ function verify_csrf() { // Перевірка токена
     if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if (!isset($_POST['csrf_token']) || !hash_equals($_SESSION['csrf_token'], $_POST['csrf_token'])) {
             $_SESSION['error'] = 'Помилка безпеки (CSRF). Спробуйте ще раз.';
-            $fallback = isset($_SERVER['HTTP_REFERER']) ? $_SERVER['HTTP_REFERER'] : 'index.php';
+            $allowed_redirects = ['index.php', 'create.php', 'login.php', 'settings.php', 'view.php'];
+            $referer = basename(parse_url($_SERVER['HTTP_REFERER'] ?? '', PHP_URL_PATH));
+            $fallback = in_array($referer, $allowed_redirects) ? $referer : 'index.php';
             header("Location: " . $fallback);
             exit;
         }
