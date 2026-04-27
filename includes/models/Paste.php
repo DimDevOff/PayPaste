@@ -89,11 +89,31 @@ class Paste {
     /**
      * Отримання списку всіх публічних та активних паст.
      * @param int $limit Максимальна кількість записів
+     * @param string $category Категорія паст ('all', 'paid', 'free', 'user', 'anonymous')
      * @return Paste[]
      */
-    public static function findAllPublic($limit = 20) {
+    public static function findAllPublic($limit = 20, $category = 'all') {
         $pdo = DB::getInstance()->getPDO();
-        $stmt = $pdo->prepare("SELECT * FROM pastes WHERE is_private = 0 AND (expires_at IS NULL OR expires_at > NOW()) ORDER BY created_at DESC LIMIT :limit");
+        $sql = "SELECT * FROM pastes WHERE is_private = 0 AND (expires_at IS NULL OR expires_at > NOW())";
+        
+        switch ($category) {
+            case 'paid':
+                $sql .= " AND is_paid = 1";
+                break;
+            case 'free':
+                $sql .= " AND is_paid = 0";
+                break;
+            case 'user':
+                $sql .= " AND user_id IS NOT NULL";
+                break;
+            case 'anonymous':
+                $sql .= " AND user_id IS NULL";
+                break;
+        }
+        
+        $sql .= " ORDER BY created_at DESC LIMIT :limit";
+        
+        $stmt = $pdo->prepare($sql);
         $stmt->bindValue(':limit', (int)$limit, PDO::PARAM_INT);
         $stmt->execute();
         

@@ -1,10 +1,22 @@
 <div class="row">
     <div class="col-md-12">
         <h2 style="border-bottom: 2px solid #ccc; padding-bottom: 5px;">Останні пасти</h2>
+        
+        <?php $cat = $_GET['category'] ?? 'all'; ?>
+        <div style="margin-bottom: 15px;">
+            <div class="btn-group">
+                <a href="?category=all" class="btn btn-default <?= $cat === 'all' ? 'active' : '' ?>">Всі</a>
+                <a href="?category=paid" class="btn btn-default <?= $cat === 'paid' ? 'active' : '' ?>">Платні</a>
+                <a href="?category=free" class="btn btn-default <?= $cat === 'free' ? 'active' : '' ?>">Безплатні</a>
+                <a href="?category=user" class="btn btn-default <?= $cat === 'user' ? 'active' : '' ?>">Користувацькі</a>
+                <a href="?category=anonymous" class="btn btn-default <?= $cat === 'anonymous' ? 'active' : '' ?>">Анонімні</a>
+            </div>
+        </div>
+
         <div class="list-group">
             <?php 
                require_once __DIR__ . '/../includes/models/Paste.php';
-               $pastes = Paste::findAllPublic(20);
+               $pastes = Paste::findAllPublic(20, $cat);
                foreach($pastes as $p):
             ?>
             <a href="view.php?id=<?= $p->id ?>" class="list-group-item">
