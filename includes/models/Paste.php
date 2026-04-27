@@ -25,7 +25,7 @@ class Paste {
         $this->is_paid = (bool)$is_paid;
         $this->view_cost = (int)$view_cost;
         $this->is_private = (bool)$is_private;
-        $this->id = $id ?? uniqid('p_');
+        $this->id = $id ?? 'p_' . bin2hex(random_bytes(8));
         $this->created_at = $created_at ?? date('Y-m-d H:i:s');
         $this->expires_at = $expires_at;
     }
