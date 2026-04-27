@@ -56,6 +56,8 @@ function verify_csrf() { // Перевірка токена
             header("Location: " . $fallback);
             exit;
         }
+        // Регенерація токена після успішної перевірки
+        $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
     }
 }
 
