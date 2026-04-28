@@ -149,7 +149,7 @@
             </div>
             <div class="modal-footer" style="text-align: center;">
                 <button type="button" class="btn btn-default" data-dismiss="modal">Скасувати</button>
-                <a href="<?= getenv('DONATELLO_URL') ?: 'https://donatello.to/YOUR_PAGE' ?>" target="_blank" class="btn btn-danger btn-lg" id="donatello-confirm-btn" style="font-weight: bold;">
+                <a href="<?= DONATELLO_URL ?: 'https://donatello.to/YOUR_PAGE' ?>" target="_blank" class="btn btn-danger btn-lg" id="donatello-confirm-btn" style="font-weight: bold;">
                     ✅ Я скопіював код — Перейти до оплати
                 </a>
             </div>
@@ -243,3 +243,4 @@ $(document).ready(function() {
     });
 });
 </script>
+

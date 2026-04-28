@@ -172,7 +172,7 @@ $myPasskeys = Passkey::findByUserId($_SESSION['user_id']);
                             <script async src="https://telegram.org/js/telegram-widget.js?22" 
                                     data-telegram-login="PayPasteBot" 
                                     data-size="small" 
-                                    data-auth-url="<?= rtrim(getenv('APP_URL'), '/') ?>/api/oauth.php?provider=telegram" 
+                                    data-auth-url="<?= rtrim(APP_URL, '/') ?>/api/oauth.php?provider=telegram" 
                                     data-request-access="write"></script>
                         <?php endif; ?>
                     </div>
@@ -372,7 +372,7 @@ $myPasskeys = Passkey::findByUserId($_SESSION['user_id']);
                                         <script async src="https://telegram.org/js/telegram-widget.js?22" 
                                                 data-telegram-login="PayPasteBot" 
                                                 data-size="large" 
-                                                data-auth-url="<?= rtrim(getenv('APP_URL'), '/') ?>/api/oauth.php?provider=telegram&confirm_delete_oauth=1" 
+                                                data-auth-url="<?= rtrim(APP_URL, '/') ?>/api/oauth.php?provider=telegram&confirm_delete_oauth=1" 
                                                 data-request-access="write"></script>
                                     </div>
                                 </div>
@@ -384,3 +384,4 @@ $myPasskeys = Passkey::findByUserId($_SESSION['user_id']);
         </div>
     </div>
 </div>
+

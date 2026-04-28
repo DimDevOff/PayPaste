@@ -105,7 +105,7 @@ class AuthController { // Клас контролера авторизації
             // Робота з кукі (авторизація на 14 днів)
             if ($remember) {
                 // Створюємо захищений токен: id + хеш
-                $cookie_secret = getenv('COOKIE_SECRET') ?: 'Fallback_Secret';
+                $cookie_secret = COOKIE_SECRET ?: 'Fallback_Secret';
                 $token = $user->id . ':' . hash_hmac('sha256', $user->id . $user->password_hash, $cookie_secret);
                 $secure = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off');
                 setcookie('remember_me', $token, [
@@ -148,3 +148,4 @@ class AuthController { // Клас контролера авторизації
         exit;
     }
 }
+

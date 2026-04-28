@@ -16,7 +16,7 @@ unset($_SESSION['old_input']);
                         </a>
                     </div>
                     <div class="col-xs-6">
-                        <script async src="https://telegram.org/js/telegram-widget.js?21" data-telegram-login="PayPasteBot" data-auth-url="<?= rtrim(getenv('APP_URL'), '/') ?>/api/oauth.php?provider=telegram" data-request-access="write" show-user-photo></script>
+                        <script async src="https://telegram.org/js/telegram-widget.js?21" data-telegram-login="PayPasteBot" data-auth-url="<?= rtrim(APP_URL, '/') ?>/api/oauth.php?provider=telegram" data-request-access="write" show-user-photo></script>
                     </div>
                 </div>
                 
@@ -136,3 +136,4 @@ unset($_SESSION['old_input']);
         }
     });
 </script>
+

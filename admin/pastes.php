@@ -1,8 +1,8 @@
 <?php
-include_once "check_admin.php";
-include_once "../includes/models/Paste.php";
-include_once "../includes/models/User.php";
-require_once "../includes/csrf.php";
+include_once __DIR__ . "/check_admin.php";
+include_once __DIR__ . "/../includes/models/Paste.php";
+include_once __DIR__ . "/../includes/models/User.php";
+require_once __DIR__ . "/../includes/csrf.php";
 
 // Параметри фільтрації та пагінації
 $search      = trim($_GET['search'] ?? '');
@@ -130,6 +130,10 @@ if (!function_exists('buildUrl')) {
                                class="btn btn-default btn-xs">
                                 <span class="glyphicon glyphicon-eye-open"></span>
                             </a>
+                            <a href="edit_paste.php?id=<?= htmlspecialchars($p['id']) ?>" 
+                               class="btn btn-warning btn-xs">
+                                <span class="glyphicon glyphicon-pencil"></span>
+                            </a>
                             <form action="delete_paste.php" method="POST" style="display:inline;"
                                   onsubmit="return confirm('Ви впевнені, що хочете видалити цю пасту?');">
                                 <?= csrf_field() ?>
@@ -189,3 +193,4 @@ if (!function_exists('buildUrl')) {
 
 </body>
 </html>
+

@@ -1,8 +1,8 @@
 <?php
-include_once "check_admin.php"; // Перевірка, що це точно адмін
-include_once "../config/db.php";
-include_once "../includes/models/Paste.php";
-require_once "../includes/csrf.php";
+include_once __DIR__ . "/check_admin.php"; // Перевірка, що це точно адмін
+include_once __DIR__ . "/../config/db.php";
+include_once __DIR__ . "/../includes/models/Paste.php";
+require_once __DIR__ . "/../includes/csrf.php";
 
 verify_csrf();
 
@@ -18,3 +18,4 @@ if (!empty($paste_id)) {
 header('Location: pastes.php');
 exit();
 ?>
+

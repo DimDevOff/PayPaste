@@ -4,7 +4,7 @@ require_once __DIR__ . '/../../includes/models/User.php';
 require_once __DIR__ . '/../../includes/models/Transaction.php';
 
 // Токен бота. Отримуємо з .env файлу або залишаємо дефолт
-$bot_token = getenv('TELEGRAM_BOT_TOKEN') ?: 'YOUR_BOT_TOKEN_HERE'; 
+$bot_token = TELEGRAM_BOT_TOKEN ?: 'YOUR_BOT_TOKEN_HERE'; 
 
 $input = file_get_contents('php://input');
 $update = json_decode($input, true);
@@ -167,3 +167,4 @@ if (isset($update['message']['successful_payment'])) {
 
 // Повертаємо 200 OK для Telegram, щоб не слав повторно
 http_response_code(200);
+

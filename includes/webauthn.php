@@ -7,7 +7,7 @@
  * Реалізовано без зовнішніх залежностей (чистий PHP + OpenSSL).
  */
 
-require_once __DIR__ . '/../config/env.php';
+require_once __DIR__ . '/../config/config.php';
 
 /**
  * Кодує дані у формат Base64URL (без символів +, / та =)
@@ -45,13 +45,13 @@ function generateChallenge($length = 32) {
  * @return array
  */
 function getWebAuthnConfig() {
-    $app_url = getenv('APP_URL') ?: 'https://YOUR_DOMAIN';
-    $rp_id = getenv('WEBAUTHN_RP_ID') ?: parse_url($app_url, PHP_URL_HOST);
+    $app_url = APP_URL ?: 'https://YOUR_DOMAIN';
+    $rp_id = WEBAUTHN_RP_ID ?: parse_url($app_url, PHP_URL_HOST);
 
     return [
         'rp_id' => $rp_id,
         'rp_name' => 'PayPaste',
-        'origin' => getenv('WEBAUTHN_ORIGIN') ?: $app_url
+        'origin' => WEBAUTHN_ORIGIN ?: $app_url
     ];
 }
 
@@ -420,4 +420,6 @@ function verify_assertion_response($assertion_response, $challenge, $rp_id, $pas
         'new_counter' => $sign_count
     ];
 }
+
+
 

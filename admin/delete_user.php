@@ -1,8 +1,8 @@
 <?php
-include_once "check_admin.php";
-include_once "../config/db.php";
-include_once "../includes/models/User.php";
-require_once "../includes/csrf.php";
+include_once __DIR__ . "/check_admin.php";
+include_once __DIR__ . "/../config/db.php";
+include_once __DIR__ . "/../includes/models/User.php";
+require_once __DIR__ . "/../includes/csrf.php";
 
 verify_csrf();
 
@@ -15,3 +15,4 @@ if (!empty($user_id)) {
 header('Location: users.php');
 exit();
 ?>
+

@@ -14,8 +14,8 @@
     <meta property="og:title" content="<?= isset($page_title) ? $page_title : "PayPaste" ?>">
     <meta property="og:description" content="<?= isset($page_description) ? $page_description : "Сервіс обміну текстом у стилі 2000-х" ?>">
     <meta property="og:type" content="website">
-    <meta property="og:image" content="<?= rtrim(getenv('APP_URL') ?: 'https://YOUR_DOMAIN', '/') ?>/assets/img/logo.png">
-    <meta property="og:url" content="<?= getenv('APP_URL') ?: 'https://YOUR_DOMAIN' ?>/">
+    <meta property="og:image" content="<?= rtrim(APP_URL ?: 'https://YOUR_DOMAIN', '/') ?>/assets/img/logo.png">
+    <meta property="og:url" content="<?= APP_URL ?: 'https://YOUR_DOMAIN' ?>/">
 
     <!-- Вінтажний Bootstrap 3 -->
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
@@ -81,4 +81,5 @@
     <?php if(isset($_SESSION['success'])): ?>
         <div class="alert alert-success"><?= htmlspecialchars($_SESSION['success']); unset($_SESSION['success']); ?></div>
     <?php endif; ?>
+
 

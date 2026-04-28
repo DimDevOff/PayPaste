@@ -9,7 +9,7 @@ require_once __DIR__ . '/../../includes/models/User.php';
 require_once __DIR__ . '/../../includes/models/Transaction.php';
 
 // Очікуваний токен для верифікації запитів від Donatello
-$expected_token = getenv('DONATELLO_TOKEN') ?: 'PASTE_YOUR_TOKEN';
+$expected_token = DONATELLO_TOKEN ?: 'PASTE_YOUR_TOKEN';
 $headers = getallheaders();
 $header_token = $headers['X-Donatello-Token'] ?? $headers['X-Token'] ?? $headers['X-Key'] ?? '';
 
@@ -105,3 +105,4 @@ function process_donate($donate) {
         }
     }
 }
+

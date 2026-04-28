@@ -8,7 +8,7 @@ if (isset($_COOKIE['remember_me'])) {
     if (count($parts) === 2) {
         list($uid, $hash) = $parts;
         $user = User::findById($uid);
-        $cookie_secret = getenv('COOKIE_SECRET') ?: 'Fallback_Secret';
+        $cookie_secret = COOKIE_SECRET ?: 'Fallback_Secret';
         if ($user) {
             $expected = hash_hmac('sha256', $user->id . $user->password_hash, $cookie_secret);
             if (hash_equals($expected, $hash)) {
@@ -64,3 +64,4 @@ function verify_csrf() { // Перевірка токена
 function csrf_field() { // Повернення токена
     return '<input type="hidden" name="csrf_token" value="' . htmlspecialchars($_SESSION['csrf_token']) . '">';
 }
+

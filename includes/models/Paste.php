@@ -77,13 +77,46 @@ class Paste {
     }
 
     /**
-     * Пошук пасти за її унікальним ID.
+     * Оновлення пасти адміністратором.
+     */
+    public function update() {
+        $pdo = DB::getInstance()->getPDO();
+        $stmt = $pdo->prepare("
+            UPDATE pastes 
+            SET title = ?, content = ?, is_paid = ?, is_private = ?, view_cost = ?, expires_at = ?
+            WHERE id = ?
+        ");
+        $stmt->execute([
+            $this->title,
+            $this->content,
+            $this->is_paid ? 1 : 0,
+            $this->is_private ? 1 : 0,
+            $this->view_cost,
+            $this->expires_at,
+            $this->id
+        ]);
+        return true;
+    }
+
+    /**
+     * Пошук пасти за її унікальним ID. З ледачим видаленням.
      */
     public static function findById($id) {
         $pdo = DB::getInstance()->getPDO();
         $stmt = $pdo->prepare("SELECT * FROM pastes WHERE id = ?");
         $stmt->execute([$id]);
-        return self::instantiateFromRow($stmt->fetch());
+        $row = $stmt->fetch();
+        
+        if (!$row) return null;
+        
+        $paste = self::instantiateFromRow($row);
+        
+        if ($paste->isExpired()) {
+            self::delete_paste_by_admin($id);
+            return null;
+        }
+        
+        return $paste;
     }
     
     /**
@@ -129,7 +162,7 @@ class Paste {
      */
     public static function findByUserId($user_id) {
         $pdo = DB::getInstance()->getPDO();
-        $stmt = $pdo->prepare("SELECT * FROM pastes WHERE user_id = ? ORDER BY created_at DESC");
+        $stmt = $pdo->prepare("SELECT * FROM pastes WHERE user_id = ? AND (expires_at IS NULL OR expires_at > NOW()) ORDER BY created_at DESC");
         $stmt->execute([$user_id]);
         $result = [];
         while ($row = $stmt->fetch()) {
@@ -144,11 +177,11 @@ class Paste {
     public static function countAll($search = '') {
         $pdo = DB::getInstance()->getPDO();
         if ($search !== '') {
-            $stmt = $pdo->prepare("SELECT COUNT(*) FROM pastes WHERE title LIKE ? OR content LIKE ?");
+            $stmt = $pdo->prepare("SELECT COUNT(*) FROM pastes WHERE (expires_at IS NULL OR expires_at > NOW()) AND (title LIKE ? OR content LIKE ?)");
             $stmt->execute(['%' . $search . '%', '%' . $search . '%']);
             return $stmt->fetchColumn();
         }
-        return $pdo->query("SELECT COUNT(*) FROM pastes")->fetchColumn();
+        return $pdo->query("SELECT COUNT(*) FROM pastes WHERE (expires_at IS NULL OR expires_at > NOW())")->fetchColumn();
     }
 
     /**
@@ -159,11 +192,12 @@ class Paste {
      */
     public static function getAllPastes($limit = 25, $offset = 0, $search = '') {
         $pdo = DB::getInstance()->getPDO();
-        $sql = "SELECT * FROM pastes";
+        // В адмінці показуємо всі, але можемо приховати протерміновані, або просто лишити як є.
+        $sql = "SELECT * FROM pastes WHERE (expires_at IS NULL OR expires_at > NOW())";
         $params = [];
 
         if ($search !== '') {
-            $sql .= " WHERE title LIKE :search OR content LIKE :search";
+            $sql .= " AND (title LIKE :search OR content LIKE :search)";
             $params[':search'] = '%' . $search . '%';
         }
 

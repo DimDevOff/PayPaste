@@ -18,9 +18,9 @@ $provider = $_GET['provider'] ?? 'unknown';
 // GITHUB
 if ($provider === 'github') {
 
-    $client_id = getenv('GITHUB_CLIENT_ID');
-    $client_secret = getenv('GITHUB_CLIENT_SECRET');
-    $app_url = rtrim(getenv('APP_URL') ?: 'https://YOUR_DOMAIN', '/');
+    $client_id = GITHUB_CLIENT_ID;
+    $client_secret = GITHUB_CLIENT_SECRET;
+    $app_url = rtrim(APP_URL ?: 'https://YOUR_DOMAIN', '/');
     $redirect_uri = $app_url . '/api/oauth.php?provider=github';
 
     // Крок 1: Перенаправлення користувача на сторінку авторизації GitHub
@@ -169,7 +169,7 @@ if ($provider === 'github') {
 
 // TELEGRAM
 if ($provider === 'telegram') {
-    $bot_token = getenv('TELEGRAM_LOGIN_BOT_TOKEN') ?: die('TELEGRAM_LOGIN_BOT_TOKEN не налаштований');
+    $bot_token = TELEGRAM_LOGIN_BOT_TOKEN ?: die('TELEGRAM_LOGIN_BOT_TOKEN не налаштований');
     
     $check_hash = $_GET['hash'] ?? null;
     
@@ -256,3 +256,4 @@ if ($provider === 'telegram') {
     header("Location: ../index.php");
     exit;
 }
+

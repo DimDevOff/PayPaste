@@ -1,8 +1,8 @@
 <?php
-include_once "check_admin.php";
-include_once "../includes/models/User.php";
-include_once "../includes/models/Paste.php";
-include_once "../includes/models/Transaction.php";
+include_once __DIR__ . "/check_admin.php";
+include_once __DIR__ . "/../includes/models/User.php";
+include_once __DIR__ . "/../includes/models/Paste.php";
+include_once __DIR__ . "/../includes/models/Transaction.php";
 
 $totalPastes = Paste::countAll();
 $totalUsers  = User::countAll();
@@ -86,3 +86,4 @@ $totalTx     = Transaction::count();    // Загальна кількість �
 
 </body>
 </html>
+

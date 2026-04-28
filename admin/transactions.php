@@ -1,6 +1,6 @@
 <?php
-include_once "check_admin.php";
-include_once "../includes/models/Transaction.php";
+include_once __DIR__ . "/check_admin.php";
+include_once __DIR__ . "/../includes/models/Transaction.php";
 
 // Параметри фільтрації та пагінації
 $allowedTypes = ['', 'topup', 'purchase', 'sale', 'creation_fee'];
@@ -208,3 +208,4 @@ function buildUrl(array $params): string {
 </div>
 </body>
 </html>
+

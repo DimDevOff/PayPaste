@@ -1,15 +1,15 @@
 <?php
-require_once __DIR__ . '/env.php';
+require_once __DIR__ . '/config.php';
 
 class DB {
     private static $instance = null;
     private $pdo;
 
     private function __construct() {
-        $host = getenv('DB_HOST') ?: '127.0.0.1';
-        $db   = getenv('DB_NAME') ?: 'paypaste';
-        $user = getenv('DB_USER') ?: 'root';
-        $pass = getenv('DB_PASS') ?: '';
+        $host = DB_HOST ?: '127.0.0.1';
+        $db   = DB_NAME ?: 'paypaste';
+        $user = DB_USER ?: 'root';
+        $pass = DB_PASS ?: '';
         $charset = 'utf8mb4';
 
         $dsn = "mysql:host=$host;dbname=$db;charset=$charset";
@@ -38,3 +38,5 @@ class DB {
         return $this->pdo;
     }
 }
+
+

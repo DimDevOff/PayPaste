@@ -20,3 +20,7 @@ Thumbs.db
 
 # AI assistants
 .agents/
+
+
+config/config.php
+paypaste.md

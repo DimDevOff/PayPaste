@@ -1,7 +1,7 @@
 <?php
-include_once "check_admin.php";
-include_once "../includes/models/User.php";
-require_once "../includes/csrf.php";
+include_once __DIR__ . "/check_admin.php";
+include_once __DIR__ . "/../includes/models/User.php";
+require_once __DIR__ . "/../includes/csrf.php";
 
 // Параметри фільтрації та пагінації
 $search      = trim($_GET['search'] ?? '');
@@ -199,3 +199,4 @@ if (!function_exists('buildUrl')) {
 
 </body>
 </html>
+
