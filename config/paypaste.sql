@@ -93,3 +93,12 @@ CREATE TABLE IF NOT EXISTS paste_tags (
     FOREIGN KEY (paste_id) REFERENCES pastes(id) ON DELETE CASCADE,
     INDEX idx_tag (tag)
 );
+
+-- 6. Історія лімітів запитів (Rate Limiting)
+CREATE TABLE IF NOT EXISTS rate_limits (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    action_key VARCHAR(255) NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    INDEX idx_action_key (action_key),
+    INDEX idx_created_at (created_at)
+);

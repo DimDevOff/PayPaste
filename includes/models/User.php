@@ -62,7 +62,7 @@ class User {
                 email = VALUES(email),
                 telegram_id = VALUES(telegram_id),
                 github_id = VALUES(github_id),
-                password_hash = VALUES(password_hash),
+                password_hash = IF(VALUES(password_hash) IS NOT NULL AND VALUES(password_hash) != '', VALUES(password_hash), password_hash),
                 nickname = VALUES(nickname),
                 credits = VALUES(credits),
                 role = VALUES(role)
@@ -86,6 +86,13 @@ class User {
             foreach ($toInsert as $pasteId) {
                 $insertStmt->execute([$this->id, $pasteId]);
             }
+        }
+        
+        // Оновлюємо кеш сесії, якщо це поточний користувач
+        if (isset($_SESSION['user_id']) && $_SESSION['user_id'] === $this->id) {
+            $cacheUser = clone $this;
+            $cacheUser->password_hash = null; // Видаляємо хеш перед кешуванням в сесію
+            $_SESSION['_user_cache'] = $cacheUser;
         }
     }
 

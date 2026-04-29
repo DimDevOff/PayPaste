@@ -20,7 +20,14 @@ require_once __DIR__ . '/csrf.php';
  */
 function getCurrentUser() {
     if (isset($_SESSION['user_id'])) {
-        return User::findById($_SESSION['user_id']);
+        if (!isset($_SESSION['_user_cache'])) {
+            $user = User::findById($_SESSION['user_id']);
+            if ($user) {
+                $user->password_hash = null; // Не зберігаємо хеш пароля в сесії для безпеки
+            }
+            $_SESSION['_user_cache'] = $user;
+        }
+        return $_SESSION['_user_cache'];
     }
     return null;
 }
