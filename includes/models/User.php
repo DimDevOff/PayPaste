@@ -199,8 +199,9 @@ class User {
         $params = [];
         
         if ($search !== '') {
-            $sql .= " WHERE email LIKE :search OR nickname LIKE :search";
-            $params[':search'] = '%' . $search . '%';
+            $sql .= " WHERE email LIKE :search_email OR nickname LIKE :search_nickname";
+            $params[':search_email'] = '%' . $search . '%';
+            $params[':search_nickname'] = '%' . $search . '%';
         }
         
         $sql .= " ORDER BY id DESC LIMIT :limit OFFSET :offset";

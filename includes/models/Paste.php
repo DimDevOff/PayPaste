@@ -197,8 +197,9 @@ class Paste {
         $params = [];
 
         if ($search !== '') {
-            $sql .= " AND (title LIKE :search OR content LIKE :search)";
-            $params[':search'] = '%' . $search . '%';
+            $sql .= " AND (title LIKE :search_title OR content LIKE :search_content)";
+            $params[':search_title'] = '%' . $search . '%';
+            $params[':search_content'] = '%' . $search . '%';
         }
 
         $sql .= " ORDER BY created_at DESC LIMIT :limit OFFSET :offset";
