@@ -84,3 +84,12 @@ CREATE TABLE IF NOT EXISTS passkeys (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
+
+-- 5. Теги паст (для швидкого пошуку та фільтрації)
+CREATE TABLE IF NOT EXISTS paste_tags (
+    paste_id VARCHAR(50) NOT NULL,
+    tag VARCHAR(50) NOT NULL,
+    PRIMARY KEY (paste_id, tag),
+    FOREIGN KEY (paste_id) REFERENCES pastes(id) ON DELETE CASCADE,
+    INDEX idx_tag (tag)
+);

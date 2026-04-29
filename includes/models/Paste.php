@@ -74,6 +74,8 @@ class Paste {
             $this->created_at,
             $this->expires_at
         ]);
+        
+        $this->syncTags();
     }
 
     /**
@@ -95,7 +97,105 @@ class Paste {
             $this->expires_at,
             $this->id
         ]);
+        
+        $this->syncTags();
         return true;
+    }
+
+    /**
+     * Статичний метод для генерації стабільного кольору на основі назви тегу.
+     */
+    public static function getTagColor($tag) {
+        $hash = md5($tag);
+        // Беремо перші 6 символів хешу для кольору
+        return '#' . substr($hash, 0, 6);
+    }
+
+    /**
+     * Метод для очищення тексту від тегів #тег.
+     */
+    public static function stripTags($content) {
+        // Вирізаємо #тег і один пробіл після нього (якщо є)
+        return preg_replace('/#[\w\x{0400}-\x{04FF}]+\s?/u', '', $content);
+    }
+
+    /**
+     * Повертає масив тегів пасти, відсортований за глобальною популярністю (кількістю використань на сайті).
+     */
+    public function getTagsByPopularity() {
+        $db = DB::getInstance()->getPDO();
+        $stmt = $db->prepare("
+            SELECT t1.tag 
+            FROM paste_tags t1
+            JOIN (
+                SELECT tag, COUNT(*) as global_count 
+                FROM paste_tags 
+                GROUP BY tag
+            ) t2 ON t1.tag = t2.tag
+            WHERE t1.paste_id = :pid
+            ORDER BY t2.global_count DESC, t1.tag ASC
+        ");
+        $stmt->execute(['pid' => $this->id]);
+        return $stmt->fetchAll(PDO::FETCH_COLUMN);
+    }
+
+    /**
+     * Синхронізація тегів пасти. Парсить теги з контенту та зберігає в БД.
+     */
+    public function syncTags() {
+        $pdo = DB::getInstance()->getPDO();
+        
+        // Знаходимо всі теги у форматі #тег (літери, цифри, підкреслення)
+        // Підтримуємо кирилицю
+        preg_match_all('/#([\w\x{0400}-\x{04FF}]+)/u', $this->content, $matches);
+        $tags = array_unique($matches[1]);
+
+        // Видаляємо старі теги
+        $stmt = $pdo->prepare("DELETE FROM paste_tags WHERE paste_id = ?");
+        $stmt->execute([$this->id]);
+
+        // Додаємо нові теги
+        if (!empty($tags)) {
+            $sql = "INSERT INTO paste_tags (paste_id, tag) VALUES ";
+            $placeholders = [];
+            $values = [];
+            foreach ($tags as $tag) {
+                if (mb_strlen($tag) > 50) $tag = mb_substr($tag, 0, 50);
+                $placeholders[] = "(?, ?)";
+                $values[] = $this->id;
+                $values[] = mb_strtolower($tag);
+            }
+            $sql .= implode(', ', $placeholders);
+            $stmt = $pdo->prepare($sql);
+            $stmt->execute($values);
+        }
+    }
+
+    /**
+     * Отримання списку тегів для пасти.
+     */
+    public function getTags() {
+        $pdo = DB::getInstance()->getPDO();
+        $stmt = $pdo->prepare("SELECT tag FROM paste_tags WHERE paste_id = ?");
+        $stmt->execute([$this->id]);
+        return $stmt->fetchAll(PDO::FETCH_COLUMN);
+    }
+
+    /**
+     * Отримання популярних тегів.
+     */
+    public static function getPopularTags($limit = 10) {
+        $pdo = DB::getInstance()->getPDO();
+        $stmt = $pdo->prepare("
+            SELECT tag, COUNT(*) as count 
+            FROM paste_tags 
+            GROUP BY tag 
+            ORDER BY count DESC 
+            LIMIT :limit
+        ");
+        $stmt->bindValue(':limit', (int)$limit, PDO::PARAM_INT);
+        $stmt->execute();
+        return $stmt->fetchAll();
     }
 
     /**
@@ -123,30 +223,47 @@ class Paste {
      * Отримання списку всіх публічних та активних паст.
      * @param int $limit Максимальна кількість записів
      * @param string $category Категорія паст ('all', 'paid', 'free', 'user', 'anonymous')
+     * @param string $tag Тег для фільтрації
      * @return Paste[]
      */
-    public static function findAllPublic($limit = 20, $category = 'all') {
+    public static function findAllPublic($limit = 20, $category = 'all', $tag = '') {
         $pdo = DB::getInstance()->getPDO();
-        $sql = "SELECT * FROM pastes WHERE is_private = 0 AND (expires_at IS NULL OR expires_at > NOW())";
+        $sql = "SELECT p.* FROM pastes p";
+        
+        if ($tag !== '') {
+            $sql .= " INNER JOIN paste_tags pt ON p.id = pt.paste_id";
+        }
+        
+        $sql .= " WHERE p.is_private = 0 AND (p.expires_at IS NULL OR p.expires_at > NOW())";
+        
+        $params = [];
+        
+        if ($tag !== '') {
+            $sql .= " AND pt.tag = :tag";
+            $params[':tag'] = mb_strtolower($tag);
+        }
         
         switch ($category) {
             case 'paid':
-                $sql .= " AND is_paid = 1";
+                $sql .= " AND p.is_paid = 1";
                 break;
             case 'free':
-                $sql .= " AND is_paid = 0";
+                $sql .= " AND p.is_paid = 0";
                 break;
             case 'user':
-                $sql .= " AND user_id IS NOT NULL";
+                $sql .= " AND p.user_id IS NOT NULL";
                 break;
             case 'anonymous':
-                $sql .= " AND user_id IS NULL";
+                $sql .= " AND p.user_id IS NULL";
                 break;
         }
         
-        $sql .= " ORDER BY created_at DESC LIMIT :limit";
+        $sql .= " ORDER BY p.created_at DESC LIMIT :limit";
         
         $stmt = $pdo->prepare($sql);
+        foreach ($params as $key => $val) {
+            $stmt->bindValue($key, $val);
+        }
         $stmt->bindValue(':limit', (int)$limit, PDO::PARAM_INT);
         $stmt->execute();
         
@@ -174,14 +291,34 @@ class Paste {
     /**
      * Підрахунок загальної кількості паст у системі.
      */
-    public static function countAll($search = '') {
+    public static function countAll($search = '', $tag = '') {
         $pdo = DB::getInstance()->getPDO();
-        if ($search !== '') {
-            $stmt = $pdo->prepare("SELECT COUNT(*) FROM pastes WHERE (expires_at IS NULL OR expires_at > NOW()) AND (title LIKE ? OR content LIKE ?)");
-            $stmt->execute(['%' . $search . '%', '%' . $search . '%']);
-            return $stmt->fetchColumn();
+        $sql = "SELECT COUNT(*) FROM pastes p";
+        
+        if ($tag !== '') {
+            $sql .= " INNER JOIN paste_tags pt ON p.id = pt.paste_id";
         }
-        return $pdo->query("SELECT COUNT(*) FROM pastes WHERE (expires_at IS NULL OR expires_at > NOW())")->fetchColumn();
+        
+        $sql .= " WHERE (p.expires_at IS NULL OR p.expires_at > NOW())";
+        
+        $params = [];
+        if ($search !== '') {
+            $sql .= " AND (p.title LIKE :search OR p.content LIKE :search)";
+            $params[':search'] = '%' . $search . '%';
+        }
+        
+        if ($tag !== '') {
+            $sql .= " AND pt.tag = :tag";
+            $params[':tag'] = mb_strtolower($tag);
+        }
+        
+        if (empty($params)) {
+            return $pdo->query($sql)->fetchColumn();
+        }
+        
+        $stmt = $pdo->prepare($sql);
+        $stmt->execute($params);
+        return $stmt->fetchColumn();
     }
 
     /**

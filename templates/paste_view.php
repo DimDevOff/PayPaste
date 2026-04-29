@@ -71,7 +71,23 @@
                         </button>
                         <span id="copy-msg" style="margin-left: 10px; color: #00ff00; font-weight: bold; display: none; background: #000; padding: 2px 5px; border: 1px solid #00ff00;">СКОПІЙОВАНО! ✅</span>
                     </div>
-                    <textarea id="paste-textarea" class="form-control" rows="20" readonly style="font-family: monospace; background: #fff; cursor: text;"><?= htmlspecialchars($paste->content) ?></textarea>
+                    <textarea id="paste-textarea" class="form-control" rows="20" readonly style="font-family: monospace; background: #fff; cursor: text;"><?= htmlspecialchars(Paste::stripTags($paste->content)) ?></textarea>
+                    
+                    <div style="margin-top: 15px;">
+                        <strong>Теги:</strong>
+                        <?php 
+                            $tags = $paste->getTags();
+                            if ($tags):
+                                foreach ($tags as $t):
+                        ?>
+                            <a href="index.php?tag=<?= urlencode($t) ?>" class="btn btn-xs btn-default" style="margin-right: 5px; background: <?= Paste::getTagColor($t) ?>; color: #fff; border: 1px solid #000; font-family: 'Comic Sans MS', cursive;">#<?= htmlspecialchars($t) ?></a>
+                        <?php 
+                                endforeach;
+                            else:
+                        ?>
+                            <span class="text-muted">теги відсутні...</span>
+                        <?php endif; ?>
+                    </div>
                     
                     <?php
                     // Перевірка чи є прикріплений файл
