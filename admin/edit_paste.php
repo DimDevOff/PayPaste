@@ -94,7 +94,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
                 <div class="form-group">
                     <label>Текст (Content)</label>
-                    <textarea class="form-control" name="content" rows="15" required style="font-family: monospace; background: #fafafa;"><?= htmlspecialchars($paste->content) ?></textarea>
+                    <textarea class="form-control" name="content" rows="15" required style="font-family: monospace;"><?= htmlspecialchars($paste->content) ?></textarea>
                 </div>
 
                 <div class="checkbox">

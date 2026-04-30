@@ -11,7 +11,7 @@ unset($_SESSION['old_input']);
                 <!-- Соціальні мережі -->
                 <div class="row" style="margin-bottom: 20px;">
                     <div class="col-xs-6">
-                        <a href="api/oauth.php?provider=github" class="btn btn-default btn-block" style="border:1px solid #ccc;">
+                        <a href="api/oauth.php?provider=github" class="btn btn-default btn-block" style="border:1px solid var(--border-color);">
                             🐙 GitHub
                         </a>
                     </div>
@@ -22,13 +22,13 @@ unset($_SESSION['old_input']);
                 
                 <!-- Passkey -->
                 <div style="margin-bottom: 15px; display:none;" class="login-only">
-                    <button type="button" id="btn-passkey-login" class="btn btn-warning btn-block passkey-btn" style="font-weight:bold; border: 1px dashed #d58512;" onclick="loginWithPasskey()">
+                    <button type="button" id="btn-passkey-login" class="btn btn-warning btn-block passkey-btn" style="font-weight:bold; border: 1px dashed var(--accent);" onclick="loginWithPasskey()">
                         🔑 Увійти через Passkey
                     </button>
                 </div>
 
                 <div style="margin-bottom: 20px;" class="reg-only">
-                    <button type="button" id="btn-passkey-register" class="btn btn-warning btn-block passkey-btn" style="font-weight:bold; border: 1px dashed #d58512;" onclick="registerPasskey()">
+                    <button type="button" id="btn-passkey-register" class="btn btn-warning btn-block passkey-btn" style="font-weight:bold; border: 1px dashed var(--accent);" onclick="registerPasskey()">
                         🔑 Зареєструватись через Passkey
                     </button>
                 </div>
@@ -36,7 +36,7 @@ unset($_SESSION['old_input']);
                 <div id="passkey-error" class="alert alert-danger" style="display:none; margin-bottom: 15px;"></div>
                 <div id="passkey-success" class="alert alert-success" style="display:none; margin-bottom: 15px;"></div>
 
-                <hr style="border-top: 1px dashed #aaa;">
+                <hr style="border-top: 1px dashed var(--border-color);">
 
                 <form action="login.php" method="POST" id="auth-form">
                     <?= csrf_field() ?>

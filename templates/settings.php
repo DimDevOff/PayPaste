@@ -294,9 +294,9 @@ $myPasskeys = Passkey::findByUserId($_SESSION['user_id']);
             </div>
             <div class="panel-body">
                 <?php if (empty($myPastes)): ?>
-                    <p class="text-center" style="color: #777; font-style: italic; padding: 30px 0;">
+                    <p class="text-center" style="color: var(--text-muted); font-style: italic; padding: 30px 0;">
                         У вас поки що немає жодної пасти... 😢<br>
-                        <a href="index.php" style="color: #ffcc00;">Створити першу пасту!</a>
+                        <a href="index.php" style="color: var(--accent);">Створити першу пасту!</a>
                     </p>
                 <?php else: ?>
                     <div class="table-responsive">
@@ -458,7 +458,7 @@ $myPasskeys = Passkey::findByUserId($_SESSION['user_id']);
 
                             <?php if ($user->github_id): ?>
                                 <div class="col-xs-12" style="margin-bottom: 10px;">
-                                    <a href="api/oauth.php?provider=github&confirm_delete_oauth=1" class="btn btn-default btn-block" style="background: #333; color: #fff; border-color: #555; font-weight: bold;">
+                                    <a href="api/oauth.php?provider=github&confirm_delete_oauth=1" class="btn btn-default btn-block" style="background: var(--bg-secondary); color: var(--text-primary); border-color: var(--border-color); font-weight: bold;">
                                         ПІДТВЕРДИТИ ЧЕРЕЗ GITHUB 🐙
                                     </a>
                                 </div>

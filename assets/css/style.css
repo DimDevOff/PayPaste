@@ -437,10 +437,34 @@ footer {
 }
 
 /* Форми */
-.form-control {
-    background-color: var(--input-bg);
-    color: var(--input-text);
-    border-color: var(--input-border);
+.form-control,
+input[type="text"],
+input[type="number"],
+input[type="password"],
+input[type="email"],
+input[type="file"],
+textarea,
+select {
+    background-color: var(--input-bg) !important;
+    color: var(--input-text) !important;
+    border-color: var(--input-border) !important;
+}
+
+.form-control[readonly],
+.form-control[disabled],
+input[readonly],
+input[disabled],
+textarea[readonly],
+textarea[disabled] {
+    background-color: var(--input-bg) !important;
+    color: var(--input-text) !important;
+    border-color: var(--input-border) !important;
+    opacity: 0.8;
+}
+
+.form-control:focus {
+    border-color: var(--accent) !important;
+    box-shadow: inset 0 1px 1px rgba(0,0,0,.075), 0 0 8px rgba(255, 204, 0, 0.6) !important;
 }
 
 /* Кнопка акценту */
