@@ -4,7 +4,7 @@
         <p>Пасту не знайдено або її вкрали.</p>
     </div>
 <?php elseif($paste->isExpired()): ?>
-    <div class="alert alert-warning text-center" style="border: 3px dashed #ff8800; padding: 30px;">
+    <div class="alert alert-warning text-center" style="border: 3px dashed var(--accent); padding: 30px; background: var(--bg-secondary);">
         <h2>⏰ Ця паста протермінована!</h2>
         <p>Час життя цієї пасти закінчився <strong><?= $paste->expires_at ?></strong>.</p>
         <p class="text-muted">Вона більше недоступна для перегляду.</p>
@@ -18,7 +18,7 @@
                 <span class="pull-right text-muted" style="font-size:12px;">
                     Створено: <?= $paste->created_at ?>
                     <?php if($paste->expires_at): ?>
-                        <br><span style="color:#e67e22;">⏰ Зникне: <?= $paste->expires_at ?></span>
+                        <br><span style="color: var(--accent);">⏰ Зникне: <?= $paste->expires_at ?></span>
                     <?php endif; ?>
                 </span>
             </h3>
@@ -26,7 +26,7 @@
         <div class="panel-body">
 
             <?php if(isset($is_locked) && $is_locked): ?>
-                <div class="alert alert-warning text-center" style="border: 2px dashed red; padding: 30px;">
+                <div class="alert alert-warning text-center" style="border: 2px dashed var(--panel-danger-border); padding: 30px; background: var(--bg-secondary);">
                    <h2>Ця паста платна!</h2>
                    <p>Щоб переглянути її, потрібно заплатити <strong><?= $paste->view_cost ?> кредитів</strong>.</p>
                    <form action="view.php" method="POST" style="margin-top:20px;">
@@ -38,8 +38,8 @@
                 </div>
                 </div>
             <?php elseif(isset($requires_quest) && $requires_quest): ?>
-                <div class="alert alert-info text-center" id="quest-container" style="border: 2px solid #337ab7; padding: 20px; background: #ebf5ff;">
-                    <h3 style="color: #337ab7; margin-top: 0;">🚀 Рекламний Квест!</h3>
+                <div class="alert alert-info text-center" id="quest-container" style="border: 2px solid var(--link-color); padding: 20px; background: var(--bg-secondary);">
+                    <h3 style="color: var(--link-color); margin-top: 0;">🚀 Рекламний Квест!</h3>
                     <p>Для доступу до цієї безкоштовної пасти, ви маєте пройти невеликий квест.</p>
                     <p>Потрібно переглянути 3 реклами від наших партнерів (по 10 секунд кожна).</p>
                     <div id="quest-status" style="margin: 15px 0;">
@@ -50,8 +50,8 @@
                     </button>
                     <div id="quest-timer-container" style="display:none; margin-top:15px;">
                         <p>Зачекайте... <strong id="quest-timer">10</strong> секунд</p>
-                        <div class="progress" style="height: 10px; margin-bottom: 0; background: #ccc;">
-                            <div id="quest-progress-bar" class="progress-bar progress-bar-striped active" role="progressbar" style="width: 0%;"></div>
+                        <div class="progress" style="height: 10px; margin-bottom: 0; background: var(--input-border);">
+                            <div id="quest-progress-bar" class="progress-bar progress-bar-striped active" role="progressbar" style="width: 0%; background-color: var(--accent);"></div>
                         </div>
                     </div>
                     <p class="text-muted" style="margin-top:10px;"><small>* Це допомагає нам тримати сервіс безкоштовним!</small></p>
@@ -66,12 +66,12 @@
                 <div id="paste-content">
 
                     <div style="margin-bottom: 10px;">
-                        <button id="copy-btn" class="btn btn-primary" style="font-weight: bold; border: 2px outset #fff;">
+                        <button id="copy-btn" class="btn btn-primary" style="font-weight: bold; border: 2px outset var(--border-color);">
                             📋 КОПІЮВАТИ
                         </button>
-                        <span id="copy-msg" style="margin-left: 10px; color: #00ff00; font-weight: bold; display: none; background: #000; padding: 2px 5px; border: 1px solid #00ff00;">СКОПІЙОВАНО! ✅</span>
+                        <span id="copy-msg" style="margin-left: 10px; color: var(--accent); font-weight: bold; display: none; background: var(--bg-secondary); padding: 2px 5px; border: 1px solid var(--accent);">СКОПІЙОВАНО! ✅</span>
                     </div>
-                    <textarea id="paste-textarea" class="form-control" rows="20" readonly style="font-family: monospace; background: #fff; cursor: text;"><?= htmlspecialchars(Paste::stripTags($paste->content)) ?></textarea>
+                    <textarea id="paste-textarea" class="form-control" rows="20" readonly style="font-family: monospace; cursor: text;"><?= htmlspecialchars(Paste::stripTags($paste->content)) ?></textarea>
                     
                     <div style="margin-top: 15px;">
                         <strong>Теги:</strong>
@@ -98,10 +98,10 @@
                         $fileUrl = 'api/download.php?id=' . $paste->id;
                         $ext = strtolower(pathinfo($fileName, PATHINFO_EXTENSION));
                     ?>
-                        <div style="margin-top: 15px; padding: 15px; border: 2px dashed #888; background: #f9f9f9;">
+                        <div style="margin-top: 15px; padding: 15px; border: 2px dashed var(--border-color); background: var(--bg-primary);">
                             <h4>📎 Прикріплений файл:</h4>
                             <?php if(in_array($ext, ['jpg', 'jpeg', 'png', 'gif'])): ?>
-                                <img src="<?= $fileUrl ?>" style="max-width: 100%; height: auto; border: 1px solid #ccc;">
+                                <img src="<?= $fileUrl ?>" style="max-width: 100%; height: auto; border: 1px solid var(--border-color);">
                             <?php else: ?>
                                 <a href="<?= $fileUrl ?>" class="btn btn-info" download>⬇️ Завантажити <?= htmlspecialchars($ext) ?> файл</a>
                             <?php endif; ?>

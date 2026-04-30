@@ -4,9 +4,9 @@ unset($_SESSION['old_input']);
 ?>
 <div class="row">
     <div class="col-md-6 col-md-offset-3">
-        <div class="panel panel-primary" style="border: 2px solid #555;">
-            <div class="panel-heading" style="background:#333; border-color:#333;"><h3 class="panel-title text-center" id="auth-title">Створення акаунту</h3></div>
-            <div class="panel-body" style="background: #fdfdfd;">
+        <div class="panel panel-primary">
+            <div class="panel-heading"><h3 class="panel-title text-center" id="auth-title">Створення акаунту</h3></div>
+            <div class="panel-body">
                 
                 <!-- Соціальні мережі -->
                 <div class="row" style="margin-bottom: 20px;">

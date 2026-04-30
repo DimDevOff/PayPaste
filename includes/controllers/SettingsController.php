@@ -24,6 +24,8 @@ class SettingsController {
                 $this->toggleVisibility($_POST['paste_id'] ?? '');
             } elseif ($action === 'unlink_account') {
                 $this->unlinkAccount($_POST['provider'] ?? '');
+            } elseif ($action === 'update_theme') {
+                $this->updateTheme($_POST['theme'] ?? 'retro');
             } elseif ($action === 'delete_account') {
                 $this->deleteAccount();
             }
@@ -129,6 +131,24 @@ class SettingsController {
 
         $user->save();
         $_SESSION['success'] = "Профіль успішно оновлено!";
+        header("Location: settings.php");
+        exit;
+    }
+
+    /*
+    Функція зміни кольорової теми інтерфейсу.
+    Перевіряє чи обрана тема дозволена, зберігає вибір у БД.
+    */
+    private function updateTheme($theme) {
+        $user = User::findById($_SESSION['user_id']);
+        if (!$user) {
+            $_SESSION['error'] = "Користувача не знайдено!";
+            header("Location: settings.php");
+            exit;
+        }
+
+        $user->setTheme($theme);
+        $_SESSION['success'] = "Тему змінено! 🎨";
         header("Location: settings.php");
         exit;
     }

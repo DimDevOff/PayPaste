@@ -1,6 +1,18 @@
 <?php require_once __DIR__ . '/../includes/csrf.php'; ?>
+<?php
+// Визначення кольорової теми користувача
+$_theme = 'retro';
+if (function_exists('getCurrentUser')) {
+    $_themeUser = getCurrentUser();
+    if ($_themeUser && !empty($_themeUser->theme)) {
+        $_theme = $_themeUser->theme;
+    }
+}
+$_allowedThemes = ['retro', 'dark', 'terminal', 'light', 'github-orange', 'retro-green'];
+if (!in_array($_theme, $_allowedThemes)) $_theme = 'retro';
+?>
 <!DOCTYPE html>
-<html lang="uk">
+<html lang="uk" data-theme="<?= htmlspecialchars($_theme) ?>">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -19,7 +31,7 @@
 
     <!-- Вінтажний Bootstrap 3 -->
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
-    <link rel="stylesheet" href="assets/css/style.css">
+    <link rel="stylesheet" href="assets/css/style.css?v=<?= filemtime(__DIR__ . '/../assets/css/style.css') ?>">
     <link rel="icon" href="assets/img/logo.png" type="image/png">
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 </head>
@@ -51,7 +63,7 @@
             <ul class="nav navbar-nav navbar-right">
                 <?php if($currentUser = getCurrentUser()): ?>
                     <li><p class="navbar-text">💰 <?= $currentUser->credits ?> Кредитів</p></li>
-                    <li><a href="credits.php" style="color:#ffcc00; font-weight:bold;" title="Поповнити">➕ Поповнити</a></li>
+                    <li><a href="credits.php" style="color: var(--accent); font-weight:bold;" title="Поповнити">➕ Поповнити</a></li>
                     <li><a href="settings.php" title="Налаштування">👤 <?= htmlspecialchars($currentUser->nickname) ?></a></li>
                     <li>
                         <form action="login.php" method="POST" style="margin: 8px 15px;">

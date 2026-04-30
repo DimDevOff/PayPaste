@@ -15,11 +15,12 @@ class User {
     public $credits;          // Поточний баланс кредитів
     public $unlocked_pastes;  // Масив ID паст, до яких користувач купив доступ
     public $role;             // Роль користувача (user, admin)
+    public $theme;            // Обрана кольорова тема інтерфейсу
 
     /**
      * Конструктор моделі користувача
      */
-    public function __construct($email, $password_hash, $nickname = 'Anon', $credits = 100, $unlocked_pastes = [], $role = 'user', $id = null, $telegram_id = null, $github_id = null) {
+    public function __construct($email, $password_hash, $nickname = 'Anon', $credits = 100, $unlocked_pastes = [], $role = 'user', $id = null, $telegram_id = null, $github_id = null, $theme = 'retro') {
         $this->email = $email;
         $this->password_hash = $password_hash;
         $this->nickname = trim($nickname);
@@ -29,6 +30,7 @@ class User {
         $this->id = $id ?? uniqid('u_');
         $this->telegram_id = $telegram_id;
         $this->github_id = $github_id;
+        $this->theme = $theme;
     }
 
     /**
@@ -47,7 +49,14 @@ class User {
     private static function instantiateFromRow($row) {
         if (!$row) return null;
         $unlocked = self::loadUnlockedPastes($row['id']);
-        return new self($row['email'], $row['password_hash'], $row['nickname'], $row['credits'], $unlocked, $row['role'], $row['id'], $row['telegram_id'], $row['github_id']);
+        
+        $theme = $row['theme'] ?? 'retro';
+        $allowed = ['retro', 'dark', 'terminal', 'light', 'github-orange', 'retro-green'];
+        if (!in_array($theme, $allowed)) {
+            $theme = 'retro';
+        }
+        
+        return new self($row['email'], $row['password_hash'], $row['nickname'], $row['credits'], $unlocked, $row['role'], $row['id'], $row['telegram_id'], $row['github_id'], $theme);
     }
 
     /**
@@ -56,8 +65,8 @@ class User {
     public function save() {
         $pdo = DB::getInstance()->getPDO();
         $stmt = $pdo->prepare("
-            INSERT INTO users (id, email, telegram_id, github_id, password_hash, nickname, credits, role)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+            INSERT INTO users (id, email, telegram_id, github_id, password_hash, nickname, credits, role, theme)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
             ON DUPLICATE KEY UPDATE
                 email = VALUES(email),
                 telegram_id = VALUES(telegram_id),
@@ -65,7 +74,8 @@ class User {
                 password_hash = IF(VALUES(password_hash) IS NOT NULL AND VALUES(password_hash) != '', VALUES(password_hash), password_hash),
                 nickname = VALUES(nickname),
                 credits = VALUES(credits),
-                role = VALUES(role)
+                role = VALUES(role),
+                theme = VALUES(theme)
         ");
         $stmt->execute([
             $this->id,
@@ -75,7 +85,8 @@ class User {
             $this->password_hash,
             $this->nickname,
             $this->credits,
-            $this->role
+            $this->role,
+            $this->theme
         ]);
         
         // Оновлюємо розблоковані пасти
@@ -162,6 +173,18 @@ class User {
         $pdo = DB::getInstance()->getPDO();
         $stmt = $pdo->prepare("DELETE FROM users WHERE id = ?");
         $stmt->execute([$this->id]);
+    }
+
+    /**
+     * Встановлює нову тему для користувача та зберігає в БД
+     */
+    public function setTheme($theme) {
+        $allowed = ['retro', 'dark', 'terminal', 'light', 'github-orange', 'retro-green'];
+        if (!in_array($theme, $allowed)) {
+            $theme = 'retro';
+        }
+        $this->theme = $theme;
+        $this->save();
     }
 
     /**

@@ -1,8 +1,8 @@
 <div class="row">
     <div class="col-md-9">
-        <h2 style="border-bottom: 2px solid #ccc; padding-bottom: 5px;">
+        <h2 style="border-bottom: 2px solid var(--border-color); padding-bottom: 5px;">
             <?php if (isset($_GET['tag'])): ?>
-                Пасти з тегом: <span style="color: #ff0000;">#<?= htmlspecialchars($_GET['tag']) ?></span>
+                Пасти з тегом: <span style="color: var(--accent);">#<?= htmlspecialchars($_GET['tag']) ?></span>
                 <a href="index.php" class="btn btn-xs btn-danger">скинути</a>
             <?php else: ?>
                 Останні пасти
@@ -34,7 +34,7 @@
                    $hidden_tags = array_slice($p_tags, 3);
             ?>
             <div class="list-group-item">
-                <a href="view.php?id=<?= $p->id ?>" style="text-decoration:none; color:inherit; display:block;">
+                <a href="view.php?id=<?= $p->id ?>" style="text-decoration:none; color: var(--text-primary); display:block;">
                     <h4 class="list-group-item-heading" style="word-wrap:break-word; margin-bottom: 2px;"><?= htmlspecialchars($p->title ?: 'Без назви') ?></h4>
                     <p class="list-group-item-text text-muted" style="font-size:11px; margin-bottom: 5px;">
                         <?= $p->created_at ?>
@@ -55,7 +55,7 @@
                     <?php endforeach; ?>
 
                     <?php if($has_more): ?>
-                        <button class="btn btn-xs btn-link toggle-tags" data-target=".hidden-tags-<?= $p->id ?>" style="padding:0; color: #333; text-decoration:none; vertical-align: middle;">
+                        <button class="btn btn-xs btn-link toggle-tags" data-target=".hidden-tags-<?= $p->id ?>" style="padding:0; color: var(--text-primary); text-decoration:none; vertical-align: middle;">
                             <span class="glyphicon glyphicon-chevron-down" style="font-size: 10px;"></span>
                         </button>
                         <div class="hidden-tags-<?= $p->id ?>" style="display:none; margin-top: 5px;">
@@ -85,8 +85,8 @@
     </div>
     
     <div class="col-md-3">
-        <div class="panel panel-default" style="background: #f9f9f9; border: 1px dashed #999;">
-            <div class="panel-heading" style="background: #e9e9e9; font-weight: bold; font-family: 'Comic Sans MS', cursive;">🔥 Популярні теги</div>
+        <div class="panel panel-default">
+            <div class="panel-heading" style="font-weight: bold; font-family: 'Comic Sans MS', cursive;">🔥 Популярні теги</div>
             <div class="panel-body">
                 <?php 
                     $popularTags = Paste::getPopularTags(15);

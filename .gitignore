@@ -20,7 +20,7 @@ Thumbs.db
 
 # AI assistants
 .agents/
-
+.pi-lens
 
 config/config.php
 paypaste.md

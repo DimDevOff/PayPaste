@@ -4,15 +4,14 @@
  * Централізує управління сесіями та загальні підключення.
  */
 
-if (session_status() === PHP_SESSION_NONE) {
-    session_start();
-}
-
-// Загальні підключення
 require_once __DIR__ . '/../config/db.php';
 require_once __DIR__ . '/models/User.php';
 require_once __DIR__ . '/models/Paste.php';
 require_once __DIR__ . '/csrf.php';
+
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
 
 /**
  * Отримати поточного авторизованого користувача.
@@ -20,6 +19,10 @@ require_once __DIR__ . '/csrf.php';
  */
 function getCurrentUser() {
     if (isset($_SESSION['user_id'])) {
+        // Перевірка на __PHP_Incomplete_Class
+        if (isset($_SESSION['_user_cache']) && !($_SESSION['_user_cache'] instanceof User)) {
+            unset($_SESSION['_user_cache']);
+        }
         if (!isset($_SESSION['_user_cache'])) {
             $user = User::findById($_SESSION['user_id']);
             if ($user) {

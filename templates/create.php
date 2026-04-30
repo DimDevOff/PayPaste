@@ -2,14 +2,14 @@
 $old = $_SESSION['old_input'] ?? [];
 unset($_SESSION['old_input']);
 ?>
-<h2 style="border-bottom: 2px solid #ccc; padding-bottom: 5px;">Нова паста</h2>
+<h2 style="border-bottom: 2px solid var(--border-color); padding-bottom: 5px;">Нова паста</h2>
 <form action="create.php" method="POST" enctype="multipart/form-data">
     <?= csrf_field() ?>
     <input type="hidden" name="action" value="create_paste">
     
     <div class="form-group">
         <label>Текст</label>
-        <textarea class="form-control" name="content" rows="15" required style="font-family: monospace; background: #fafafa;"><?= htmlspecialchars($old['content'] ?? '') ?></textarea>
+        <textarea class="form-control" name="content" rows="15" required style="font-family: monospace;"><?= htmlspecialchars($old['content'] ?? '') ?></textarea>
     </div>
     
     <div class="form-group">
@@ -17,7 +17,7 @@ unset($_SESSION['old_input']);
         <input type="text" class="form-control" name="title" placeholder="Без назви" value="<?= htmlspecialchars($old['title'] ?? '') ?>">
     </div>
 
-    <div class="form-group" style="background:#f9f9f9; padding:10px; border:1px solid #ddd;">
+    <div class="form-group block-info">
         <label>📎 Прикріпити файл (до 5 МБ)</label>
         <input type="file" name="attachment" class="form-control" accept="image/png, image/jpeg, image/gif, .pdf, .zip, .txt">
     </div>
@@ -28,7 +28,7 @@ unset($_SESSION['old_input']);
         </label>
     </div>
 
-    <div class="checkbox" style="background:#ffeeee; padding:10px; border:1px dashed red;">
+    <div class="checkbox block-danger">
         <label class="text-danger">
             <input type="checkbox" name="is_paid" id="is_paid" value="1" <?= isset($old['is_paid']) ? 'checked' : '' ?>> <strong>💲 Платна паста</strong>
             <br><small>Увага: Написання пасти коштує 1 кредит за 10 символів вашого тексту. А також ви зможете встановити ціну за перегляд іншими.</small>
@@ -41,7 +41,7 @@ unset($_SESSION['old_input']);
         </div>
     </div>
 
-    <div class="form-group" style="background:#eef5ff; padding:10px; border:1px dashed #337ab7; margin-top:10px;">
+    <div class="form-group block-info" style="margin-top:10px;">
         <label class="text-primary"><strong>⏰ Час життя пасти</strong></label>
         <select class="form-control" name="expires_in">
             <?php 

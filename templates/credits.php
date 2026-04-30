@@ -1,9 +1,9 @@
 <div class="row">
     <div class="col-md-8 col-md-offset-2">
-        <h2 style="border-bottom: 2px solid #ccc; padding-bottom: 5px;">💰 Поповнення балансу кредитів</h2>
+        <h2 style="border-bottom: 2px solid var(--border-color); padding-bottom: 5px;">💰 Поповнення балансу кредитів</h2>
         
         <div class="panel panel-default" style="margin-top: 20px;">
-            <div class="panel-heading" style="background: #f5f5f5;">
+            <div class="panel-heading">
                 <h4 style="margin: 0;">Ваш поточний баланс: <strong class="text-success"><?= $user->credits ?> кредитів</strong></h4>
             </div>
             <div class="panel-body">
@@ -17,7 +17,7 @@
                 <div class="panel panel-info text-center">
                     <div class="panel-heading"><h4 style="margin:0;">🥉 Базовий</h4></div>
                     <div class="panel-body">
-                        <h2 style="color:#337ab7; margin:5px 0;">100 кредитів</h2>
+                        <h2 style="color: var(--accent); margin:5px 0;">100 кредитів</h2>
                         <p class="text-muted" style="font-size:24px; font-weight:bold;">25 ₴</p>
                         <small class="text-muted">або 50 ⭐ Telegram Stars</small>
                     </div>
@@ -30,7 +30,7 @@
                         <span class="label label-danger" style="position:absolute; top:-10px; right:-10px;">Популярний!</span>
                     </div>
                     <div class="panel-body">
-                        <h2 style="color:#3c763d; margin:5px 0;">500 кредитів</h2>
+                        <h2 style="color: var(--accent); margin:5px 0;">500 кредитів</h2>
                         <p class="text-muted" style="font-size:24px; font-weight:bold;">100 ₴</p>
                         <small class="text-muted">або 200 ⭐ Telegram Stars</small>
                     </div>
@@ -40,7 +40,7 @@
                 <div class="panel panel-warning text-center">
                     <div class="panel-heading"><h4 style="margin:0;">🥇 Преміум</h4></div>
                     <div class="panel-body">
-                        <h2 style="color:#8a6d3b; margin:5px 0;">1500 кредитів</h2>
+                        <h2 style="color: var(--accent); margin:5px 0;">1500 кредитів</h2>
                         <p class="text-muted" style="font-size:24px; font-weight:bold;">250 ₴</p>
                         <small class="text-muted">або 500 ⭐ Telegram Stars</small>
                     </div>
@@ -49,14 +49,14 @@
         </div>
 
         <!-- Способи оплати -->
-        <h3 style="border-bottom: 1px solid #ddd; padding-bottom: 10px;">Оберіть спосіб оплати:</h3>
+        <h3 style="border-bottom: 1px solid var(--border-color); padding-bottom: 10px;">Оберіть спосіб оплати:</h3>
 
         <div class="row" style="margin-top: 20px;">
             <!-- Donatello -->
             <div class="col-sm-6">
-                <div class="panel panel-default text-center" style="border: 2px solid #ff6b6b;">
-                    <div class="panel-heading" style="background: #fff0f0;">
-                        <h4 style="margin: 0; color: #e74c3c;">🎁 Donatello</h4>
+                <div class="panel panel-danger text-center" style="border-width: 2px;">
+                    <div class="panel-heading">
+                        <h4 style="margin: 0;">🎁 Donatello</h4>
                     </div>
                     <div class="panel-body">
                         <p>Оплата через сервіс Donatello (картка, Google Pay, Apple Pay)</p>
@@ -70,13 +70,13 @@
 
             <!-- Telegram Stars -->
             <div class="col-sm-6">
-                <div class="panel panel-default text-center" style="border: 2px solid #0088cc;">
-                    <div class="panel-heading" style="background: #e8f4fd;">
-                        <h4 style="margin: 0; color: #0088cc;">⭐ Telegram Stars</h4>
+                <div class="panel panel-info text-center" style="border-width: 2px;">
+                    <div class="panel-heading">
+                        <h4 style="margin: 0;">⭐ Telegram Stars</h4>
                     </div>
                     <div class="panel-body">
                         <p>Миттєва оплата зірками Telegram через бота</p>
-                        <a href="https://t.me/PayPastePayBot?start=<?= $order_id ?>" target="_blank" class="btn btn-primary btn-lg btn-block" id="tg-stars-link" style="font-weight: bold; background: #0088cc; border-color: #0077b5;">
+                        <a href="https://t.me/PayPastePayBot?start=<?= $order_id ?>" target="_blank" class="btn btn-info btn-lg btn-block" id="tg-stars-link" style="font-weight: bold;">
                             ⭐ Оплатити через Telegram Stars
                         </a>
                         <small class="text-muted" style="display:block; margin-top:8px;">Відкриється в новій вкладці</small>
@@ -86,7 +86,7 @@
         </div>
 
         <!-- Інструкція -->
-        <div class="well" style="background: #fffbe6; border: 1px solid #f0d000; margin-top: 20px;">
+        <div class="block-info" style="margin-top: 20px;">
             <h4>📋 Як це працює?</h4>
             <ol>
                 <li>Оберіть спосіб оплати та тариф</li>
@@ -109,13 +109,13 @@
 <!-- Модальне вікно успішної оплати -->
 <div class="modal fade" id="successModal" tabindex="-1" role="dialog">
     <div class="modal-dialog" role="document">
-        <div class="modal-content" style="border: 3px solid #28a745;">
-            <div class="modal-header" style="background: #28a745; color: #fff;">
+        <div class="modal-content">
+            <div class="modal-header">
                 <h4 class="modal-title">✅ Оплата успішно пройдена!</h4>
             </div>
             <div class="modal-body text-center">
-                <h3 style="color: #28a745;">Вітаємо!</h3>
-                <p class="text-success">Ваш баланс поповнено на <strong id="credits-earned">0</strong> кредитів</p>
+                <h3 class="text-success">Вітаємо!</h3>
+                <p>Ваш баланс поповнено на <strong id="credits-earned">0</strong> кредитів</p>
                 <p>Поточний баланс: <strong id="new-balance">0</strong> кредитів</p>
             </div>
             <div class="modal-footer text-center">
@@ -128,22 +128,22 @@
 <!-- Модальне вікно попередження для Donatello -->
 <div class="modal fade" id="donatelloModal" tabindex="-1" role="dialog">
     <div class="modal-dialog" role="document">
-        <div class="modal-content" style="border: 3px solid #e74c3c;">
-            <div class="modal-header" style="background: #e74c3c; color: #fff;">
-                <button type="button" class="close" data-dismiss="modal" style="color:#fff; opacity:1;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" style="color:inherit; opacity:1;">
                     <span>&times;</span>
                 </button>
                 <h4 class="modal-title">⚠️ ВАЖЛИВО! Прочитайте перед оплатою!</h4>
             </div>
             <div class="modal-body">
-                <div class="alert alert-danger" style="border: 2px solid #c0392b; font-size: 15px;">
+                <div class="alert alert-danger" style="font-size: 15px;">
                     <p><strong>🚨 Увага!</strong> При оплаті через Donatello ви <u>ОБОВ'ЯЗКОВО</u> повинні вказати у полі "Повідомлення" ваш код замовлення:</p>
                     <div class="text-center" style="margin: 15px 0;">
-                        <code style="font-size: 22px; padding: 10px 20px; background: #fff3cd; border: 2px dashed #d58512; display: inline-block;" id="order-code-display"><?= $order_id ?></code>
+                        <code style="font-size: 22px; padding: 10px 20px; border: 2px dashed var(--accent); display: inline-block;" id="order-code-display"><?= $order_id ?></code>
                         <br>
                         <button type="button" class="btn btn-xs btn-default" style="margin-top: 8px;" onclick="copyOrderCode()">📋 Скопіювати код</button>
                     </div>
-                    <p style="color: #c0392b; font-weight: bold;">❌ Якщо ви НЕ вкажете цей код — ми не зможемо ідентифікувати ваш платіж, і <span style="text-decoration: underline;">гроші будуть втрачені без можливості повернення!</span></p>
+                    <p style="font-weight: bold;">❌ Якщо ви НЕ вкажете цей код — ми не зможемо ідентифікувати ваш платіж, і <span style="text-decoration: underline;">гроші будуть втрачені без можливості повернення!</span></p>
                 </div>
                 <p class="text-muted text-center">Переконайтесь, що скопіювали код перед переходом на сторінку оплати.</p>
             </div>

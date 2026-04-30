@@ -1,6 +1,6 @@
 </div> <!-- Кінець контейнера -->
 
-<footer class="text-center" style="margin-top: 50px; padding: 20px; background: #222; color: #fff;">
+<footer class="text-center" style="margin-top: 50px; padding: 20px;">
     <p>PayPaste &copy; 1776613860-<?= time() ?> (Unix)</p>
     <p>Зроблено за вимогами курсу "Вебтехнології". Всі права можливо захищені</p>
     <div class="old-school-badges" style="margin-top: 15px; margin-bottom: 15px; opacity: 0.9; image-rendering: pixelated;">
@@ -19,14 +19,14 @@
 
     <!-- РЕКЛАМНІ БАНЕРИ -->
     <div style="margin-top: 20px; display: flex; justify-content: center; gap: 10px; flex-wrap: wrap;">
-        <div class="blink-text" style="background: yellow; color: red; border: 3px dashed black; padding: 10px; font-weight: bold; font-size: 14px; cursor: pointer;">
+        <div class="blink-text" style="background: var(--ad-bg); color: var(--ad-text); border: 3px dashed var(--border-color); padding: 10px; font-weight: bold; font-size: 14px; cursor: pointer;">
             🔥🔥🔥 ТУТ БУДЕ РЕКЛАМА 🔥🔥🔥<br>
             <small>>>> (БЕЗ ВІРУСІВ) <<<</small>
         </div>
-        <div style="background: #0000ff; color: #fff; border: 2px solid white; padding: 10px; font-weight: bold; font-size: 14px;">
+        <div style="background: var(--panel-header-bg); color: var(--panel-header-text); border: 2px solid var(--border-color); padding: 10px; font-weight: bold; font-size: 14px;">
             💎 ТУТ МОГЛА БУТИ ВАША РЕКЛАМА 💎<br>
         </div>
-        <div class="blink-text" style="background: #00ff00; color: #000; border: 3px double #000; padding: 10px; font-weight: bold; font-size: 14px;">
+        <div class="blink-text" style="background: var(--accent); color: var(--accent-text); border: 3px double var(--border-color); padding: 10px; font-weight: bold; font-size: 14px;">
             🤑 РЕКЛАМА 🤑
         </div>
     </div>
@@ -35,5 +35,7 @@
 <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
 <script src="assets/js/app.js"></script>
 <script src="assets/js/passkey.js?v=1.4"></script>
+<script src="assets/js/theme-switch.js?v=1.0"></script>
 </body>
 </html>
+

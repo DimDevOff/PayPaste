@@ -1,35 +1,542 @@
 /*
     PayPaste — Головні стилі
     Підтримка: 320px (мобільні) до 1920px+ (десктоп)
+    Кольорові теми
 */
+
+/* ============================================
+   КОЛЬОРОВІ ТЕМИ — CSS Custom Properties
+   ============================================ */
+
+/* Тема за замовчуванням: Retro (класичний сірий стиль 2000-х) */
+:root,
+[data-theme="retro"] {
+    --bg-primary: #dcdcdc;
+    --bg-secondary: #fdfdfd;
+    --text-primary: #222222;
+    --text-secondary: #333333;
+    --text-muted: #777777;
+    --accent: #ffcc00;
+    --accent-hover: #e6b800;
+    --accent-text: #000000;
+    --border-color: #555555;
+    --panel-header-bg: #333333;
+    --panel-header-text: #ffffff;
+    --panel-body-bg: #fdfdfd;
+    --navbar-bg: #222222;
+    --navbar-text: #9d9d9d;
+    --navbar-link: #ffffff;
+    --footer-bg: #222222;
+    --footer-text: #ffffff;
+    --link-color: #337ab7;
+    --ad-bg: #ffcc00;
+    --ad-border: #ff0000;
+    --ad-text: #ff0000;
+    --btn-accent-bg: #ffcc00;
+    --btn-accent-text: #000000;
+    --btn-accent-border: #ffcc00;
+    --table-header-bg: #eeeeee;
+    --table-header-text: #333333;
+    --input-bg: #ffffff;
+    --input-text: #333333;
+    --input-border: #cccccc;
+    --code-bg: #f5f5f5;
+    --panel-info-bg: #eef5ff;
+    --panel-info-border: #337ab7;
+    --panel-danger-bg: #ffeeee;
+    --panel-danger-border: #ff0000;
+    --success: #2e7d32;
+    --danger: #d32f2f;
+}
+
+
+
+/* Dark — темна тема з фіолетовим акцентом */
+[data-theme="dark"] {
+    --bg-primary: #1a1a1a;
+    --bg-secondary: #2a2a2a;
+    --text-primary: #e0e0e0;
+    --text-secondary: #cccccc;
+    --text-muted: #888888;
+    --accent: #9b59b6;
+    --accent-hover: #8e44ad;
+    --accent-text: #ffffff;
+    --border-color: #444444;
+    --panel-header-bg: #111111;
+    --panel-header-text: #9b59b6;
+    --panel-body-bg: #2a2a2a;
+    --navbar-bg: #111111;
+    --navbar-text: #888888;
+    --navbar-link: #e0e0e0;
+    --footer-bg: #111111;
+    --footer-text: #888888;
+    --link-color: #9b59b6;
+    --ad-bg: #1a0a2a;
+    --ad-border: #9b59b6;
+    --ad-text: #9b59b6;
+    --btn-accent-bg: #9b59b6;
+    --btn-accent-text: #ffffff;
+    --btn-accent-border: #8e44ad;
+    --table-header-bg: #222222;
+    --table-header-text: #cccccc;
+    --input-bg: #333333;
+    --input-text: #e0e0e0;
+    --input-border: #555555;
+    --code-bg: #2a2a2a;
+    --panel-info-bg: #0a1a2a;
+    --panel-info-border: #9b59b6;
+    --panel-danger-bg: #2a0a0a;
+    --panel-danger-border: #ff4444;
+    --success: #2ecc71;
+    --danger: #ff4444;
+}
+
+/* Terminal — хакерський CRT-стиль */
+[data-theme="terminal"] {
+    --bg-primary: #0a0a0a;
+    --bg-secondary: #111111;
+    --text-primary: #00ff00;
+    --text-secondary: #00cc00;
+    --text-muted: #007700;
+    --accent: #00ff00;
+    --accent-hover: #33ff33;
+    --accent-text: #000000;
+    --border-color: #003300;
+    --panel-header-bg: #001a00;
+    --panel-header-text: #00ff00;
+    --panel-body-bg: #0a0a0a;
+    --navbar-bg: #001a00;
+    --navbar-text: #007700;
+    --navbar-link: #00ff00;
+    --footer-bg: #001a00;
+    --footer-text: #007700;
+    --link-color: #33ff33;
+    --ad-bg: #001100;
+    --ad-border: #00ff00;
+    --ad-text: #00ff00;
+    --btn-accent-bg: #00ff00;
+    --btn-accent-text: #000000;
+    --btn-accent-border: #00cc00;
+    --table-header-bg: #001a00;
+    --table-header-text: #00ff00;
+    --input-bg: #111111;
+    --input-text: #00ff00;
+    --input-border: #003300;
+    --code-bg: #0a0a0a;
+    --panel-info-bg: #001100;
+    --panel-info-border: #00ff00;
+    --panel-danger-bg: #1a0000;
+    --panel-danger-border: #ff0000;
+    --success: #00ff00;
+    --danger: #ff0000;
+}
+
+/* Light — чисто-білий мінімалістичний стиль */
+[data-theme="light"] {
+    --bg-primary: #f5f5f5;
+    --bg-secondary: #ffffff;
+    --text-primary: #333333;
+    --text-secondary: #555555;
+    --text-muted: #999999;
+    --accent: #0066cc;
+    --accent-hover: #0052a3;
+    --accent-text: #ffffff;
+    --border-color: #dddddd;
+    --panel-header-bg: #0066cc;
+    --panel-header-text: #ffffff;
+    --panel-body-bg: #ffffff;
+    --navbar-bg: #ffffff;
+    --navbar-text: #666666;
+    --navbar-link: #333333;
+    --footer-bg: #f0f0f0;
+    --footer-text: #666666;
+    --link-color: #0066cc;
+    --ad-bg: #e6f0ff;
+    --ad-border: #0066cc;
+    --ad-text: #0066cc;
+    --btn-accent-bg: #0066cc;
+    --btn-accent-text: #ffffff;
+    --btn-accent-border: #0052a3;
+    --table-header-bg: #f0f5ff;
+    --table-header-text: #333333;
+    --input-bg: #ffffff;
+    --input-text: #333333;
+    --input-border: #cccccc;
+    --code-bg: #f8f8f8;
+    --panel-info-bg: #e6f0ff;
+    --panel-info-border: #0066cc;
+    --panel-danger-bg: #fff0f0;
+    --panel-danger-border: #ff4444;
+    --success: #2e7d32;
+    --danger: #d32f2f;
+}
+
+/* GitHub Orange Dark — темна тема з помаранчевим акцентом */
+[data-theme="github-orange"] {
+    --bg-primary: #0d0d0d;
+    --bg-secondary: #1b1b1b;
+    --text-primary: #e0e0e0;
+    --text-secondary: #c6c6c6;
+    --text-muted: #777777;
+    --accent: #FF9000;
+    --accent-hover: #e68200;
+    --accent-text: #000000;
+    --border-color: #333333;
+    --panel-header-bg: #000000;
+    --panel-header-text: #FF9000;
+    --panel-body-bg: #1b1b1b;
+    --navbar-bg: #000000;
+    --navbar-text: #999999;
+    --navbar-link: #e0e0e0;
+    --footer-bg: #000000;
+    --footer-text: #999999;
+    --link-color: #FF9000;
+    --ad-bg: #1a0d00;
+    --ad-border: #FF9000;
+    --ad-text: #FF9000;
+    --btn-accent-bg: #FF9000;
+    --btn-accent-text: #000000;
+    --btn-accent-border: #e68200;
+    --table-header-bg: #1a1a1a;
+    --table-header-text: #c6c6c6;
+    --input-bg: #2a2a2a;
+    --input-text: #e0e0e0;
+    --input-border: #444444;
+    --code-bg: #1b1b1b;
+    --panel-info-bg: #1a0d00;
+    --panel-info-border: #FF9000;
+    --panel-danger-bg: #1a0000;
+    --panel-danger-border: #ff4444;
+    --success: #2ea44f;
+    --danger: #f85149;
+}
+
+/* Retro Green — зелена ретро-тема */
+[data-theme="retro-green"] {
+    --bg-primary: #acd68e;
+    --bg-secondary: #c8e6b0;
+    --text-primary: #1a3300;
+    --text-secondary: #2a4400;
+    --text-muted: #556b3e;
+    --accent: #4a8c1c;
+    --accent-hover: #3d7416;
+    --accent-text: #ffffff;
+    --border-color: #6b8f4a;
+    --panel-header-bg: #2a5a00;
+    --panel-header-text: #e0f5d0;
+    --panel-body-bg: #d4ecc0;
+    --navbar-bg: #2a5a00;
+    --navbar-text: #a0d080;
+    --navbar-link: #e0f5d0;
+    --footer-bg: #2a5a00;
+    --footer-text: #a0d080;
+    --link-color: #1a6b00;
+    --ad-bg: #b8e89a;
+    --ad-border: #4a8c1c;
+    --ad-text: #2a5a00;
+    --btn-accent-bg: #4a8c1c;
+    --btn-accent-text: #ffffff;
+    --btn-accent-border: #3d7416;
+    --table-header-bg: #bfe0a0;
+    --table-header-text: #1a3300;
+    --input-bg: #e0f5d0;
+    --input-text: #1a3300;
+    --input-border: #8cb870;
+    --code-bg: #c8e6b0;
+    --panel-info-bg: #d0f0c0;
+    --panel-info-border: #2a5a00;
+    --panel-danger-bg: #f0d0d0;
+    --panel-danger-border: #a00000;
+    --success: #2a5a00;
+    --danger: #a00000;
+}
+
+/* ============================================
+   БАЗОВІ СТИЛІ (використовують CSS-змінні)
+   ============================================ */
+
 body {
-    background-color: #dcdcdc; 
+    background-color: var(--bg-primary); 
+    color: var(--text-primary);
     font-family: Tahoma, "Trebuchet MS", sans-serif;
     display: flex;
     flex-direction: column;
     min-height: 100vh;
     margin: 0;
+    transition: background-color 0.3s ease, color 0.3s ease;
 }
 
 /* 
    Рекламний банер
 */
 .ad-banner {
-    background: #ffcc00;
-    border: 3px dashed #ff0000;
+    background: var(--ad-bg);
+    border: 3px dashed var(--ad-border);
     padding: 15px;
     font-weight: bold;
     font-size: 1.2em;
     overflow: hidden;
+    transition: background 0.3s ease, border-color 0.3s ease;
 }
 
 .ad-banner a {
-    color: #ff0000;
+    color: var(--ad-text);
     text-decoration: none;
 }
 
 .ad-banner a:hover {
     text-decoration: underline;
+}
+
+/* Перевизначення Bootstrap-панелей для підтримки тем */
+.panel-default > .panel-heading,
+.panel-primary > .panel-heading,
+.panel-info > .panel-heading {
+    background-color: var(--panel-header-bg) !important;
+    border-color: var(--panel-header-bg) !important;
+    color: var(--panel-header-text) !important;
+}
+
+.panel-body {
+    background-color: var(--panel-body-bg) !important;
+    color: var(--text-primary) !important;
+}
+
+/* Панелі та Списки */
+.panel-default,
+.panel-primary,
+.panel-info,
+.panel-success,
+.panel-warning,
+.panel-danger {
+    background-color: var(--bg-secondary) !important;
+    border: 2px solid var(--border-color) !important;
+}
+
+.panel-body {
+    background-color: var(--bg-secondary) !important;
+    color: var(--text-primary) !important;
+}
+
+.list-group .list-group-item {
+    background-color: var(--bg-secondary) !important;
+    color: var(--text-primary) !important;
+    border: 1px solid var(--border-color) !important;
+    margin-bottom: 0;
+}
+
+.list-group .list-group-item:hover {
+    background-color: var(--bg-primary) !important;
+}
+
+.list-group-item-heading {
+    color: var(--text-primary) !important;
+}
+
+.list-group-item-text {
+    color: var(--text-muted) !important;
+}
+
+/* Кнопки */
+.btn-default {
+    background-color: var(--bg-secondary) !important;
+    color: var(--text-primary) !important;
+    border: 1px solid var(--border-color) !important;
+}
+
+.btn-default:hover,
+.btn-default:focus,
+.btn-default:active,
+.btn-default.active {
+    background-color: var(--accent) !important;
+    color: var(--accent-text) !important;
+    border-color: var(--accent) !important;
+}
+
+.btn-default:hover, .btn-default:focus, .btn-default.active {
+    background-color: var(--accent) !important;
+    color: var(--accent-text) !important;
+    border-color: var(--accent) !important;
+}
+
+/* Спеціальні блоки */
+.block-info {
+    background-color: var(--panel-info-bg) !important;
+    border: 1px dashed var(--panel-info-border) !important;
+    padding: 10px;
+    margin-bottom: 15px;
+    color: var(--text-primary);
+}
+
+.block-danger {
+    background-color: var(--panel-danger-bg) !important;
+    border: 1px dashed var(--panel-danger-border) !important;
+    padding: 10px;
+    margin-bottom: 15px;
+    color: var(--text-primary);
+}
+
+/* Кнопки загальні */
+.btn-primary, .btn-success, .btn-info, .btn-danger {
+    border-width: 2px !important;
+}
+
+.btn-danger {
+    background-color: var(--panel-danger-bg) !important;
+    color: var(--text-primary) !important;
+    border-color: var(--panel-danger-border) !important;
+}
+
+.btn-success {
+    background-color: var(--bg-secondary) !important;
+    color: var(--text-primary) !important;
+    border-color: #5cb85c !important; /* Тримаємо зелений, але адаптуємо */
+}
+
+/* Пагінація */
+.pagination > li > a,
+.pagination > li > span {
+    background-color: var(--bg-secondary) !important;
+    color: var(--text-primary) !important;
+    border: 1px solid var(--border-color) !important;
+}
+
+.pagination > li > a:hover {
+    background-color: var(--bg-primary) !important;
+}
+
+.pagination > .active > a,
+.pagination > .active > span {
+    background-color: var(--accent) !important;
+    color: var(--accent-text) !important;
+    border-color: var(--accent) !important;
+}
+
+/* Перевизначення навбара для підтримки тем */
+.navbar-inverse {
+    background-color: var(--navbar-bg) !important;
+    border-color: var(--navbar-bg) !important;
+}
+
+.navbar-inverse .navbar-nav > li > a {
+    color: var(--navbar-link) !important;
+}
+
+.navbar-inverse .navbar-text {
+    color: var(--navbar-text) !important;
+}
+
+.navbar-inverse .navbar-brand {
+    color: var(--accent) !important;
+}
+
+/* Футер */
+footer {
+    background-color: var(--footer-bg) !important;
+    color: var(--footer-text) !important;
+}
+
+/* Форми */
+.form-control {
+    background-color: var(--input-bg);
+    color: var(--input-text);
+    border-color: var(--input-border);
+}
+
+/* Кнопка акценту */
+.btn-warning {
+    background-color: var(--btn-accent-bg) !important;
+    color: var(--btn-accent-text) !important;
+    border-color: var(--btn-accent-border) !important;
+}
+
+/* Посилання */
+a {
+    color: var(--link-color);
+}
+
+/* Таблиці */
+.table > thead > tr {
+    background-color: var(--table-header-bg) !important;
+    color: var(--table-header-text) !important;
+}
+
+/* Текстові статуси — адаптація */
+.text-success { color: var(--success) !important; }
+.text-danger { color: var(--danger) !important; }
+.text-info { color: var(--link-color) !important; }
+.text-warning { color: var(--accent) !important; }
+
+/* Алерті Bootstrap — адаптація під теми */
+.alert-success {
+    background-color: var(--panel-info-bg) !important;
+    color: var(--accent) !important;
+    border-color: var(--accent) !important;
+}
+
+.alert-info {
+    background-color: var(--panel-info-bg) !important;
+    color: var(--link-color) !important;
+    border-color: var(--link-color) !important;
+}
+
+.alert-warning {
+    background-color: var(--bg-secondary) !important;
+    color: var(--accent) !important;
+    border-color: var(--accent) !important;
+}
+
+.alert-danger {
+    background-color: var(--panel-danger-bg) !important;
+    color: var(--panel-danger-border) !important;
+    border-color: var(--panel-danger-border) !important;
+}
+
+/* Інформаційні блоки */
+.block-info {
+    background-color: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    padding: 15px;
+    margin-bottom: 20px;
+}
+
+.block-info h4 {
+    margin-top: 0;
+    color: var(--accent);
+}
+
+
+/* Плавний перехід між темами */
+.navbar-inverse,
+.panel-default > .panel-heading,
+.panel-body,
+.modal-content,
+footer,
+.ad-banner,
+.form-control {
+    transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+}
+
+/* Модальні вікна */
+.modal-content {
+    background-color: var(--bg-secondary) !important;
+    color: var(--text-primary) !important;
+    border: 3px solid var(--border-color) !important;
+}
+
+.modal-header {
+    border-bottom: 2px solid var(--border-color) !important;
+    background-color: var(--panel-header-bg) !important;
+}
+
+.modal-footer {
+    border-top: 2px solid var(--border-color) !important;
+}
+
+code {
+    background-color: var(--input-bg) !important;
+    color: var(--accent) !important;
+    border: 1px solid var(--border-color);
 }
 
 /* 
@@ -87,6 +594,13 @@ textarea {
 .old-school-badges img {
     display: block;
 }
+
+/* Глобальні утиліти для тексту (адаптивні) */
+.text-primary { color: var(--link-color) !important; }
+.text-success { color: var(--success) !important; }
+.text-danger { color: var(--danger) !important; }
+.text-warning { color: var(--accent) !important; }
+.text-muted { color: var(--text-muted) !important; }
 
 /*
    Мобільна адаптація — < 768px
