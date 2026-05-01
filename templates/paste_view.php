@@ -45,9 +45,9 @@
                     <div id="quest-status" style="margin: 15px 0;">
                         <strong>Прогрес: <span id="ads-count"><?= $_SESSION['ads_watched'] ?? 0 ?></span> / 3</strong>
                     </div>
-                    <button id="start-quest-btn" data-url="<?= ADSTERRA_SMARTLINK_URL ?>" class="btn btn-primary btn-lg blink-text" style="font-weight:bold;">
+                    <a href="<?= ADSTERRA_SMARTLINK_URL ?>" target="_blank" id="start-quest-btn" class="btn btn-primary btn-lg blink-text" style="font-weight:bold; display: inline-block; text-decoration: none;">
                         📺 ПЕРЕГЛЯНУТИ РЕКЛАМУ (10 сек)
-                    </button>
+                    </a>
                     <div id="quest-timer-container" style="display:none; margin-top:15px;">
                         <p>Зачекайте... <strong id="quest-timer">10</strong> секунд</p>
                         <div class="progress" style="height: 10px; margin-bottom: 0; background: var(--input-border);">
