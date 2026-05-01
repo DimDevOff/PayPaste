@@ -17,19 +17,25 @@
         <a title="Anti-Spam Protected" href="#"><img src="https://img.shields.io/badge/Anti--Spam-Protected-red?style=plastic" alt="AntiSpam" height="31" width="88" style="border:0; margin: 2px;"></a>
     </div>
 
-    <!-- РЕКЛАМНІ БАНЕРИ -->
-    <div style="margin-top: 20px; display: flex; justify-content: center; gap: 10px; flex-wrap: wrap;">
-        <div class="blink-text" style="background: var(--ad-bg); color: var(--ad-text); border: 3px dashed var(--border-color); padding: 10px; font-weight: bold; font-size: 14px; cursor: pointer;">
-            🔥🔥🔥 ТУТ БУДЕ РЕКЛАМА 🔥🔥🔥<br>
-            <small>>>> (БЕЗ ВІРУСІВ) <<<</small>
-        </div>
-        <div style="background: var(--panel-header-bg); color: var(--panel-header-text); border: 2px solid var(--border-color); padding: 10px; font-weight: bold; font-size: 14px;">
-            💎 ТУТ МОГЛА БУТИ ВАША РЕКЛАМА 💎<br>
-        </div>
-        <div class="blink-text" style="background: var(--accent); color: var(--accent-text); border: 3px double var(--border-color); padding: 10px; font-weight: bold; font-size: 14px;">
-            🤑 РЕКЛАМА 🤑
+    <!-- Adsterra: Рекламні блоки -->
+    <div style="margin-top: 20px; display: flex; justify-content: center; gap: 10px; flex-wrap: wrap; align-items: center;">
+        <!-- Banner 300×250 -->
+        <div style="overflow: hidden;">
+            <script>
+                atOptions = {
+                    'key' : '<?= ADSTERRA_300x250_KEY ?>',
+                    'format' : 'iframe',
+                    'height' : 250,
+                    'width' : 300,
+                    'params' : {}
+                };
+            </script>
+            <script src="<?= ADSTERRA_INVOKE_BASE_URL ?>/<?= ADSTERRA_300x250_KEY ?>/invoke.js"></script>
         </div>
     </div>
+
+    <!-- Adsterra: Popunder (глобально) -->
+    <script src="<?= ADSTERRA_POPUNDER_URL ?>"></script>
 </footer>
 
 <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>

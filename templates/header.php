@@ -34,6 +34,9 @@ if (!in_array($_theme, $_allowedThemes)) $_theme = 'retro';
     <link rel="stylesheet" href="assets/css/style.css?v=<?= filemtime(__DIR__ . '/../assets/css/style.css') ?>">
     <link rel="icon" href="assets/img/logo.png" type="image/png">
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+    <!-- Adsterra: Social Bar (глобально, всі сторінки) -->
+    <script src="<?= ADSTERRA_SOCIAL_BAR_URL ?>"></script>
 </head>
 <body>
 
@@ -82,9 +85,18 @@ if (!in_array($_theme, $_allowedThemes)) $_theme = 'retro';
 </nav>
 
 <div class="container main-content">
-    <!-- Рекламний банер -->
-    <div class="ad-banner text-center blink-text" style="margin-bottom: 20px;">
-        <a href="#">🔥 ТУТ МОЖЕ БУТИ ВАША РЕАЛАМА 🔥 </a>
+    <!-- Adsterra: Banner 320×50 (мобільний лідербord) -->
+    <div class="text-center" style="margin-bottom: 20px; overflow: hidden;">
+        <script>
+            atOptions = {
+                'key' : '<?= ADSTERRA_320x50_KEY ?>',
+                'format' : 'iframe',
+                'height' : 50,
+                'width' : 320,
+                'params' : {}
+            };
+        </script>
+        <script src="<?= ADSTERRA_INVOKE_BASE_URL ?>/<?= ADSTERRA_320x50_KEY ?>/invoke.js"></script>
     </div>
 
     <?php if(isset($_SESSION['error'])): ?>

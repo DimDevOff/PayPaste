@@ -72,6 +72,20 @@
                         <span id="copy-msg" style="margin-left: 10px; color: var(--accent); font-weight: bold; display: none; background: var(--bg-secondary); padding: 2px 5px; border: 1px solid var(--accent);">СКОПІЙОВАНО! ✅</span>
                     </div>
                     <textarea id="paste-textarea" class="form-control" rows="20" readonly style="font-family: monospace; cursor: text;"><?= htmlspecialchars(Paste::stripTags($paste->content)) ?></textarea>
+
+                    <!-- Adsterra: Banner 300×250 (після контенту) -->
+                    <div class="text-center" style="margin-top: 20px; overflow: hidden;">
+                        <script>
+                            atOptions = {
+                                'key' : '<?= ADSTERRA_300x250_KEY ?>',
+                                'format' : 'iframe',
+                                'height' : 250,
+                                'width' : 300,
+                                'params' : {}
+                            };
+                        </script>
+                        <script src="<?= ADSTERRA_INVOKE_BASE_URL ?>/<?= ADSTERRA_300x250_KEY ?>/invoke.js"></script>
+                    </div>
                     
                     <div style="margin-top: 15px;">
                         <strong>Теги:</strong>
