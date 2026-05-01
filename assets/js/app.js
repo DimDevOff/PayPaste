@@ -56,6 +56,12 @@ $(document).ready(function() {
     const $btn = $('#start-quest-btn');
     if ($btn.length > 0) {
         $btn.on('click', function() {
+            // Відкриваємо SmartLink у новому вікні
+            const url = $(this).data('url');
+            if (url) {
+                window.open(url, '_blank');
+            }
+
             $(this).hide();
             $('#quest-timer-container').show();
             

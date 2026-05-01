@@ -107,19 +107,21 @@
     </div>
 
     <!-- Adsterra: Banner 160×300 (бокова панель) -->
-    <div class="panel panel-default" style="overflow: hidden;">
-        <div class="panel-heading" style="font-weight: bold; font-family: 'Comic Sans MS', cursive;">💰 Реклама</div>
-        <div class="panel-body text-center" style="padding: 5px;">
-            <script>
-                atOptions = {
-                    'key' : '<?= ADSTERRA_160x300_KEY ?>',
-                    'format' : 'iframe',
-                    'height' : 300,
-                    'width' : 160,
-                    'params' : {}
-                };
-            </script>
-            <script src="<?= ADSTERRA_INVOKE_BASE_URL ?>/<?= ADSTERRA_160x300_KEY ?>/invoke.js"></script>
+    <div class="text-center">
+        <div class="panel panel-default" style="overflow: hidden; display: inline-block; width: 172px;">
+            <div class="panel-heading" style="font-weight: bold; font-family: 'Comic Sans MS', cursive; font-size: 11px; padding: 5px;">💰 Реклама</div>
+            <div class="panel-body text-center" style="padding: 5px;">
+                <script>
+                    atOptions = {
+                        'key' : '<?= ADSTERRA_160x300_KEY ?>',
+                        'format' : 'iframe',
+                        'height' : 300,
+                        'width' : 160,
+                        'params' : {}
+                    };
+                </script>
+                <script src="<?= ADSTERRA_INVOKE_BASE_URL ?>/<?= ADSTERRA_160x300_KEY ?>/invoke.js"></script>
+            </div>
         </div>
     </div>
 </div>
