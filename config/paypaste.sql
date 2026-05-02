@@ -12,6 +12,7 @@ CREATE TABLE IF NOT EXISTS users (
     password_hash VARCHAR(255) NOT NULL,
     role ENUM('user', 'admin') DEFAULT 'user',
     theme VARCHAR(20) NOT NULL DEFAULT 'retro',
+    api_key VARCHAR(64) UNIQUE NULL,
     credits INT DEFAULT 100,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );

@@ -393,6 +393,64 @@ $myPasskeys = Passkey::findByUserId($_SESSION['user_id']);
     </div>
 </div>
 
+<!-- Секція API налаштувань -->
+<div class="row" style="margin-top: 30px;">
+    <div class="col-md-6 col-md-offset-3">
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                <h3 class="panel-title text-center" style="font-family: Tahoma, sans-serif; font-weight: bold; letter-spacing: 1px;">[ 📡 API НАЛАШТУВАННЯ ]</h3>
+            </div>
+            <div class="panel-body">
+                <p class="text-muted" style="font-size: 0.9em; margin-bottom: 15px;">
+                    Використовуйте цей ключ для автоматизації роботи з пастами через REST API. 
+                    <b>Нікому не показуйте цей ключ!</b>
+                </p>
+
+                <div class="form-group">
+                    <label>Ваш API Ключ:</label>
+                    <div class="input-group">
+                        <input type="text" class="form-control" id="apiKeyInput" value="<?= $user->api_key ? htmlspecialchars($user->api_key) : 'Ключ ще не згенеровано' ?>" readonly style="font-family: monospace; background: var(--bg-secondary); color: var(--text-primary);">
+                        <span class="input-group-btn">
+                            <button class="btn btn-default" type="button" onclick="copyApiKey()" title="Копіювати">
+                                <i class="glyphicon glyphicon-copy"></i>
+                            </button>
+                        </span>
+                    </div>
+                </div>
+
+                <form action="settings.php" method="POST" onsubmit="return confirm('Ви впевнені? Старий ключ перестане працювати!');">
+                    <?= csrf_field() ?>
+                    <input type="hidden" name="action" value="generate_api_key">
+                    <button type="submit" class="btn btn-warning btn-block" style="font-weight: bold;">
+                        <?= $user->api_key ? '🔄 Перегенерувати ключ' : '➕ Згенерувати API ключ' ?>
+                    </button>
+                </form>
+
+                <div style="margin-top: 20px; border-top: 1px dashed var(--border-color); padding-top: 15px;">
+                    <h5 style="font-weight: bold; text-transform: uppercase;">Документація API:</h5>
+                    <ul style="font-size: 0.85em; color: var(--text-muted); padding-left: 20px;">
+                        <li><code>POST /api/auth/token</code> — Отримати JWT за API ключем</li>
+                        <li><code>GET /api/pastes/{id}</code> — Перегляд пасти</li>
+                        <li><code>POST /api/pastes</code> — Створення пасти</li>
+                        <li><code>DELETE /api/pastes/{id}</code> — Видалення пасти</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function copyApiKey() {
+    var copyText = document.getElementById("apiKeyInput");
+    if (copyText.value === 'Ключ ще не згенеровано') return;
+    copyText.select();
+    copyText.setSelectionRange(0, 99999);
+    navigator.clipboard.writeText(copyText.value);
+    alert("Ключ скопійовано!");
+}
+</script>
+
 <!-- Секція НЕБЕЗПЕЧНА ЗОНА (Видалення акаунта) -->
 <div class="row" style="margin-top: 50px; margin-bottom: 50px;">
     <div class="col-md-6 col-md-offset-3">

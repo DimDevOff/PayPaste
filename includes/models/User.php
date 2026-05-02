@@ -16,11 +16,12 @@ class User {
     public $unlocked_pastes;  // Масив ID паст, до яких користувач купив доступ
     public $role;             // Роль користувача (user, admin)
     public $theme;            // Обрана кольорова тема інтерфейсу
+    public $api_key;          // Ключ для доступу до API
 
     /**
      * Конструктор моделі користувача
      */
-    public function __construct($email, $password_hash, $nickname = 'Anon', $credits = 100, $unlocked_pastes = [], $role = 'user', $id = null, $telegram_id = null, $github_id = null, $theme = 'retro') {
+    public function __construct($email, $password_hash, $nickname = 'Anon', $credits = 100, $unlocked_pastes = [], $role = 'user', $id = null, $telegram_id = null, $github_id = null, $theme = 'retro', $api_key = null) {
         $this->email = $email;
         $this->password_hash = $password_hash;
         $this->nickname = trim($nickname);
@@ -31,6 +32,7 @@ class User {
         $this->telegram_id = $telegram_id;
         $this->github_id = $github_id;
         $this->theme = $theme;
+        $this->api_key = $api_key;
     }
 
     /**
@@ -56,7 +58,7 @@ class User {
             $theme = 'retro';
         }
         
-        return new self($row['email'], $row['password_hash'], $row['nickname'], $row['credits'], $unlocked, $row['role'], $row['id'], $row['telegram_id'], $row['github_id'], $theme);
+        return new self($row['email'], $row['password_hash'], $row['nickname'], $row['credits'], $unlocked, $row['role'], $row['id'], $row['telegram_id'], $row['github_id'], $theme, $row['api_key'] ?? null);
     }
 
     /**
@@ -65,8 +67,8 @@ class User {
     public function save() {
         $pdo = DB::getInstance()->getPDO();
         $stmt = $pdo->prepare("
-            INSERT INTO users (id, email, telegram_id, github_id, password_hash, nickname, credits, role, theme)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+            INSERT INTO users (id, email, telegram_id, github_id, password_hash, nickname, credits, role, theme, api_key)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             ON DUPLICATE KEY UPDATE
                 email = VALUES(email),
                 telegram_id = VALUES(telegram_id),
@@ -75,7 +77,8 @@ class User {
                 nickname = VALUES(nickname),
                 credits = VALUES(credits),
                 role = VALUES(role),
-                theme = VALUES(theme)
+                theme = VALUES(theme),
+                api_key = VALUES(api_key)
         ");
         $stmt->execute([
             $this->id,
@@ -86,7 +89,8 @@ class User {
             $this->nickname,
             $this->credits,
             $this->role,
-            $this->theme
+            $this->theme,
+            $this->api_key
         ]);
         
         // Оновлюємо розблоковані пасти
@@ -253,5 +257,25 @@ class User {
         $pdo = DB::getInstance()->getPDO();
         $stmt = $pdo->prepare("DELETE FROM users WHERE id = ?");
         $stmt->execute([$id]);
+    }
+
+    /**
+     * Генерує новий API-ключ для користувача
+     */
+    public function generateApiKey() {
+        $this->api_key = 'pp_' . bin2hex(random_bytes(24));
+        $this->save();
+        return $this->api_key;
+    }
+
+    /**
+     * Пошук користувача за API-ключем
+     */
+    public static function findByApiKey($api_key) {
+        if (!$api_key) return null;
+        $pdo = DB::getInstance()->getPDO();
+        $stmt = $pdo->prepare("SELECT * FROM users WHERE api_key = ?");
+        $stmt->execute([$api_key]);
+        return self::instantiateFromRow($stmt->fetch());
     }
 }

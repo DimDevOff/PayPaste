@@ -28,6 +28,8 @@ class SettingsController {
                 $this->updateTheme($_POST['theme'] ?? 'retro');
             } elseif ($action === 'delete_account') {
                 $this->deleteAccount();
+            } elseif ($action === 'generate_api_key') {
+                $this->generateApiKey();
             }
         }
     }
@@ -213,5 +215,18 @@ class SettingsController {
             header("Location: settings.php");
             exit;
         }
+    }
+
+    /**
+     * Генерує новий API-ключ для користувача
+     */
+    private function generateApiKey() {
+        $user = User::findById($_SESSION['user_id']);
+        if (!$user) return;
+
+        $key = $user->generateApiKey();
+        $_SESSION['success'] = "Новий API-ключ згенеровано! Збережіть його в надійному місці.";
+        header("Location: settings.php");
+        exit;
     }
 }

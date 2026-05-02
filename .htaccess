@@ -1,0 +1,21 @@
+Options -Indexes
+
+RewriteEngine On
+
+# API Auth Token
+RewriteRule ^api/auth/token$ api/auth_token.php [L]
+
+# API Pastes CRUD
+# GET /api/pastes/p_123 -> api/pastes.php?id=p_123
+# DELETE /api/pastes/p_123 -> api/pastes.php?id=p_123
+RewriteRule ^api/pastes/([a-zA-Z0-9_]+)$ api/pastes.php?id=$1 [QSA,L]
+
+# POST /api/pastes -> api/pastes.php
+RewriteRule ^api/pastes/?$ api/pastes.php [L]
+
+# Заборона перегляду папок
+<IfModule mod_rewrite.c>
+    RewriteRule ^data/ - [F,L]
+    RewriteRule ^includes/ - [F,L]
+    RewriteRule ^templates/ - [F,L]
+</IfModule>

@@ -105,4 +105,21 @@ class Transaction {
         }
         return (int) $stmt->fetchColumn();
     }
+
+    /**
+     * Статичний хелпер для швидкого створення транзакції
+     */
+    public static function create($user_id, $amount, $type, $service = null, $paste_id = null, $order_id = null, $description = null) {
+        $t = new self([
+            'user_id' => $user_id,
+            'amount' => $amount,
+            'type' => $type,
+            'service' => $service,
+            'related_paste_id' => $paste_id,
+            'related_order_id' => $order_id,
+            'description' => $description
+        ]);
+        $t->save();
+        return $t;
+    }
 }
