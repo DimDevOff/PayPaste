@@ -370,7 +370,7 @@ $myPasskeys = Passkey::findByUserId($_SESSION['user_id']);
                                                 </form>
                                             <?php endif; ?>
                                             <!-- Видалення -->
-                                            <form action="settings.php" method="POST" style="display: inline-block; margin: 2px;" onsubmit="return confirm('Точно видалити пасту &quot;<?= htmlspecialchars($paste->title) ?>&quot;? Це незворотна дія!');">
+                                            <form action="settings.php" method="POST" style="display: inline-block; margin: 2px;" onsubmit="return confirm('Точно видалити пасту &quot;<?= htmlspecialchars(addslashes($paste->title)) ?>&quot;? Це незворотна дія!');">
                                                 <?= csrf_field() ?>
                                                 <input type="hidden" name="action" value="delete_paste">
                                                 <input type="hidden" name="paste_id" value="<?= htmlspecialchars($paste->id) ?>">
