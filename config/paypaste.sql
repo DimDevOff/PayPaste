@@ -59,7 +59,7 @@ CREATE TABLE IF NOT EXISTS transactions (
     id INT AUTO_INCREMENT PRIMARY KEY,
     user_id VARCHAR(50) NOT NULL,
     amount INT NOT NULL, -- Позитивне значення (поповнення) або негативне (списання)
-    type ENUM('topup', 'purchase', 'sale', 'creation_fee') NOT NULL,
+    type ENUM('topup', 'purchase', 'sale', 'creation_fee', 'api_usage') NOT NULL,
       -- topup: поповнення балансу
       -- purchase: купівля платної пасти
       -- sale: продаж своєї платної пасти (хтось купив)

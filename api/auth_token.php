@@ -1,12 +1,13 @@
 <?php
-header('Content-Type: application/json');
-require_once __DIR__ . '/../includes/bootstrap.php';
-require_once __DIR__ . '/../includes/jwt.php';
+require_once __DIR__ . '/api_helper.php';
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-    http_response_code(405);
-    echo json_encode(['error' => 'Метод не дозволено. Використовуйте POST.']);
-    exit;
+    json_response(['error' => 'Метод не дозволено. Використовуйте POST.'], 405);
+}
+
+// Rate Limiting для отримання токена (за IP)
+if (!RateLimiter::check('api_auth:' . $_SERVER['REMOTE_ADDR'], 5, 60)) {
+    json_response(['error' => 'Занадто багато спроб авторизації. Спробуйте через хвилину.'], 429);
 }
 
 // Отримання даних з JSON або POST
@@ -14,17 +15,13 @@ $input = json_decode(file_get_contents('php://input'), true);
 $api_key = $input['api_key'] ?? $_POST['api_key'] ?? '';
 
 if (empty($api_key)) {
-    http_response_code(400);
-    echo json_encode(['error' => 'API ключ обов\'язковий.']);
-    exit;
+    json_response(['error' => 'API ключ обов\'язковий.'], 400);
 }
 
 $user = User::findByApiKey($api_key);
 
 if (!$user) {
-    http_response_code(401);
-    echo json_encode(['error' => 'Невірний API ключ.']);
-    exit;
+    json_response(['error' => 'Невірний API ключ.'], 401);
 }
 
 // Створення JWT
@@ -37,7 +34,7 @@ $payload = [
 
 $token = JWT::encode($payload);
 
-echo json_encode([
+json_response([
     'access_token' => $token,
     'token_type' => 'Bearer',
     'expires_in' => 3600 * 24 * 7
