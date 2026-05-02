@@ -10,13 +10,13 @@ unset($_SESSION['old_input']);
                 
                 <!-- Соціальні мережі -->
                 <div class="row" style="margin-bottom: 20px;">
-                    <div class="col-xs-6">
-                        <a href="api/oauth.php?provider=github" class="btn btn-default btn-block" style="border:1px solid var(--border-color);">
+                    <div class="col-xs-12 col-sm-6" style="margin-bottom: 10px;">
+                        <a href="api/oauth.php?provider=github" class="btn btn-default btn-block" style="border:1px solid var(--border-color); height: 40px; display: flex; align-items: center; justify-content: center;">
                             🐙 GitHub
                         </a>
                     </div>
-                    <div class="col-xs-6">
-                        <script async src="https://telegram.org/js/telegram-widget.js?21" data-telegram-login="PayPasteBot" data-auth-url="<?= rtrim(APP_URL, '/') ?>/api/oauth.php?provider=telegram" data-request-access="write" show-user-photo></script>
+                    <div class="col-xs-12 col-sm-6 text-center">
+                        <script async src="https://telegram.org/js/telegram-widget.js?21" data-telegram-login="PayPasteBot" data-auth-url="<?= rtrim(APP_URL, '/') ?>/api/oauth.php?provider=telegram" data-request-access="write" data-size="large"></script>
                     </div>
                 </div>
                 

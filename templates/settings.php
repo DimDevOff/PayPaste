@@ -97,9 +97,6 @@ $myPasskeys = Passkey::findByUserId($_SESSION['user_id']);
                                 <small style="font-weight: bold; color: var(--text-primary);">☠ Retro</small>
                             </label>
                         </div>
-
-
-
                         <!-- Dark -->
                         <div class="col-xs-6 col-sm-4" style="margin-bottom: 15px;">
                             <label class="theme-card <?= ($user->theme ?? 'retro') === 'dark' ? 'theme-card-active' : '' ?>" style="display: block; cursor: pointer; border: 2px solid var(--border-color); padding: 8px; text-align: center; border-radius: 4px;">
@@ -149,7 +146,7 @@ $myPasskeys = Passkey::findByUserId($_SESSION['user_id']);
                         </div>
 
                         <!-- Retro Green -->
-                        <div class="col-xs-12 col-sm-4 col-sm-offset-4" style="margin-bottom: 15px;">
+                        <div class="col-xs-6 col-sm-4" style="margin-bottom: 15px;">
                             <label class="theme-card <?= ($user->theme ?? 'retro') === 'retro-green' ? 'theme-card-active' : '' ?>" style="display: block; cursor: pointer; border: 2px solid <?= ($user->theme ?? 'retro') === 'retro-green' ? '#4a8c1c' : 'var(--border-color)' ?>; padding: 8px; text-align: center; border-radius: 4px;">
                                 <input type="radio" name="theme" value="retro-green" <?= ($user->theme ?? 'retro') === 'retro-green' ? 'checked' : '' ?> style="display: none;">
                                 <div style="background: #acd68e; height: 40px; border-radius: 2px; margin-bottom: 5px; position: relative;">
