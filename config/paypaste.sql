@@ -45,7 +45,7 @@ CREATE TABLE IF NOT EXISTS unlocked_pastes (
 CREATE TABLE IF NOT EXISTS orders (
     id VARCHAR(50) PRIMARY KEY, -- ID замовлення (наприклад, order_12345)
     user_id VARCHAR(50) NOT NULL,
-    service ENUM('donatello', 'tg_stars') NOT NULL, -- Через який сервіс
+    service ENUM('donatello', 'tg_stars', 'unknown') NOT NULL DEFAULT 'unknown', -- Через який сервіс
     amount_credits INT NOT NULL, -- Скільки кредитів має бути зараховано
     status ENUM('pending', 'completed', 'canceled') DEFAULT 'pending',
     external_provider_id VARCHAR(255) NULL, -- ID операції на стороні провайдера

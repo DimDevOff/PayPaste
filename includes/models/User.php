@@ -278,4 +278,29 @@ class User {
         $stmt->execute([$api_key]);
         return self::instantiateFromRow($stmt->fetch());
     }
+    /**
+     * Оновлює критичні дані користувача прямо з бази даних (баланс, розблоковані пасти)
+     * Це потрібно для підтримки актуальності кешу сесії.
+     */
+    public function refreshData() {
+        $pdo = DB::getInstance()->getPDO();
+        
+        // Оновлюємо баланс
+        $stmt = $pdo->prepare("SELECT credits FROM users WHERE id = ?");
+        $stmt->execute([$this->id]);
+        $res = $stmt->fetchColumn();
+        if ($res !== false) {
+            $this->credits = (int)$res;
+        }
+        
+        // Оновлюємо список розблокованих паст
+        $this->unlocked_pastes = self::loadUnlockedPastes($this->id);
+
+        // Синхронізуємо з сесією
+        if (isset($_SESSION['user_id']) && $_SESSION['user_id'] === $this->id) {
+            $cacheUser = clone $this;
+            $cacheUser->password_hash = null;
+            $_SESSION['_user_cache'] = $cacheUser;
+        }
+    }
 }

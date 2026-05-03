@@ -1,4 +1,7 @@
 <?php
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
 require_once __DIR__ . '/../includes/models/Order.php';
 require_once __DIR__ . '/../includes/models/User.php';
 
@@ -19,6 +22,12 @@ if (!$order) {
 }
 
 $user = User::findById($order->user_id);
+
+// Якщо замовлення виконано, оновимо дані користувача (і кеш сесії)
+if ($order->status === 'completed' && $user) {
+    $user->refreshData();
+    session_write_close(); // Примусово зберігаємо сесію прямо зараз
+}
 
 echo json_encode([
     'exists' => true,
