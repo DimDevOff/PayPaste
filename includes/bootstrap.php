@@ -23,6 +23,17 @@ function getCurrentUser() {
         if (isset($_SESSION['_user_cache']) && !($_SESSION['_user_cache'] instanceof User)) {
             unset($_SESSION['_user_cache']);
         }
+        if (isset($_SESSION['_user_cache'])) {
+            // Оновлюємо тільки баланс, щоб він завжди був актуальним
+            $pdo = DB::getInstance()->getPDO();
+            $stmt = $pdo->prepare("SELECT credits FROM users WHERE id = ?");
+            $stmt->execute([$_SESSION['user_id']]);
+            $res = $stmt->fetchColumn();
+            if ($res !== false) {
+                $_SESSION['_user_cache']->credits = (int)$res;
+            }
+            return $_SESSION['_user_cache'];
+        }
         if (!isset($_SESSION['_user_cache'])) {
             $user = User::findById($_SESSION['user_id']);
             if ($user) {
