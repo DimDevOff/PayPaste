@@ -36,3 +36,9 @@ define('ADSTERRA_160x300_KEY',     'YOUR_160x300_KEY');
 define('ADSTERRA_320x50_KEY',      'YOUR_320x50_KEY');
 define('ADSTERRA_300x250_KEY',     'YOUR_300x250_KEY');
 define('ADSTERRA_INVOKE_BASE_URL', 'https://www.highperformanceformat.com');
+
+// AI Moderation & Rewriting
+define('OPENAI_API_KEY', 'YOUR_OPENAI_API_KEY');
+define('OLLAMA_API_URL', 'https://ollama.com/api');
+define('OLLAMA_API_KEY', 'YOUR_OLLAMA_API_KEY');
+define('OLLAMA_MODEL', 'gemma4:31b-cloud');

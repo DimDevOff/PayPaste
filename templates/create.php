@@ -3,6 +3,40 @@ $old = $_SESSION['old_input'] ?? [];
 unset($_SESSION['old_input']);
 ?>
 <h2 style="border-bottom: 2px solid var(--border-color); padding-bottom: 5px;">Нова паста</h2>
+
+<?php if (isset($_SESSION['moderation_failed'])): ?>
+<div class="alert alert-danger" style="border: 2px dashed var(--panel-danger-border); transition: all 0.3s ease;">
+    <h4 style="margin-top: 0; color: var(--danger);"><i class="glyphicon glyphicon-warning-sign"></i> Текст не пройшов модерацію!</h4>
+    <p style="color: var(--text-primary);">На жаль, ваш текст містить ознаки порушення правил спільноти. Виявлені категорії: 
+       <strong><?= implode(', ', $_SESSION['flagged_categories'] ?? []) ?></strong></p>
+    <hr style="border-top: 1px solid var(--border-color);">
+    <div class="row">
+        <div class="col-md-6">
+            <p style="color: var(--text-primary);">Ви можете змінити текст вручну та спробувати ще раз.</p>
+        </div>
+        <div class="col-md-6 text-right">
+            <form action="create.php" method="POST">
+                <?= csrf_field() ?>
+                <input type="hidden" name="action" value="rewrite_and_publish">
+                <input type="hidden" name="content" value="<?= htmlspecialchars($old['content'] ?? '') ?>">
+                <input type="hidden" name="title" value="<?= htmlspecialchars($old['title'] ?? '') ?>">
+                <input type="hidden" name="is_private" value="<?= isset($old['is_private']) ? '1' : '0' ?>">
+                <input type="hidden" name="is_paid" value="<?= isset($old['is_paid']) ? '1' : '0' ?>">
+                <input type="hidden" name="view_cost" value="<?= htmlspecialchars($old['view_cost'] ?? '0') ?>">
+                <input type="hidden" name="expires_in" value="<?= htmlspecialchars($old['expires_in'] ?? '0') ?>">
+                <button type="submit" class="btn btn-warning" style="font-weight: bold; border: 2px solid var(--border-color);">
+                    🪄 ПЕРЕФРАЗУВАТИ ТА ОПУБЛІКУВАТИ (AI)
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+<?php 
+    unset($_SESSION['moderation_failed']);
+    unset($_SESSION['flagged_categories']);
+endif; 
+?>
+
 <form action="create.php" method="POST" enctype="multipart/form-data">
     <?= csrf_field() ?>
     <input type="hidden" name="action" value="create_paste">
