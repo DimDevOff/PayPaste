@@ -10,16 +10,21 @@ class Moderation {
      * @return array|false Повертає список категорій порушень або false, якщо текст чистий.
      */
     public static function check($text) {
+        // 1. Локальна перевірка на стоп-слова (fallback)
+        $localViolations = self::localCheck($text);
+        if ($localViolations) {
+            return $localViolations;
+        }
+
         if (!defined('OPENAI_API_KEY') || empty(OPENAI_API_KEY)) {
-            return false; // Якщо ключ не налаштовано, пропускаємо перевірку
+            return false; 
         }
 
         $ch = curl_init('https://api.openai.com/v1/moderations');
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
         curl_setopt($ch, CURLOPT_POST, true);
         curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode([
-            'input' => $text,
-            'model' => 'omni-moderation-latest'
+            'input' => $text
         ]));
         curl_setopt($ch, CURLOPT_HTTPHEADER, [
             'Content-Type: application/json',
@@ -32,6 +37,12 @@ class Moderation {
 
         if ($httpCode !== 200) {
             error_log("OpenAI Moderation API Error: " . $response);
+            $errData = json_decode($response, true);
+            if (isset($errData['error']['message']) && strpos($errData['error']['message'], 'Too Many Requests') !== false) {
+                // Якщо ліміт вичерпано, ми не можемо гарантувати безпеку, 
+                // тому повертаємо спеціальну категорію "service_unavailable"
+                return ['service_unavailable'];
+            }
             return false;
         }
 
@@ -49,6 +60,45 @@ class Moderation {
         }
 
         return false;
+    }
+
+    /**
+     * Локальна перевірка на основі чорного списку слів.
+     */
+    public static function localCheck($text) {
+        $text = mb_strtolower($text);
+        
+        $configPath = __DIR__ . '/../config/bad_words.json';
+        $badWords = [];
+        $exactWords = [];
+
+        if (file_exists($configPath)) {
+            $config = json_decode(file_get_contents($configPath), true);
+            $badWords = $config['substrings'] ?? [];
+            $exactWords = $config['exact_words'] ?? [];
+        } else {
+            // Якщо файл конфігурації відсутній, блокуємо публікацію для безпеки
+            return ['local_config_missing'];
+        }
+
+        $violated = [];
+        
+        // Перевірка входження підстроки
+        foreach ($badWords as $word) {
+            if (mb_strpos($text, $word) !== false) {
+                $violated[] = 'local_policy_violation (' . $word . ')';
+            }
+        }
+
+        // Перевірка цілих слів через regex
+        foreach ($exactWords as $word) {
+            $pattern = '/\b' . preg_quote($word, '/') . '\b/u';
+            if (preg_match($pattern, $text)) {
+                $violated[] = 'local_policy_violation (' . $word . ')';
+            }
+        }
+
+        return !empty($violated) ? $violated : false;
     }
 
     /**
