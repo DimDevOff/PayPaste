@@ -57,16 +57,16 @@ endif;
 
     <div class="checkbox">
         <label>
-            <input type="checkbox" name="is_private" value="1" <?= isset($old['is_private']) ? 'checked' : '' ?>> <strong>Приватна</strong> (тільки за посиланням, сховається з публічного списку)
+            <input type="checkbox" name="is_private" value="1" <?= (isset($old['is_private']) && $old['is_private'] == '1') ? 'checked' : '' ?>> <strong>Приватна</strong> (тільки за посиланням, сховається з публічного списку)
         </label>
     </div>
 
     <div class="checkbox block-danger">
         <label class="text-danger">
-            <input type="checkbox" name="is_paid" id="is_paid" value="1" <?= isset($old['is_paid']) ? 'checked' : '' ?>> <strong>💲 Платна паста</strong>
+            <input type="checkbox" name="is_paid" id="is_paid" value="1" <?= (isset($old['is_paid']) && $old['is_paid'] == '1') ? 'checked' : '' ?>> <strong>💲 Платна паста</strong>
             <br><small>Увага: Написання пасти коштує 1 кредит за 10 символів вашого тексту. А також ви зможете встановити ціну за перегляд іншими.</small>
         </label>
-        <div id="view_cost_container" style="<?= isset($old['is_paid']) ? 'display:block;' : 'display:none;' ?> margin-top: 10px;">
+        <div id="view_cost_container" style="<?= (isset($old['is_paid']) && $old['is_paid'] == '1') ? 'display:block;' : 'display:none;' ?> margin-top: 10px;">
             <label>Ціна за перегляд (в кредитах):</label>
             <div class="col-xs-12 col-sm-4" style="padding-left:0;">
                 <input type="number" class="form-control" name="view_cost" id="view_cost" min="1" value="<?= htmlspecialchars($old['view_cost'] ?? '') ?>" <?= isset($old['is_paid']) ? 'required' : '' ?>>

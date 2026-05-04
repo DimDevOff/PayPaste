@@ -49,8 +49,8 @@ class PasteController { // Клас контролера паст
         }
 
         $content = trim($data['content'] ?? '');
-        $is_private = isset($data['is_private']) ? true : false;
-        $is_paid = isset($data['is_paid']) ? true : false;
+        $is_private = (isset($data['is_private']) && $data['is_private'] == '1');
+        $is_paid = (isset($data['is_paid']) && $data['is_paid'] == '1');
         
         $user_id = null;
         if (isset($_SESSION['user_id'])) {
