@@ -27,6 +27,7 @@ CREATE TABLE IF NOT EXISTS pastes (
     view_cost INT DEFAULT 0,
     is_private BOOLEAN DEFAULT FALSE,
     expires_at TIMESTAMP NULL,
+    is_pending_rewrite BOOLEAN DEFAULT FALSE,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE SET NULL
 );

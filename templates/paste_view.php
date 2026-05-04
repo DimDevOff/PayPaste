@@ -24,8 +24,18 @@
             </h3>
         </div>
         <div class="panel-body">
-
-            <?php if(isset($is_locked) && $is_locked): ?>
+            <?php if($paste->is_pending_rewrite): ?>
+                <div class="alert alert-info text-center" style="border: 2px solid var(--link-color); padding: 40px; background: var(--bg-secondary);">
+                    <h2 class="blink-text" style="color: var(--accent);">🛠️ ШІ ПРАЦЮЄ...</h2>
+                    <p style="font-size: 1.2em;">Ця паста зараз проходить автоматичне перефразування моделлю ШІ.</p>
+                    <p>Текст ще не готовий. Будь ласка, <strong>зайдіть пізніше</strong> (через 1-2 хвилини).</p>
+                    <div class="progress" style="height: 20px; margin-top: 20px;">
+                        <div class="progress-bar progress-bar-striped active" role="progressbar" style="width: 100%; background-color: var(--link-color);"></div>
+                    </div>
+                    <hr>
+                    <p class="text-muted"><small>Ваші налаштування приватності та ціни будуть застосовані автоматично після завершення.</small></p>
+                </div>
+            <?php elseif(isset($is_locked) && $is_locked): ?>
                 <div class="alert alert-warning text-center" style="border: 2px dashed var(--panel-danger-border); padding: 30px; background: var(--bg-secondary);">
                    <h2>Ця паста платна!</h2>
                    <p>Щоб переглянути її, потрібно заплатити <strong><?= $paste->view_cost ?> кредитів</strong>.</p>

@@ -14,11 +14,12 @@ class Paste {
     public $view_cost;
     public $created_at;
     public $expires_at;
+    public $is_pending_rewrite;
 
     /**
      * Конструктор пасти.
      */
-    public function __construct($title, $content, $user_id = null, $is_paid = false, $view_cost = 0, $is_private = false, $id = null, $created_at = null, $expires_at = null) {
+    public function __construct($title, $content, $user_id = null, $is_paid = false, $view_cost = 0, $is_private = false, $id = null, $created_at = null, $expires_at = null, $is_pending_rewrite = false) {
         $this->title = trim($title);
         $this->content = trim($content);
         $this->user_id = $user_id;
@@ -28,6 +29,7 @@ class Paste {
         $this->id = $id ?? 'p_' . bin2hex(random_bytes(8));
         $this->created_at = $created_at ?? date('Y-m-d H:i:s');
         $this->expires_at = $expires_at;
+        $this->is_pending_rewrite = (bool)$is_pending_rewrite;
     }
 
     /**
@@ -35,7 +37,7 @@ class Paste {
      */
     private static function instantiateFromRow($row) {
         if (!$row) return null;
-        return new self($row['title'], $row['content'], $row['user_id'], $row['is_paid'], $row['view_cost'], $row['is_private'], $row['id'], $row['created_at'], $row['expires_at']);
+        return new self($row['title'], $row['content'], $row['user_id'], $row['is_paid'], $row['view_cost'], $row['is_private'], $row['id'], $row['created_at'], $row['expires_at'], $row['is_pending_rewrite']);
     }
 
     /**
@@ -52,8 +54,8 @@ class Paste {
     public function save() {
         $pdo = DB::getInstance()->getPDO();
         $stmt = $pdo->prepare("
-            INSERT INTO pastes (id, title, content, user_id, is_paid, is_private, view_cost, created_at, expires_at)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+            INSERT INTO pastes (id, title, content, user_id, is_paid, is_private, view_cost, created_at, expires_at, is_pending_rewrite)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             ON DUPLICATE KEY UPDATE
                 title = VALUES(title),
                 content = VALUES(content),
@@ -61,7 +63,8 @@ class Paste {
                 is_paid = VALUES(is_paid),
                 is_private = VALUES(is_private),
                 view_cost = VALUES(view_cost),
-                expires_at = VALUES(expires_at)
+                expires_at = VALUES(expires_at),
+                is_pending_rewrite = VALUES(is_pending_rewrite)
         ");
         $stmt->execute([
             $this->id,
@@ -72,7 +75,8 @@ class Paste {
             $this->is_private ? 1 : 0,
             $this->view_cost,
             $this->created_at,
-            $this->expires_at
+            $this->expires_at,
+            $this->is_pending_rewrite ? 1 : 0
         ]);
         
         $this->syncTags();
@@ -234,7 +238,7 @@ class Paste {
             $sql .= " INNER JOIN paste_tags pt ON p.id = pt.paste_id";
         }
         
-        $sql .= " WHERE p.is_private = 0 AND (p.expires_at IS NULL OR p.expires_at > NOW())";
+        $sql .= " WHERE p.is_private = 0 AND p.is_pending_rewrite = 0 AND (p.expires_at IS NULL OR p.expires_at > NOW())";
         
         $params = [];
         
@@ -299,7 +303,7 @@ class Paste {
             $sql .= " INNER JOIN paste_tags pt ON p.id = pt.paste_id";
         }
         
-        $sql .= " WHERE (p.expires_at IS NULL OR p.expires_at > NOW())";
+        $sql .= " WHERE p.is_pending_rewrite = 0 AND (p.expires_at IS NULL OR p.expires_at > NOW())";
         
         $params = [];
         if ($search !== '') {

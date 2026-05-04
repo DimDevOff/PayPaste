@@ -30,7 +30,7 @@ class PasteController { // Клас контролера паст
     
     Якщо всі перевірки пройдені, то користувач створює пасту.
     */
-    private function create($data) {
+    private function create($data, $is_pending_rewrite = false) {
         if (!RateLimiter::check('create:' . $_SERVER['REMOTE_ADDR'], 5, 60)) {
             $_SESSION['error'] = "Занадто багато спроб створення паст. Спробуйте пізніше.";
             header("Location: create.php");
@@ -144,7 +144,7 @@ class PasteController { // Клас контролера паст
                 $tx->save();
             }
 
-            $paste = new Paste($title, $content, $user_id, $is_paid, $view_cost, $is_private, null, null, $expires_at);
+            $paste = new Paste($title, $content, $user_id, $is_paid, $view_cost, $is_private, null, null, $expires_at, $is_pending_rewrite);
             $paste->save();
             
             if ($is_paid && isset($tx)) {
@@ -327,17 +327,14 @@ class PasteController { // Клас контролера паст
             exit;
         }
 
-        // Виклик Ollama Cloud для перефразування
-        $rewrittenContent = Moderation::rewrite($content);
-        
-        // Підміна контенту та виклик звичайного створення з прапорцем пропуску модерації
-        $data['content'] = $rewrittenContent;
+        // Замість очікування, ми створюємо пасту зі статусом "в черзі"
         $data['skip_moderation'] = true;
-
-        // Очищаємо помилки модерації перед повторним (автоматичним) створенням
+        
+        // Очищаємо помилки модерації
         unset($_SESSION['moderation_failed']);
         unset($_SESSION['flagged_categories']);
         
-        $this->create($data);
+        // Створюємо пасту, позначену для переписування
+        $this->create($data, true);
     }
 }

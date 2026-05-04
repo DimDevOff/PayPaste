@@ -24,6 +24,17 @@ if (!$paste) {
 } elseif ($paste->isExpired()) {
     header("HTTP/1.0 404 Not Found");
     // $paste залишається, щоб шаблон відрендерив плашку з попередженням про протермінування
+} elseif ($paste->is_pending_rewrite) {
+    if ($user) {
+        $is_author = ($paste->user_id === $user->id);
+    }
+    if (!$is_author && !$is_admin) {
+        header("HTTP/1.0 403 Forbidden");
+        $paste = null;
+        $_SESSION['error'] = "Ця паста тимчасово недоступна, вона проходить модерацію.";
+        header("Location: index.php");
+        exit;
+    }
 } elseif ($paste->is_private) {
     if ($user) {
         $is_author = ($paste->user_id === $user->id);
