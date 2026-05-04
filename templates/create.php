@@ -66,7 +66,7 @@ endif;
             <input type="checkbox" name="is_paid" id="is_paid" value="1" <?= (isset($old['is_paid']) && $old['is_paid'] == '1') ? 'checked' : '' ?>> <strong>💲 Платна паста</strong>
             <br><small>Увага: Написання пасти коштує 1 кредит за 10 символів вашого тексту. А також ви зможете встановити ціну за перегляд іншими.</small>
         </label>
-        <div id="view_cost_container" style="<?= (isset($old['is_paid']) && $old['is_paid'] == '1') ? 'display:block;' : 'display:none;' ?> margin-top: 10px;">
+        <div id="view_cost_container" style="<?= (isset($old['is_paid']) && $old['is_paid'] == '1') ? 'display:block;' : 'display:none;' ?> margin-top: 10px; padding-left: 20px;">
             <label>Ціна за перегляд (в кредитах):</label>
             <div style="max-width: 200px;">
                 <input type="number" class="form-control" name="view_cost" id="view_cost" min="1" value="<?= htmlspecialchars($old['view_cost'] ?? '') ?>" <?= isset($old['is_paid']) ? 'required' : '' ?>>
