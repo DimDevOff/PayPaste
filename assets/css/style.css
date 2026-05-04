@@ -634,8 +634,8 @@ textarea {
     /* Контейнер без зайвих відступів */
     .container,
     .container-fluid {
-        padding-left: 10px;
-        padding-right: 10px;
+        padding-left: 15px;
+        padding-right: 15px;
     }
 
     /* Рекламний банер — менший шрифт на мобільному */

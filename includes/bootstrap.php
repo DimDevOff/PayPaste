@@ -24,13 +24,17 @@ function getCurrentUser() {
             unset($_SESSION['_user_cache']);
         }
         if (isset($_SESSION['_user_cache'])) {
-            // Оновлюємо тільки баланс, щоб він завжди був актуальним
-            $pdo = DB::getInstance()->getPDO();
-            $stmt = $pdo->prepare("SELECT credits FROM users WHERE id = ?");
-            $stmt->execute([$_SESSION['user_id']]);
-            $res = $stmt->fetchColumn();
-            if ($res !== false) {
-                $_SESSION['_user_cache']->credits = (int)$res;
+            // Оновлюємо тільки баланс, щоб він завжди був актуальним (1 раз за запит)
+            static $balance_updated = false;
+            if (!$balance_updated) {
+                $pdo = DB::getInstance()->getPDO();
+                $stmt = $pdo->prepare("SELECT credits FROM users WHERE id = ?");
+                $stmt->execute([$_SESSION['user_id']]);
+                $res = $stmt->fetchColumn();
+                if ($res !== false) {
+                    $_SESSION['_user_cache']->credits = (int)$res;
+                }
+                $balance_updated = true;
             }
             return $_SESSION['_user_cache'];
         }

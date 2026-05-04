@@ -68,7 +68,7 @@ endif;
         </label>
         <div id="view_cost_container" style="<?= (isset($old['is_paid']) && $old['is_paid'] == '1') ? 'display:block;' : 'display:none;' ?> margin-top: 10px;">
             <label>Ціна за перегляд (в кредитах):</label>
-            <div class="col-xs-12 col-sm-4" style="padding-left:0;">
+            <div style="max-width: 200px;">
                 <input type="number" class="form-control" name="view_cost" id="view_cost" min="1" value="<?= htmlspecialchars($old['view_cost'] ?? '') ?>" <?= isset($old['is_paid']) ? 'required' : '' ?>>
             </div>
         </div>

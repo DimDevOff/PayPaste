@@ -62,7 +62,7 @@ $myPasskeys = Passkey::findByUserId($_SESSION['user_id']);
                                class="form-control">
                     </div>
 
-                    <button type="submit" class="btn btn-warning btn-block blink-text" style="font-family: 'Courier New', Courier, monospace; font-weight: bold; font-size: 1.2em;">✓ ЗБЕРЕГТИ ЗМІНИ ✓</button>
+                    <button type="submit" class="btn btn-warning btn-block blink-text" style="font-family: 'Courier New', Courier, monospace; font-weight: bold; font-size: 1.1em; white-space: normal;">✓ ЗБЕРЕГТИ ЗМІНИ ✓</button>
                 </form>
             </div>
         </div>
