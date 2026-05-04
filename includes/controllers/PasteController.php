@@ -73,13 +73,7 @@ class PasteController { // Клас контролера паст
         if (!$skip_moderation) {
             $violations = Moderation::check($content);
             if ($violations) {
-                if (in_array('service_unavailable', $violations)) {
-                    $_SESSION['error'] = "Сервіс модерації OpenAI тимчасово недоступний (Too Many Requests). Перевірте ліміти API або спробуйте пізніше.";
-                } elseif (in_array('local_config_missing', $violations)) {
-                    $_SESSION['error'] = "Помилка конфігурації: відсутній файл заборонених слів. Зверніться до адміністратора.";
-                } else {
-                    $_SESSION['error'] = "Текст не пройшов автоматичну модерацію! Категорії: " . implode(', ', $violations);
-                }
+                $_SESSION['error'] = "Текст не пройшов автоматичну модерацію та містить заборонений контент!";
                 $_SESSION['moderation_failed'] = true;
                 $_SESSION['flagged_categories'] = $violations;
                 header("Location: create.php");

@@ -37,12 +37,8 @@ class Moderation {
 
         if ($httpCode !== 200) {
             error_log("OpenAI Moderation API Error: " . $response);
-            $errData = json_decode($response, true);
-            if (isset($errData['error']['message']) && strpos($errData['error']['message'], 'Too Many Requests') !== false) {
-                // Якщо ліміт вичерпано, ми не можемо гарантувати безпеку, 
-                // тому повертаємо спеціальну категорію "service_unavailable"
-                return ['service_unavailable'];
-            }
+            // Якщо сервіс недоступний, ми покладаємось на результати локальної перевірки,
+            // яка вже була виконана на початку методу.
             return false;
         }
 

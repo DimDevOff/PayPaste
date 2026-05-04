@@ -7,8 +7,7 @@ unset($_SESSION['old_input']);
 <?php if (isset($_SESSION['moderation_failed'])): ?>
 <div class="alert alert-danger" style="border: 2px dashed var(--panel-danger-border); transition: all 0.3s ease;">
     <h4 style="margin-top: 0; color: var(--danger);"><i class="glyphicon glyphicon-warning-sign"></i> Текст не пройшов модерацію!</h4>
-    <p style="color: var(--text-primary);">На жаль, ваш текст містить ознаки порушення правил спільноти. Виявлені категорії: 
-       <strong><?= implode(', ', $_SESSION['flagged_categories'] ?? []) ?></strong></p>
+    <p style="color: var(--text-primary);">На жаль, ваш текст містить ознаки порушення правил спільноти.</p>
     <hr style="border-top: 1px solid var(--border-color);">
     <div class="row">
         <div class="col-md-6">
