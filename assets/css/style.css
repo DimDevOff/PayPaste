@@ -688,14 +688,28 @@ textarea {
         margin-bottom: 15px;
     }
 
-    /* Навбар: виправити форму виходу всередині collapse */
-    .navbar-collapse form {
-        margin: 5px 15px !important;
+    /* Навбар: відцентрувати все в розгорнутому бургері */
+    .navbar-nav {
+        float: none !important;
+        margin: 0 !important;
+        text-align: center;
     }
-
+    .navbar-nav > li {
+        float: none !important;
+    }
+    .navbar-nav > li > a {
+        text-align: center;
+    }
     .navbar-collapse .navbar-text {
-        margin-left: 15px;
-        float: none;
+        float: none !important;
+        margin: 10px 0 !important;
+        text-align: center;
+        display: block;
+    }
+    .navbar-collapse form {
+        margin: 10px auto !important;
+        display: table; /* Надійний спосіб центрування блоку з невідомою шириною */
+        float: none !important;
     }
 
 
