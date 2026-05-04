@@ -21,6 +21,7 @@
 - ✅ Адмін-панель (статистика, управління користувачами та контентом)
 - ✅ CSRF-захист усіх форм
 - ✅ Remember Me cookie (14 днів, HMAC-SHA256)
+- ✅ AI-модерація та фонове перефразування токсичного контенту (Ollama Cloud)
 
 ## 🚀 Встановлення
 
@@ -74,7 +75,11 @@
 │   ├── controllers/    # AuthController, PasteController, SettingsController
 │   ├── models/         # User, Paste, Order, Transaction, Passkey
 │   ├── csrf.php        # CSRF + Remember Me
-│   └── webauthn.php    # WebAuthn утиліти
+│   ├── webauthn.php    # WebAuthn утиліти
+│   └── Moderation.php  # AI модерація (OpenAI/Ollama)
+├── cron/
+│   ├── cleanup.php     # Очищення TTL
+│   └── ai_worker.php   # Фоновий воркер ШІ
 ├── templates/          # HTML шаблони
 ├── uploads/            # Завантажені файли
 ├── .env.example        # Шаблон конфігурації
@@ -103,10 +108,26 @@ Register-ScheduledTask -Action $action -Trigger $trigger -TaskName "PayPaste_Cle
 0 * * * * php /шлях/до/проекту/cron/cleanup.php --force > /dev/null 2>&1
 ```
 
-### Ручний запуск (для тестування)
-
 ```bash
 C:\xampp\php\php.exe cron/cleanup.php --force
+```
+
+## 🧠 Фонова обробка ШІ (AI Worker)
+
+Для роботи асинхронного перефразування тексту (коли паста не проходить модерацію) необхідно запустити фоновий процес, який буде обробляти чергу запитів до ШІ.
+
+### Налаштування на Linux (Ubuntu/Debian)
+
+Додайте наступний рядок до вашого `crontab -e` для перевірки черги кожну хвилину:
+
+```bash
+* * * * * /usr/bin/php /шлях/до/проекту/cron/ai_worker.php >> /шлях/до/проекту/data/ai_worker.log 2>&1
+```
+
+### Перевірка роботи черги (Manual)
+
+```bash
+php cron/ai_worker.php
 ```
 
 ## 📄 Ліцензія

@@ -7,8 +7,7 @@ unset($_SESSION['old_input']);
 <?php if (isset($_SESSION['moderation_failed'])): ?>
 <div class="alert alert-danger" style="border: 2px dashed var(--panel-danger-border); transition: all 0.3s ease;">
     <h4 style="margin-top: 0; color: var(--danger);"><i class="glyphicon glyphicon-warning-sign"></i> Текст не пройшов модерацію!</h4>
-    <p style="color: var(--text-primary);">На жаль, ваш текст містить ознаки порушення правил спільноти. Виявлені категорії: 
-       <strong><?= implode(', ', $_SESSION['flagged_categories'] ?? []) ?></strong></p>
+    <p style="color: var(--text-primary);">На жаль, ваш текст містить ознаки порушення правил спільноти.</p>
     <hr style="border-top: 1px solid var(--border-color);">
     <div class="row">
         <div class="col-md-6">
@@ -58,18 +57,18 @@ endif;
 
     <div class="checkbox">
         <label>
-            <input type="checkbox" name="is_private" value="1" <?= isset($old['is_private']) ? 'checked' : '' ?>> <strong>Приватна</strong> (тільки за посиланням, сховається з публічного списку)
+            <input type="checkbox" name="is_private" value="1" <?= (isset($old['is_private']) && $old['is_private'] == '1') ? 'checked' : '' ?>> <strong>Приватна</strong> (тільки за посиланням, сховається з публічного списку)
         </label>
     </div>
 
     <div class="checkbox block-danger">
         <label class="text-danger">
-            <input type="checkbox" name="is_paid" id="is_paid" value="1" <?= isset($old['is_paid']) ? 'checked' : '' ?>> <strong>💲 Платна паста</strong>
+            <input type="checkbox" name="is_paid" id="is_paid" value="1" <?= (isset($old['is_paid']) && $old['is_paid'] == '1') ? 'checked' : '' ?>> <strong>💲 Платна паста</strong>
             <br><small>Увага: Написання пасти коштує 1 кредит за 10 символів вашого тексту. А також ви зможете встановити ціну за перегляд іншими.</small>
         </label>
-        <div id="view_cost_container" style="<?= isset($old['is_paid']) ? 'display:block;' : 'display:none;' ?> margin-top: 10px;">
+        <div id="view_cost_container" style="<?= (isset($old['is_paid']) && $old['is_paid'] == '1') ? 'display:block;' : 'display:none;' ?> margin-top: 10px; padding-left: 20px;">
             <label>Ціна за перегляд (в кредитах):</label>
-            <div class="col-xs-12 col-sm-4" style="padding-left:0;">
+            <div style="max-width: 200px; padding-left: 20px;">
                 <input type="number" class="form-control" name="view_cost" id="view_cost" min="1" value="<?= htmlspecialchars($old['view_cost'] ?? '') ?>" <?= isset($old['is_paid']) ? 'required' : '' ?>>
             </div>
         </div>

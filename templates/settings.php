@@ -15,10 +15,10 @@ $myPastes = Paste::findByUserId($_SESSION['user_id']);
 $myPasskeys = Passkey::findByUserId($_SESSION['user_id']);
 ?>
 <div class="row">
-    <div class="col-md-6 col-md-offset-3">
+    <div class="col-xs-12 col-sm-10 col-sm-offset-1 col-md-6 col-md-offset-3">
         <div class="panel panel-default">
             <div class="panel-heading">
-                <h3 class="panel-title text-center" style="font-family: Tahoma, sans-serif; font-weight: bold; letter-spacing: 1px;">[ НАЛАШТУВАННЯ ПРОФІЛЮ ]</h3>
+                <h3 class="panel-title text-center" style="font-family: Tahoma, sans-serif; font-weight: bold;">[ НАЛАШТУВАННЯ ПРОФІЛЮ ]</h3>
             </div>
             <div class="panel-body">
                 <form action="settings.php" method="POST">
@@ -62,7 +62,7 @@ $myPasskeys = Passkey::findByUserId($_SESSION['user_id']);
                                class="form-control">
                     </div>
 
-                    <button type="submit" class="btn btn-warning btn-block blink-text" style="font-family: 'Courier New', Courier, monospace; font-weight: bold; font-size: 1.2em;">✓ ЗБЕРЕГТИ ЗМІНИ ✓</button>
+                    <button type="submit" class="btn btn-warning btn-block blink-text" style="font-family: 'Courier New', Courier, monospace; font-weight: bold; font-size: 1.1em; white-space: normal; height: auto;">✓ ЗБЕРЕГТИ ЗМІНИ ✓</button>
                 </form>
             </div>
         </div>
@@ -71,10 +71,10 @@ $myPasskeys = Passkey::findByUserId($_SESSION['user_id']);
 
 <!-- Секція вибору кольорової теми -->
 <div class="row" style="margin-top: 30px;">
-    <div class="col-md-6 col-md-offset-3">
+    <div class="col-xs-12 col-sm-10 col-sm-offset-1 col-md-6 col-md-offset-3">
         <div class="panel panel-default" style="border: 2px solid var(--border-color);">
             <div class="panel-heading">
-                <h3 class="panel-title text-center" style="font-family: Tahoma, sans-serif; font-weight: bold; letter-spacing: 1px;">[ 🎨 ТЕМА САЙТУ ]</h3>
+                <h3 class="panel-title text-center" style="font-family: Tahoma, sans-serif; font-weight: bold;">[ 🎨 ТЕМА САЙТУ ]</h3>
             </div>
             <div class="panel-body">
                 <form action="settings.php" method="POST" id="themeForm">
@@ -94,7 +94,7 @@ $myPasskeys = Passkey::findByUserId($_SESSION['user_id']);
                                     <div style="background: #222; height: 8px; border-radius: 2px 2px 0 0;"></div>
                                     <div style="background: #ffcc00; width: 30%; height: 6px; margin: 4px auto; border-radius: 2px;"></div>
                                 </div>
-                                <small style="font-weight: bold; color: var(--text-primary);">☠ Retro</small>
+                                <small style="font-weight: bold; color: var(--text-primary); display: block; word-wrap: break-word; white-space: normal;">☠ Retro</small>
                             </label>
                         </div>
                         <!-- Dark -->
@@ -105,7 +105,7 @@ $myPasskeys = Passkey::findByUserId($_SESSION['user_id']);
                                     <div style="background: #000; height: 8px; border-radius: 2px 2px 0 0;"></div>
                                     <div style="background: #9b59b6; width: 30%; height: 6px; margin: 4px auto; border-radius: 2px;"></div>
                                 </div>
-                                <small style="font-weight: bold; color: var(--text-primary);">🌑 Dark</small>
+                                <small style="font-weight: bold; color: var(--text-primary); display: block; word-wrap: break-word; white-space: normal;">🌑 Dark</small>
                             </label>
                         </div>
 
@@ -117,7 +117,7 @@ $myPasskeys = Passkey::findByUserId($_SESSION['user_id']);
                                     <div style="background: #003300; height: 8px; border-radius: 2px 2px 0 0;"></div>
                                     <div style="background: #00ff00; width: 30%; height: 6px; margin: 4px auto; border-radius: 2px;"></div>
                                 </div>
-                                <small style="font-weight: bold; color: var(--text-primary);">💻 Terminal</small>
+                                <small style="font-weight: bold; color: var(--text-primary); display: block; word-wrap: break-word; white-space: normal;">💻 Terminal</small>
                             </label>
                         </div>
 
@@ -129,7 +129,7 @@ $myPasskeys = Passkey::findByUserId($_SESSION['user_id']);
                                     <div style="background: #f0f0f0; height: 8px; border-radius: 2px 2px 0 0;"></div>
                                     <div style="background: #0066cc; width: 30%; height: 6px; margin: 4px auto; border-radius: 2px;"></div>
                                 </div>
-                                <small style="font-weight: bold; color: var(--text-primary);">☀️ Light</small>
+                                <small style="font-weight: bold; color: var(--text-primary); display: block; word-wrap: break-word; white-space: normal;">☀️ Light</small>
                             </label>
                         </div>
 
@@ -141,7 +141,7 @@ $myPasskeys = Passkey::findByUserId($_SESSION['user_id']);
                                     <div style="background: #000; height: 8px; border-radius: 2px 2px 0 0;"></div>
                                     <div style="background: #FF9000; width: 30%; height: 6px; margin: 4px auto; border-radius: 2px;"></div>
                                 </div>
-                                <small style="font-weight: bold; color: var(--text-primary);">🧑🏿‍💻 GitHub Orange</small>
+                                <small style="font-weight: bold; color: var(--text-primary); display: block; word-wrap: break-word; white-space: normal;">🧑🏿‍💻 GitHub Orange</small>
                             </label>
                         </div>
 
@@ -153,12 +153,12 @@ $myPasskeys = Passkey::findByUserId($_SESSION['user_id']);
                                     <div style="background: #2a5a00; height: 8px; border-radius: 2px 2px 0 0;"></div>
                                     <div style="background: #4a8c1c; width: 30%; height: 6px; margin: 4px auto; border-radius: 2px;"></div>
                                 </div>
-                                <small style="font-weight: bold; color: var(--text-primary);">💚 Retro Green</small>
+                                <small style="font-weight: bold; color: var(--text-primary); display: block; word-wrap: break-word; white-space: normal;">💚 Retro Green</small>
                             </label>
                         </div>
                     </div>
 
-                    <button type="submit" class="btn btn-warning btn-block" style="font-family: 'Courier New', Courier, monospace; font-weight: bold; font-size: 1.1em; margin-top: 10px;">🎨 ЗБЕРЕГТИ ТЕМУ 🎨</button>
+                    <button type="submit" class="btn btn-warning btn-block" style="font-family: 'Courier New', Courier, monospace; font-weight: bold; font-size: 1.1em; margin-top: 10px; white-space: normal; height: auto;">🎨 ЗБЕРЕГТИ ТЕМУ 🎨</button>
                 </form>
             </div>
         </div>
@@ -167,14 +167,14 @@ $myPasskeys = Passkey::findByUserId($_SESSION['user_id']);
 
 <!-- Секція керування Passkey -->
 <div class="row" style="margin-top: 30px;">
-    <div class="col-md-6 col-md-offset-3">
+    <div class="col-xs-12 col-sm-10 col-sm-offset-1 col-md-6 col-md-offset-3">
         <div class="panel panel-default">
             <div class="panel-heading">
-                <h3 class="panel-title text-center" style="font-family: Tahoma, sans-serif; font-weight: bold; letter-spacing: 1px;">[ 🔑 PASSKEY — <?= count($myPasskeys) ?> шт. ]</h3>
+                <h3 class="panel-title text-center" style="font-family: Tahoma, sans-serif; font-weight: bold;">[ 🔑 ПАСКЕЇ (PASSKEYS) — <?= count($myPasskeys) ?> шт. ]</h3>
             </div>
             <div class="panel-body">
                 <?php if (count($myPasskeys) < 5): ?>
-                    <button type="button" class="btn btn-warning btn-block passkey-btn" style="font-weight:bold; margin-bottom: 20px;" onclick="registerPasskey('<?= htmlspecialchars($user->nickname) ?>')">
+                    <button type="button" class="btn btn-warning btn-block passkey-btn" style="font-weight:bold; margin-bottom: 20px; white-space: normal; height: auto;" onclick="registerPasskey('<?= htmlspecialchars($user->nickname) ?>')">
                         ➕ Додати новий Passkey
                     </button>
                 <?php else: ?>
@@ -194,17 +194,17 @@ $myPasskeys = Passkey::findByUserId($_SESSION['user_id']);
                             <thead>
                                 <tr style="font-family: Tahoma, sans-serif; text-transform: uppercase; font-size: 0.85em; font-weight: bold;">
                                     <th style="width: 50%;">AAGUID</th>
-                                    <th style="width: 25%;">Створено</th>
+                                    <th style="width: 25%;" class="hidden-xs">Створено</th>
                                     <th style="width: 25%;">Дії</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 <?php foreach ($myPasskeys as $pk): ?>
                                     <tr>
-                                        <td style="vertical-align: middle; font-family: monospace; font-size: 0.85em;">
+                                        <td style="vertical-align: middle; font-family: monospace; font-size: 0.85em; word-break: break-all;">
                                             <?= $pk->aaguid ? htmlspecialchars($pk->aaguid) : 'Unknown' ?>
                                         </td>
-                                        <td style="text-align: center; vertical-align: middle; font-size: 0.85em; font-family: monospace;">
+                                        <td style="text-align: center; vertical-align: middle; font-size: 0.85em; font-family: monospace;" class="hidden-xs">
                                             <?= date('d.m.Y H:i', strtotime($pk->created_at)) ?>
                                         </td>
                                         <td style="text-align: center; vertical-align: middle;">
@@ -228,15 +228,15 @@ $myPasskeys = Passkey::findByUserId($_SESSION['user_id']);
 
 <!-- Секція ПОВ'ЯЗАНІ АКАУНТИ -->
 <div class="row" style="margin-top: 30px;">
-    <div class="col-md-6 col-md-offset-3">
+    <div class="col-xs-12 col-sm-10 col-sm-offset-1 col-md-6 col-md-offset-3">
         <div class="panel panel-default">
             <div class="panel-heading">
-                <h3 class="panel-title text-center" style="font-family: Tahoma, sans-serif; font-weight: bold; letter-spacing: 1px;">[ 🔗 ПОВ'ЯЗАНІ АКАУНТИ ]</h3>
+                <h3 class="panel-title text-center" style="font-family: Tahoma, sans-serif; font-weight: bold;">[ 🔗 ПОВ'ЯЗАНІ АКАУНТИ ]</h3>
             </div>
             <div class="panel-body">
                 <!-- GitHub -->
-                <div style="margin-bottom: 15px; padding: 10px; background: var(--bg-secondary); border: 1px solid var(--border-color);">
-                    <div class="pull-right">
+                <div style="margin-bottom: 15px; padding: 10px; background: var(--bg-secondary); border: 1px solid var(--border-color); overflow: hidden;">
+                    <div class="pull-right-mobile">
                         <?php if ($user->github_id): ?>
                             <form action="settings.php" method="POST" style="display:inline;">
                                 <?= csrf_field() ?>
@@ -255,8 +255,8 @@ $myPasskeys = Passkey::findByUserId($_SESSION['user_id']);
                 </div>
 
                 <!-- Telegram -->
-                <div style="margin-bottom: 5px; padding: 10px; background: var(--bg-secondary); border: 1px solid var(--border-color);">
-                    <div class="pull-right">
+                <div style="margin-bottom: 5px; padding: 10px; background: var(--bg-secondary); border: 1px solid var(--border-color); overflow: hidden;">
+                    <div class="pull-right-mobile">
                         <?php if ($user->telegram_id): ?>
                             <form action="settings.php" method="POST" style="display:inline;">
                                 <?= csrf_field() ?>
@@ -284,10 +284,10 @@ $myPasskeys = Passkey::findByUserId($_SESSION['user_id']);
 
 <!-- Секція керування пастами -->
 <div class="row" style="margin-top: 30px;">
-    <div class="col-md-8 col-md-offset-2">
+    <div class="col-xs-12 col-sm-12 col-md-8 col-md-offset-2">
         <div class="panel panel-default">
             <div class="panel-heading">
-                <h3 class="panel-title text-center" style="font-family: Tahoma, sans-serif; font-weight: bold; letter-spacing: 1px;">[ МОЇ ПАСТИ — <?= count($myPastes) ?> шт. ]</h3>
+                <h3 class="panel-title text-center" style="font-family: Tahoma, sans-serif; font-weight: bold;">[ МОЇ ПАСТИ — <?= count($myPastes) ?> шт. ]</h3>
             </div>
             <div class="panel-body">
                 <?php if (empty($myPastes)): ?>
@@ -303,7 +303,7 @@ $myPasskeys = Passkey::findByUserId($_SESSION['user_id']);
                                     <th style="border-color: var(--border-color); width: 30%;">Назва</th>
                                     <th style="border-color: var(--border-color); width: 15%; text-align: center;">Статус</th>
                                     <th style="border-color: var(--border-color); width: 12%; text-align: center;">Ціна</th>
-                                    <th style="border-color: var(--border-color); width: 18%; text-align: center;">Створено</th>
+                                    <th style="border-color: var(--border-color); width: 18%; text-align: center;" class="hidden-xs">Створено</th>
                                     <th style="border-color: var(--border-color); width: 25%; text-align: center;">Дії</th>
                                 </tr>
                             </thead>
@@ -314,7 +314,6 @@ $myPasskeys = Passkey::findByUserId($_SESSION['user_id']);
                                         $rowStyle = $isExpired ? 'background-color: var(--panel-danger-bg); opacity: 0.7;' : 'background-color: var(--bg-secondary);';
                                     ?>
                                     <tr style="<?= $rowStyle ?>">
-                                        <!-- Назва пасти -->
                                         <td style="border-color: var(--border-color); vertical-align: middle;">
                                             <?php if ($isExpired): ?>
                                                 <span style="color: var(--text-muted); text-decoration: line-through;" title="Паста протермінована">
@@ -327,7 +326,6 @@ $myPasskeys = Passkey::findByUserId($_SESSION['user_id']);
                                                 </a>
                                             <?php endif; ?>
                                         </td>
-                                        <!-- Статус -->
                                         <td style="border-color: var(--border-color); text-align: center; vertical-align: middle;">
                                             <?php if ($isExpired): ?>
                                                 <span class="label label-danger">МЕРТВА</span>
@@ -339,7 +337,6 @@ $myPasskeys = Passkey::findByUserId($_SESSION['user_id']);
                                                 <span class="label label-default">🌐 Публічна</span>
                                             <?php endif; ?>
                                         </td>
-                                        <!-- Ціна -->
                                         <td style="border-color: var(--border-color); text-align: center; vertical-align: middle; color: var(--accent); font-weight: bold;">
                                             <?php if ($paste->is_paid && $paste->view_cost > 0): ?>
                                                 <?= $paste->view_cost ?> 💰
@@ -347,8 +344,7 @@ $myPasskeys = Passkey::findByUserId($_SESSION['user_id']);
                                                 <span style="color: var(--text-muted);">—</span>
                                             <?php endif; ?>
                                         </td>
-                                        <!-- Дата -->
-                                        <td style="border-color: var(--border-color); text-align: center; vertical-align: middle; color: var(--text-muted); font-size: 0.85em; font-family: monospace;">
+                                        <td style="border-color: var(--border-color); text-align: center; vertical-align: middle; color: var(--text-muted); font-size: 0.85em; font-family: monospace;" class="hidden-xs">
                                             <?= date('d.m.Y H:i', strtotime($paste->created_at)) ?>
                                             <?php if ($paste->expires_at): ?>
                                                 <br><span style="color: var(--accent); font-size: 0.85em;">
@@ -356,25 +352,22 @@ $myPasskeys = Passkey::findByUserId($_SESSION['user_id']);
                                                 </span>
                                             <?php endif; ?>
                                         </td>
-                                        <!-- Дії -->
                                         <td style="border-color: var(--border-color); text-align: center; vertical-align: middle;">
                                             <?php if (!$isExpired): ?>
-                                                <!-- Перемикання приватності -->
-                                                <form action="settings.php" method="POST" style="display: inline-block; margin: 2px;">
+                                                <form action="settings.php" method="POST" style="display: block; margin: 2px;">
                                                     <?= csrf_field() ?>
                                                     <input type="hidden" name="action" value="toggle_visibility">
                                                     <input type="hidden" name="paste_id" value="<?= htmlspecialchars($paste->id) ?>">
-                                                    <button type="submit" class="btn btn-xs <?= $paste->is_private ? 'btn-info' : 'btn-default' ?>" title="<?= $paste->is_private ? 'Зробити публічною' : 'Зробити приватною' ?>" style="font-family: monospace;">
+                                                    <button type="submit" class="btn btn-xs <?= $paste->is_private ? 'btn-info' : 'btn-default' ?> btn-block" title="<?= $paste->is_private ? 'Зробити публічною' : 'Зробити приватною' ?>" style="font-family: monospace;">
                                                         <?= $paste->is_private ? '🔓 Розкрити' : '🔒 Сховати' ?>
                                                     </button>
                                                 </form>
                                             <?php endif; ?>
-                                            <!-- Видалення -->
-                                            <form action="settings.php" method="POST" style="display: inline-block; margin: 2px;" onsubmit="return confirm('Точно видалити пасту &quot;<?= htmlspecialchars(addslashes($paste->title)) ?>&quot;? Це незворотна дія!');">
+                                            <form action="settings.php" method="POST" style="display: block; margin: 2px;" onsubmit="return confirm('Точно видалити пасту &quot;<?= htmlspecialchars(addslashes($paste->title)) ?>&quot;? Це незворотна дія!');">
                                                 <?= csrf_field() ?>
                                                 <input type="hidden" name="action" value="delete_paste">
                                                 <input type="hidden" name="paste_id" value="<?= htmlspecialchars($paste->id) ?>">
-                                                <button type="submit" class="btn btn-xs btn-danger" title="Видалити пасту назавжди" style="font-family: monospace;">
+                                                <button type="submit" class="btn btn-xs btn-danger btn-block" title="Видалити пасту назавжди" style="font-family: monospace;">
                                                     🗑 Видалити
                                                 </button>
                                             </form>
@@ -392,10 +385,10 @@ $myPasskeys = Passkey::findByUserId($_SESSION['user_id']);
 
 <!-- Секція API налаштувань -->
 <div class="row" style="margin-top: 30px;">
-    <div class="col-md-6 col-md-offset-3">
+    <div class="col-xs-12 col-sm-10 col-sm-offset-1 col-md-6 col-md-offset-3">
         <div class="panel panel-default">
             <div class="panel-heading">
-                <h3 class="panel-title text-center" style="font-family: Tahoma, sans-serif; font-weight: bold; letter-spacing: 1px;">[ 📡 API НАЛАШТУВАННЯ ]</h3>
+                <h3 class="panel-title text-center" style="font-family: Tahoma, sans-serif; font-weight: bold;">[ 🛰️ API НАЛАШТУВАННЯ ]</h3>
             </div>
             <div class="panel-body">
                 <p class="text-muted" style="font-size: 0.9em; margin-bottom: 15px;">
@@ -405,20 +398,18 @@ $myPasskeys = Passkey::findByUserId($_SESSION['user_id']);
 
                 <div class="form-group">
                     <label>Ваш API Ключ:</label>
-                    <div class="input-group">
-                        <input type="text" class="form-control" id="apiKeyInput" value="<?= $user->api_key ? htmlspecialchars($user->api_key) : 'Ключ ще не згенеровано' ?>" readonly style="font-family: monospace; background: var(--bg-secondary); color: var(--text-primary);">
-                        <span class="input-group-btn">
-                            <button class="btn btn-default" type="button" onclick="copyApiKey()" title="Копіювати">
-                                <i class="glyphicon glyphicon-copy"></i>
-                            </button>
-                        </span>
+                    <div class="input-group-mobile">
+                        <input type="text" class="form-control" id="apiKeyInput" value="<?= $user->api_key ? htmlspecialchars($user->api_key) : 'Ключ ще не згенеровано' ?>" readonly style="font-family: monospace; background: var(--bg-secondary); color: var(--text-primary); margin-bottom: 5px;">
+                        <button class="btn btn-default btn-block" type="button" onclick="copyApiKey()" title="Копіювати">
+                            <i class="glyphicon glyphicon-copy"></i> Скопіювати ключ
+                        </button>
                     </div>
                 </div>
 
                 <form action="settings.php" method="POST" onsubmit="return confirm('Ви впевнені? Старий ключ перестане працювати!');">
                     <?= csrf_field() ?>
                     <input type="hidden" name="action" value="generate_api_key">
-                    <button type="submit" class="btn btn-warning btn-block" style="font-weight: bold;">
+                    <button type="submit" class="btn btn-warning btn-block" style="font-weight: bold; white-space: normal; height: auto;">
                         <?= $user->api_key ? '🔄 Перегенерувати ключ' : '➕ Згенерувати API ключ' ?>
                     </button>
                 </form>
@@ -450,15 +441,15 @@ function copyApiKey() {
 
 <!-- Секція НЕБЕЗПЕЧНА ЗОНА (Видалення акаунта) -->
 <div class="row" style="margin-top: 50px; margin-bottom: 50px;">
-    <div class="col-md-6 col-md-offset-3">
+    <div class="col-xs-12 col-sm-10 col-sm-offset-1 col-md-6 col-md-offset-3">
         <div class="panel panel-danger" style="border: 2px solid var(--panel-danger-border);">
             <div class="panel-heading">
-                <h3 class="panel-title text-center" style="font-family: Tahoma, sans-serif; font-weight: bold; letter-spacing: 1px;">[ 💀 НЕБЕЗПЕЧНА ЗОНА ]</h3>
+                <h3 class="panel-title text-center" style="font-family: Tahoma, sans-serif; font-weight: bold;">[ 💀 НЕБЕЗПЕЧНА ЗОНА ]</h3>
             </div>
             <div class="panel-body text-center">
                 <p style="color: var(--panel-danger-border); font-weight: bold; text-transform: uppercase; margin-bottom: 20px;">Видалення акаунта призведе до повної втрати всіх ваших паст та кредитів!</p>
                 
-                <button type="button" class="btn btn-danger btn-block" data-toggle="collapse" data-target="#deleteForm" style="font-weight: bold;">
+                <button type="button" class="btn btn-danger btn-block" data-toggle="collapse" data-target="#deleteForm" style="font-weight: bold; white-space: normal; height: auto;">
                     Я ХОЧУ ВИДАЛИТИ СВІЙ АКАУНТ
                 </button>
 
@@ -483,7 +474,7 @@ function copyApiKey() {
                                    placeholder="<?= $confirmed ? 'Можна залишити порожнім' : '*****' ?>">
                         </div>
                         
-                        <button type="submit" class="btn btn-lg btn-danger btn-block" onclick="return confirm('ВИ ВПЕВНЕНІ? Ця дія НЕЗВОРОТНА!')">
+                        <button type="submit" class="btn btn-lg btn-danger btn-block" style="white-space: normal; height: auto;" onclick="return confirm('ВИ ВПЕВНЕНІ? Ця дія НЕЗВОРОТНА!')">
                             <?php if ($confirmed): ?>
                                 💀 ОСТАТОЧНО ВИДАЛИТИ АКАУНТ 💀
                             <?php else: ?>
@@ -505,7 +496,7 @@ function copyApiKey() {
                         <div class="row">
                             <?php if (count($myPasskeys) > 0): ?>
                                 <div class="col-xs-12" style="margin-bottom: 10px;">
-                                    <button type="button" class="btn btn-info btn-block passkey-btn" onclick="confirmDeleteAccountPasskey()" style="font-weight: bold;">
+                                    <button type="button" class="btn btn-info btn-block passkey-btn" onclick="confirmDeleteAccountPasskey()" style="font-weight: bold; white-space: normal; height: auto;">
                                         ПІДТВЕРДИТИ ЧЕРЕЗ PASSKEY 🔑
                                     </button>
                                 </div>
@@ -513,7 +504,7 @@ function copyApiKey() {
 
                             <?php if ($user->github_id): ?>
                                 <div class="col-xs-12" style="margin-bottom: 10px;">
-                                    <a href="api/oauth.php?provider=github&confirm_delete_oauth=1" class="btn btn-default btn-block" style="background: var(--bg-secondary); color: var(--text-primary); border-color: var(--border-color); font-weight: bold;">
+                                    <a href="api/oauth.php?provider=github&confirm_delete_oauth=1" class="btn btn-default btn-block" style="background: var(--bg-secondary); color: var(--text-primary); border-color: var(--border-color); font-weight: bold; white-space: normal; height: auto;">
                                         ПІДТВЕРДИТИ ЧЕРЕЗ GITHUB 🐙
                                     </a>
                                 </div>
