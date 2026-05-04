@@ -630,12 +630,55 @@ textarea {
    Мобільна адаптація — < 768px
 */
 @media (max-width: 767px) {
+    /* Запобігання горизонтальному скролу на рівні body */
+    html, body {
+        overflow-x: hidden;
+        width: 100%;
+        position: relative;
+    }
 
     /* Контейнер без зайвих відступів */
     .container,
     .container-fluid {
-        padding-left: 15px;
-        padding-right: 15px;
+        padding-left: 10px;
+        padding-right: 10px;
+        width: 100% !important;
+        overflow-x: hidden;
+    }
+
+    /* Зменшення заголовків для мобільних */
+    .panel-title {
+        font-size: 14px !important;
+        letter-spacing: 0 !important;
+        word-wrap: break-word;
+        white-space: normal;
+    }
+
+    .panel-heading {
+        padding: 8px 10px;
+    }
+
+    /* Кнопки: менший шрифт і перенос тексту */
+    .btn {
+        font-size: 12px !important;
+        padding: 6px 10px;
+        white-space: normal !important;
+    }
+
+    /* Таблиці: форсування переносу та скролу */
+    .table-responsive {
+        border: none !important;
+        margin-bottom: 10px;
+    }
+    
+    .table {
+        table-layout: auto !important; /* Дозволяємо браузеру стискати колонки */
+    }
+
+    .table td, .table th {
+        font-size: 11px;
+        word-break: break-word;
+        padding: 5px !important;
     }
 
     /* Рекламний банер — менший шрифт на мобільному */
@@ -655,25 +698,6 @@ textarea {
         float: none;
     }
 
-    /* Таблиця в налаштуваннях */
-    .table-responsive {
-        overflow-x: auto;
-    }
-
-    /* Картки паст */
-    .list-group-item h4 {
-        font-size: 1em;
-    }
-
-    /* Футер */
-    footer p {
-        font-size: 0.85em;
-    }
-
-    .old-school-badges img {
-        width: 80px;
-        height: 28px;
-    }
 
     /* Форми — повна ширина на мобільному */
     .form-group .col-sm-4,
@@ -708,9 +732,26 @@ textarea {
 
     .input-group-mobile {
         display: block;
+        width: 100%;
     }
     .input-group-mobile .form-control {
+        width: 100% !important;
         margin-bottom: 8px;
+        display: block;
+        border-radius: 4px !important;
+    }
+    .input-group-mobile .input-group-btn {
+        display: block;
+        width: 100%;
+    }
+    .input-group-mobile .btn {
+        width: 100%;
+        display: block;
+        border-radius: 4px !important;
+    }
+
+    .panel-body {
+        padding: 10px !important;
     }
 }
 
