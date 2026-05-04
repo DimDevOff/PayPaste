@@ -692,6 +692,26 @@ textarea {
     .panel {
         margin-bottom: 10px;
     }
+
+    /* Утиліти для секції налаштувань */
+    .pull-right-mobile {
+        float: none !important;
+        margin-top: 10px;
+        display: block;
+        width: 100%;
+    }
+    .pull-right-mobile button, 
+    .pull-right-mobile a {
+        display: block;
+        width: 100%;
+    }
+
+    .input-group-mobile {
+        display: block;
+    }
+    .input-group-mobile .form-control {
+        margin-bottom: 8px;
+    }
 }
 
 /* 
