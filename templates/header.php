@@ -68,6 +68,9 @@ if (!in_array($_theme, $_allowedThemes)) $_theme = 'retro';
                     <li><p class="navbar-text">💰 <?= $currentUser->credits ?> Кредитів</p></li>
                     <li><a href="credits.php" style="color: var(--accent); font-weight:bold;" title="Поповнити">➕ Поповнити</a></li>
                     <li><a href="settings.php" title="Налаштування">👤 <?= htmlspecialchars($currentUser->nickname) ?></a></li>
+                    <?php if($currentUser->role === 'admin'): ?>
+                        <li><a href="admin/index.php" style="color: #00ff00; font-weight:bold;" title="Адмін панель">🛡️ Адмінка</a></li>
+                    <?php endif; ?>
                     <li>
                         <form action="login.php" method="POST" style="margin: 8px 15px;">
                             <?= csrf_field() ?>
