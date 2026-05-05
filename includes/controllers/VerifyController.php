@@ -17,10 +17,7 @@ class VerifyController {
         }
 
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            if (!verify_csrf()) {
-                $_SESSION['error_msg'] = 'Помилка безпеки. Спробуйте ще раз.';
-                return;
-            }
+            verify_csrf();
 
             $action = $_POST['action'] ?? '';
 
