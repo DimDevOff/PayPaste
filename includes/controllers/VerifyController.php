@@ -1,6 +1,7 @@
 <?php
 require_once __DIR__ . '/../bootstrap.php';
 require_once __DIR__ . '/../mailer.php';
+require_once __DIR__ . '/../services/AuthService.php';
 
 class VerifyController {
     public function handleRequest() {
@@ -29,11 +30,12 @@ class VerifyController {
                     return;
                 }
 
-                if ($user->verifyEmail($code)) {
+                try {
+                    AuthService::verifyEmail($user, $code);
                     $_SESSION['success_msg'] = 'Пошту успішно підтверджено!';
                     header('Location: index.php');
                     exit;
-                } else {
+                } catch (Exception $e) {
                     $_SESSION['error_msg'] = 'Неправильний або протермінований код.';
                 }
             } 

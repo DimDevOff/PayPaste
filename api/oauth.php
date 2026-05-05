@@ -12,6 +12,7 @@
 session_start();
 require_once __DIR__ . '/../config/db.php';
 require_once __DIR__ . '/../includes/models/User.php';
+require_once __DIR__ . '/../includes/services/AuthService.php';
 
 $provider = $_GET['provider'] ?? 'unknown';
 
@@ -123,45 +124,26 @@ if ($provider === 'github') {
             exit;
         }
 
-        $existingUserWithId = User::findByGithubId($github_id);
-
-        if ($existingUserWithId) {
-            if ($existingUserWithId->id === $currentUser->id) {
-                $_SESSION['success'] = "Цей акаунт GitHub вже прив'язаний до вашого профілю!";
-            } else {
-                $_SESSION['error'] = "Цей акаунт GitHub вже прив'язаний до іншого профілю. Будь ласка, увійдіть у той акаунт, видаліть його, і спробуйте знову.";
-            }
-        } else {
-            $currentUser->linkGithub($github_id);
+        try {
+            AuthService::linkOAuth($currentUser, 'github', $github_id);
             $_SESSION['success'] = "GitHub успішно прив'язано!";
+        } catch (Exception $e) {
+            $_SESSION['error'] = $e->getMessage();
         }
         header("Location: ../settings.php");
         exit;
     }
 
     // Сценарій 2: вхід або реєстрація
-    $user = User::findByGithubId($github_id);
-
-    if (!$user && $email) {
-        $user = User::findByEmail($email);
-        if ($user) {
-            // Об'єднання ID
-            $user->linkGithub($github_id);
-        }
+    try {
+        $user = AuthService::oauthLogin('github', [
+            'id' => $github_id,
+            'email' => $email,
+            'nickname' => $nickname
+        ]);
+    } catch (Exception $e) {
+        die('Помилка OAuth авторизації: ' . $e->getMessage());
     }
-
-    if (!$user) {
-        if (!$email) {
-            die('Не вдалося знайти підтверджену основну електронну адресу в GitHub, і не знайдено існуючого зв\'язку.');
-        }
-        $random_password = bin2hex(random_bytes(12)); // Пароль не потрібен для OAuth, але створюємо для безпеки
-        $user = new User($email, password_hash($random_password, PASSWORD_DEFAULT), $nickname, 100, [], 'user', null, null, $github_id);
-        $user->save();
-    }
-
-    $_SESSION['user_id'] = $user->id;
-    $_SESSION['nickname'] = $user->nickname;
-    $_SESSION['role'] = $user->role;
 
     header("Location: ../index.php");
     exit;
@@ -215,44 +197,27 @@ if ($provider === 'telegram') {
             exit;
         }
 
-        $existingUserWithId = User::findByTelegramId($telegram_id);
-
-        if ($existingUserWithId) {
-            if ($existingUserWithId->id === $currentUser->id) {
-                $_SESSION['success'] = "Цей Telegram вже прив'язаний до вашого профілю!";
-            } else {
-                $_SESSION['error'] = "Цей Telegram вже прив'язаний до іншого профілю. Будь ласка, увійдіть у той акаунт, видаліть його, і спробуйте знову.";
-            }
-        } else {
-            $currentUser->linkTelegram($telegram_id);
+        try {
+            AuthService::linkOAuth($currentUser, 'telegram', (string)$telegram_id);
             $_SESSION['success'] = "Telegram успішно прив'язано!";
+        } catch (Exception $e) {
+            $_SESSION['error'] = $e->getMessage();
         }
         header("Location: ../settings.php");
         exit;
     }
-    
+
     // Сценарій 2: вхід або реєстрація
-    $user = User::findByTelegramId($telegram_id);
-    
-    if (!$user) {
-        $random_password = bin2hex(random_bytes(12));
-        $user = new User(
-            "telegram_{$telegram_id}@paypaste.local",
-            password_hash($random_password, PASSWORD_DEFAULT),
-            $nickname,
-            100,
-            [],
-            'user',
-            null,
-            $telegram_id
-        );
-        $user->save();
+    try {
+        $user = AuthService::oauthLogin('telegram', [
+            'id' => (string)$telegram_id,
+            'email' => "telegram_{$telegram_id}@paypaste.local",
+            'nickname' => $nickname
+        ]);
+    } catch (Exception $e) {
+        die('Помилка OAuth авторизації: ' . $e->getMessage());
     }
-    
-    $_SESSION['user_id'] = $user->id;
-    $_SESSION['nickname'] = $user->nickname;
-    $_SESSION['role'] = $user->role;
-    
+
     header("Location: ../index.php");
     exit;
 }

@@ -11,6 +11,7 @@
 if (session_status() === PHP_SESSION_NONE) { session_start(); }
 require_once __DIR__ . '/../includes/models/User.php';
 require_once __DIR__ . '/../includes/models/Passkey.php';
+require_once __DIR__ . '/../includes/services/AuthService.php';
 require_once __DIR__ . '/../includes/webauthn.php';
 require_once __DIR__ . '/../includes/csrf.php';
 
@@ -123,19 +124,9 @@ switch ($action) {
             $user_id = $user->id;
         }
 
-        $passkey = new Passkey(
-            $user_id,
-            $result['credential_id'],
-            $result['public_key_pem'],
-            $result['aaguid'] ?? 'unknown',
-            $result['transports'] ?? [],
-            $result['counter'] ?? 0
-        );
-        $passkey->save();
+        AuthService::registerPasskey($user_id, $result);
 
-        $_SESSION['user_id'] = $user_id;
-        $user = User::findById($user_id);
-        $_SESSION['role'] = $user->role ?? 'user';
+        AuthService::setSession(User::findById($user_id));
         $_SESSION['success'] = 'Passkey успішно прив\'язано!';
 
         unset($_SESSION['webauthn_challenge'], $_SESSION['webauthn_user_id'], $_SESSION['webauthn_nickname']);
@@ -198,9 +189,7 @@ switch ($action) {
 
         $passkey->updateCounter($result['new_counter']);
 
-        $_SESSION['user_id'] = $passkey->user_id;
-        $user = User::findById($passkey->user_id);
-        $_SESSION['role'] = $user->role ?? 'user';
+        AuthService::passkeyLogin($passkey->credential_id);
 
         unset($_SESSION['webauthn_challenge']);
 

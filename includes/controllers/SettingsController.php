@@ -2,6 +2,8 @@
 if (session_status() === PHP_SESSION_NONE) { session_start(); } // Перевірка статусу сесії
 require_once __DIR__ . '/../models/User.php'; // Завантаження моделі користувача
 require_once __DIR__ . '/../models/Paste.php'; // Завантаження моделі пасти
+require_once __DIR__ . '/../services/AuthService.php'; // Завантаження AuthService
+require_once __DIR__ . '/../services/PasteService.php'; // Завантаження PasteService
 require_once __DIR__ . '/../csrf.php'; // Завантаження CSRF
 
 class SettingsController {
@@ -47,17 +49,16 @@ class SettingsController {
             exit;
         }
 
-        $paste = Paste::findById($paste_id);
-        if (!$paste || $paste->user_id !== $_SESSION['user_id']) {
-            $_SESSION['error'] = "Пасту не знайдено або у вас немає прав!";
+        try {
+            PasteService::delete($paste_id, $_SESSION['user_id']);
+            $_SESSION['success'] = "Пасту видалено!";
+            header("Location: settings.php");
+            exit;
+        } catch (Exception $e) {
+            $_SESSION['error'] = $e->getMessage();
             header("Location: settings.php");
             exit;
         }
-
-        $paste->delete();
-        $_SESSION['success'] = "Пасту \"" . htmlspecialchars($paste->title) . "\" видалено!";
-        header("Location: settings.php");
-        exit;
     }
 
     /*
@@ -74,19 +75,17 @@ class SettingsController {
             exit;
         }
 
-        $paste = Paste::findById($paste_id);
-        if (!$paste || $paste->user_id !== $_SESSION['user_id']) {
-            $_SESSION['error'] = "Пасту не знайдено або у вас немає прав!";
+        try {
+            $isPrivate = PasteService::toggleVisibility($paste_id, $_SESSION['user_id']);
+            $status = $isPrivate ? 'приватною' : 'публічною';
+            $_SESSION['success'] = "Пасту зроблено {$status}!";
+            header("Location: settings.php");
+            exit;
+        } catch (Exception $e) {
+            $_SESSION['error'] = $e->getMessage();
             header("Location: settings.php");
             exit;
         }
-
-        $paste->is_private = !$paste->is_private;
-        $paste->save();
-        $status = $paste->is_private ? 'приватною' : 'публічною';
-        $_SESSION['success'] = "Пасту \"" . htmlspecialchars($paste->title) . "\" зроблено {$status}!";
-        header("Location: settings.php");
-        exit;
     }
 
     /*
@@ -103,68 +102,26 @@ class SettingsController {
             return;
         }
 
-        $nickname = htmlspecialchars(trim($nickname));
-        $new_email = trim($new_email);
-        $password = trim($password);
-        $confirm = trim($confirm);
+        try {
+            $result = AuthService::updateProfile($user, $nickname, $password, $confirm, $new_email);
 
-        if (empty($nickname)) {
-            $_SESSION['error'] = "Нікнейм не може бути порожнім!";
-            return;
-        }
+            if ($result['email_changed']) {
+                require_once __DIR__ . '/../mailer.php';
+                Mailer::sendEmailChangedNotification($user->email, $new_email);
 
-        if (mb_strlen($nickname) > 50) {
-            $_SESSION['error'] = "Нікнейм занадто довгий!";
-            return;
-        }
+                $code = $user->generateVerificationCode();
+                Mailer::sendVerificationEmail($user->email, $code);
 
-        $email_changed = false;
-        if (!empty($new_email) && $new_email !== $user->email) {
-            if (!filter_var($new_email, FILTER_VALIDATE_EMAIL)) {
-                $_SESSION['error'] = "Некоректний формат нового email!";
+                $_SESSION['success'] = "Профіль оновлено! На нову пошту надіслано код підтвердження.";
+                header("Location: verify.php");
+                exit;
+            } else {
+                $_SESSION['success'] = "Профіль успішно оновлено!";
                 header("Location: settings.php");
                 exit;
             }
-            if (User::findByEmail($new_email)) {
-                $_SESSION['error'] = "Цей email вже зайнятий!";
-                header("Location: settings.php");
-                exit;
-            }
-            $email_changed = true;
-        }
-
-        $user->nickname = $nickname;
-
-        if (!empty($password)) {
-            if (mb_strlen($password) < 6) {
-                $_SESSION['error'] = "Пароль має містити мінімум 6 символів!";
-                return;
-            }
-            if ($password !== $confirm) {
-                $_SESSION['error'] = "Паролі не співпадають!";
-                return;
-            }
-            $user->password_hash = password_hash($password, PASSWORD_DEFAULT);
-        }
-
-        if ($email_changed) {
-            require_once __DIR__ . '/../mailer.php';
-            // Повідомляємо стару пошту
-            Mailer::sendEmailChangedNotification($user->email, $new_email);
-            
-            $user->email = $new_email;
-            $user->email_verified = 0;
-            $user->save();
-            
-            $code = $user->generateVerificationCode();
-            Mailer::sendVerificationEmail($user->email, $code);
-            
-            $_SESSION['success'] = "Профіль оновлено! На нову пошту надіслано код підтвердження.";
-            header("Location: verify.php");
-            exit;
-        } else {
-            $user->save();
-            $_SESSION['success'] = "Профіль успішно оновлено!";
+        } catch (Exception $e) {
+            $_SESSION['error'] = $e->getMessage();
             header("Location: settings.php");
             exit;
         }
@@ -182,7 +139,12 @@ class SettingsController {
             exit;
         }
 
-        $user->setTheme($theme);
+        $allowed = ['retro', 'dark', 'terminal', 'light', 'github-orange', 'retro-green'];
+        if (!in_array($theme, $allowed)) {
+            $theme = 'retro';
+        }
+        $user->theme = $theme;
+        $user->save();
         $_SESSION['success'] = "Тему змінено! 🎨";
         header("Location: settings.php");
         exit;
@@ -198,16 +160,16 @@ class SettingsController {
         $user = User::findById($_SESSION['user_id']);
         if (!$user) return;
 
-        if ($provider === 'github') {
-            $user->github_id = null;
-        } elseif ($provider === 'telegram') {
-            $user->telegram_id = null;
+        try {
+            AuthService::unlinkOAuth($user, $provider);
+            $_SESSION['success'] = "Акаунт " . ucfirst($provider) . " від'єднано!";
+            header("Location: settings.php");
+            exit;
+        } catch (Exception $e) {
+            $_SESSION['error'] = $e->getMessage();
+            header("Location: settings.php");
+            exit;
         }
-
-        $user->save();
-        $_SESSION['success'] = "Акаунт " . ucfirst($provider) . " від'єднано!";
-        header("Location: settings.php");
-        exit;
     }
 
     /*
@@ -230,19 +192,16 @@ class SettingsController {
 
         // Перевірка або пароля, або підтвердження через Passkey/OAuth
         if ($passkeyConfirmed || $oauthConfirmed || (!empty($password) && password_verify($password, $user->password_hash))) {
-            $user->delete();
-            
-            // Очищення cookie
-            setcookie('remember_me', '', time() - 3600, '/');
-            setcookie('remember_email', '', time() - 3600, '/');
-            
-            // Очищення та перезапуск сесії
-            $_SESSION = [];
-            session_destroy();
-            session_start();
-            $_SESSION['success'] = "Ваш акаунт було видалено. Нам дуже шкода! 😢";
-            header("Location: index.php");
-            exit;
+            try {
+                AuthService::deleteAccount($user);
+                $_SESSION['success'] = "Ваш акаунт було видалено. Нам дуже шкода! 😢";
+                header("Location: index.php");
+                exit;
+            } catch (Exception $e) {
+                $_SESSION['error'] = "Помилка видалення акаунта: " . $e->getMessage();
+                header("Location: settings.php");
+                exit;
+            }
         } else {
             $_SESSION['error'] = "Невірний пароль або Passkey не підтверджено!";
             header("Location: settings.php");
@@ -257,7 +216,7 @@ class SettingsController {
         $user = User::findById($_SESSION['user_id']);
         if (!$user) return;
 
-        $key = $user->generateApiKey();
+        $key = AuthService::generateApiKey($user);
         $_SESSION['success'] = "Новий API-ключ згенеровано! Збережіть його в надійному місці.";
         header("Location: settings.php");
         exit;

@@ -2,6 +2,7 @@
 if (session_status() === PHP_SESSION_NONE) { session_start(); } // Перевірка статусу сесії
 
 require_once __DIR__ . '/../models/User.php'; // Завантаження моделі користувача
+require_once __DIR__ . '/../services/AuthService.php'; // Завантаження AuthService
 require_once __DIR__ . '/../csrf.php'; // Завантаження CSRF
 require_once __DIR__ . '/../RateLimiter.php'; // Завантаження RateLimiter
 
@@ -34,61 +35,26 @@ class AuthController { // Клас контролера авторизації
             header("Location: login.php");
             exit;
         }
-        
+
         $_SESSION['old_input'] = ['email' => $email, 'nickname' => $nickname];
-        
-        $email = trim($email);
-        
-        if (empty($email) || empty($password) || empty($confirm)) {
-            $_SESSION['error'] = "Всі поля обов'язкові!";
+
+        try {
+            $user = AuthService::register($email, $password, $confirm, $nickname);
+
+            require_once __DIR__ . '/../mailer.php';
+            $code = $user->generateVerificationCode();
+            Mailer::sendVerificationEmail($user->email, $code);
+
+            AuthService::setSession($user);
+            unset($_SESSION['old_input']);
+            $_SESSION['success'] = "Реєстрація майже завершена! Вам нараховано 100 кредитів. Введіть код підтвердження, надісланий на пошту.";
+            header("Location: verify.php");
+            exit;
+        } catch (Exception $e) {
+            $_SESSION['error'] = $e->getMessage();
             header("Location: login.php");
             exit;
         }
-
-        if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-            $_SESSION['error'] = "Некоректний формат email!";
-            header("Location: login.php");
-            exit;
-        }
-
-        if (mb_strlen($password) < 6) {
-            $_SESSION['error'] = "Пароль має містити мінімум 6 символів!";
-            header("Location: login.php");
-            exit;
-        }
-
-        if (mb_strlen($nickname) > 50) {
-            $_SESSION['error'] = "Нікнейм занадто довгий!";
-            header("Location: login.php");
-            exit;
-        }
-
-        if ($password !== $confirm) {
-            $_SESSION['error'] = "Паролі не співпадають!";
-            header("Location: login.php");
-            exit;
-        }
-
-        $existingUser = User::findByEmail($email);
-        if ($existingUser) {
-            $_SESSION['error'] = "Користувач з таким email вже існує!";
-            return;
-        }
-
-        $hashed = password_hash($password, PASSWORD_DEFAULT);
-        $user = new User($email, $hashed, $nickname, 100);
-        $user->save();
-
-        require_once __DIR__ . '/../mailer.php';
-        $code = $user->generateVerificationCode();
-        Mailer::sendVerificationEmail($user->email, $code);
-
-        $_SESSION['user_id'] = $user->id;
-        $_SESSION['role'] = $user->role;
-        unset($_SESSION['old_input']);
-        $_SESSION['success'] = "Реєстрація майже завершена! Вам нараховано 100 кредитів. Введіть код підтвердження, надісланий на пошту.";
-        header("Location: verify.php");
-        exit;
     }
     /*
     Функція входу.
@@ -102,52 +68,18 @@ class AuthController { // Клас контролера авторизації
             header("Location: login.php");
             exit;
         }
-        
-        $_SESSION['old_input'] = ['email' => $email];
-        
-        $email = trim($email);
-        
-        if (empty($email) || empty($password)) {
-            $_SESSION['error'] = "Введіть email та пароль!";
-            header("Location: login.php");
-            exit;
-        }
 
-        $user = User::findByEmail($email);
-        if ($user && password_verify($password, $user->password_hash)) {
-            $_SESSION['user_id'] = $user->id;
-            $_SESSION['role'] = $user->role;
+        $_SESSION['old_input'] = ['email' => $email];
+
+        try {
+            $user = AuthService::login($email, $password, $remember);
             unset($_SESSION['old_input']);
-            
-            // Робота з кукі (авторизація на 14 днів)
-            if ($remember) {
-                // Створюємо захищений токен: id + хеш
-                $cookie_secret = COOKIE_SECRET ?: 'Fallback_Secret';
-                $token = $user->id . ':' . hash_hmac('sha256', $user->id . $user->password_hash, $cookie_secret);
-                $secure = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off');
-                setcookie('remember_me', $token, [
-                    'expires' => time() + 14 * 24 * 3600,
-                    'path' => '/',
-                    'httponly' => true,
-                    'secure' => $secure,
-                    'samesite' => 'Lax'
-                ]);
-                setcookie('remember_email', $email, [
-                    'expires' => time() + 14 * 24 * 3600,
-                    'path' => '/',
-                    'httponly' => false,
-                    'secure' => $secure,
-                    'samesite' => 'Lax'
-                ]);
-            } else {
-                setcookie('remember_me', '', time() - 3600, '/');
-                setcookie('remember_email', '', time() - 3600, '/');
-            }
-            
             header("Location: index.php");
             exit;
-        } else {
-            $_SESSION['error'] = "Невірний email або пароль!";
+        } catch (Exception $e) {
+            $_SESSION['error'] = $e->getMessage();
+            header("Location: login.php");
+            exit;
         }
     }
 
@@ -157,10 +89,7 @@ class AuthController { // Клас контролера авторизації
     Якщо все пройшло успішно, то користувач перенаправляється на головну сторінку.
     */
     private function logout() {
-        // Очищення remember_me cookie при виході
-        setcookie('remember_me', '', time() - 3600, '/');
-        setcookie('remember_email', '', time() - 3600, '/');
-        session_destroy();
+        AuthService::logout();
         header("Location: index.php");
         exit;
     }

@@ -166,6 +166,7 @@ class User {
 
     /**
      * Прив'язка Telegram аккаунта до профілю
+     * @deprecated Використовуйте AuthService::linkOAuth()
      */
     public function linkTelegram($telegram_id) {
         $this->telegram_id = $telegram_id;
@@ -184,6 +185,7 @@ class User {
 
     /**
      * Прив'язка GitHub аккаунта до профілю
+     * @deprecated Використовуйте AuthService::linkOAuth()
      */
     public function linkGithub($github_id) {
         $this->github_id = $github_id;
@@ -204,6 +206,7 @@ class User {
 
     /**
      * Встановлює нову тему для користувача та зберігає в БД
+     * @deprecated Використовуйте пряме присвоєння $user->theme + $user->save()
      */
     public function setTheme($theme) {
         $allowed = ['retro', 'dark', 'terminal', 'light', 'github-orange', 'retro-green'];
@@ -223,6 +226,7 @@ class User {
     
     /**
      * Додає пасту до списку розблокованих
+     * @deprecated Використовуйте PasteService::unlock()
      */
     public function unlockPaste($paste_id) {
         if (!in_array($paste_id, $this->unlocked_pastes)) {
@@ -284,6 +288,7 @@ class User {
 
     /**
      * Генерує новий API-ключ для користувача
+     * @deprecated Використовуйте AuthService::generateApiKey()
      */
     public function generateApiKey() {
         $this->api_key = 'pp_' . bin2hex(random_bytes(24));
@@ -340,6 +345,7 @@ class User {
 
     /**
      * Перевірка коду підтвердження пошти
+     * @deprecated Використовуйте AuthService::verifyEmail()
      */
     public function verifyEmail($code) {
         if ($this->email_verified) return true;

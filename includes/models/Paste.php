@@ -386,6 +386,7 @@ class Paste {
 
     /**
      * Видалення поточної пасти.
+     * @deprecated Використовуйте PasteService::delete()
      */
     public function delete() {
         self::delete_paste_by_admin($this->id);
