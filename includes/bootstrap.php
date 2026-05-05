@@ -58,3 +58,15 @@ function redirect($location) {
     header("Location: $location");
     exit;
 }
+
+// Глобальна перевірка верифікації пошти
+$current_page = basename($_SERVER['PHP_SELF']);
+$allowed_unverified_pages = ['verify.php', 'login.php'];
+
+if (isset($_SESSION['user_id'])) {
+    $user = getCurrentUser();
+    if ($user && !$user->email_verified && !in_array($current_page, $allowed_unverified_pages)) {
+        redirect('verify.php');
+    }
+}
+

@@ -21,6 +21,8 @@ Thumbs.db
 # AI assistants
 .agents/
 .pi-lens
-
+AGENTS.md
 config/config.php
+config/bad_words.json
 paypaste.md
+scratch/

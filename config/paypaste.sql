@@ -14,6 +14,9 @@ CREATE TABLE IF NOT EXISTS users (
     theme VARCHAR(20) NOT NULL DEFAULT 'retro',
     api_key VARCHAR(64) UNIQUE NULL,
     credits INT DEFAULT 100,
+    email_verified TINYINT NOT NULL DEFAULT 0,
+    verification_code VARCHAR(6) DEFAULT NULL,
+    verification_expires_at DATETIME DEFAULT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 

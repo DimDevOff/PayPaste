@@ -79,11 +79,15 @@ class AuthController { // Клас контролера авторизації
         $user = new User($email, $hashed, $nickname, 100);
         $user->save();
 
+        require_once __DIR__ . '/../mailer.php';
+        $code = $user->generateVerificationCode();
+        Mailer::sendVerificationEmail($user->email, $code);
+
         $_SESSION['user_id'] = $user->id;
         $_SESSION['role'] = $user->role;
         unset($_SESSION['old_input']);
-        $_SESSION['success'] = "Реєстрація успішна! Вам нараховано 100 кредитів.";
-        header("Location: index.php");
+        $_SESSION['success'] = "Реєстрація майже завершена! Вам нараховано 100 кредитів. Введіть код підтвердження, надісланий на пошту.";
+        header("Location: verify.php");
         exit;
     }
     /*

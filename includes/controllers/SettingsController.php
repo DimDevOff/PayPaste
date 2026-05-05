@@ -17,7 +17,7 @@ class SettingsController {
             $action = $_POST['action'] ?? '';
 
             if ($action === 'update_profile') {
-                $this->updateProfile($_POST['nickname'] ?? '', $_POST['password'] ?? '', $_POST['password_confirm'] ?? '');
+                $this->updateProfile($_POST['nickname'] ?? '', $_POST['password'] ?? '', $_POST['password_confirm'] ?? '', $_POST['email'] ?? '');
             } elseif ($action === 'delete_paste') {
                 $this->deletePaste($_POST['paste_id'] ?? '');
             } elseif ($action === 'toggle_visibility') {
@@ -96,7 +96,7 @@ class SettingsController {
     Потім хешує новий пароль та оновлює нікнейм у об'єкті користувача.
     Якщо всі дані валідні, зберігає оновлення в базі.
     */
-    private function updateProfile($nickname, $password, $confirm) {
+    private function updateProfile($nickname, $password, $confirm, $new_email = '') {
         $user = User::findById($_SESSION['user_id']);
         if (!$user) {
             $_SESSION['error'] = "Користувача не знайдено!";
@@ -104,6 +104,7 @@ class SettingsController {
         }
 
         $nickname = htmlspecialchars(trim($nickname));
+        $new_email = trim($new_email);
         $password = trim($password);
         $confirm = trim($confirm);
 
@@ -115,6 +116,21 @@ class SettingsController {
         if (mb_strlen($nickname) > 50) {
             $_SESSION['error'] = "Нікнейм занадто довгий!";
             return;
+        }
+
+        $email_changed = false;
+        if (!empty($new_email) && $new_email !== $user->email) {
+            if (!filter_var($new_email, FILTER_VALIDATE_EMAIL)) {
+                $_SESSION['error'] = "Некоректний формат нового email!";
+                header("Location: settings.php");
+                exit;
+            }
+            if (User::findByEmail($new_email)) {
+                $_SESSION['error'] = "Цей email вже зайнятий!";
+                header("Location: settings.php");
+                exit;
+            }
+            $email_changed = true;
         }
 
         $user->nickname = $nickname;
@@ -131,10 +147,27 @@ class SettingsController {
             $user->password_hash = password_hash($password, PASSWORD_DEFAULT);
         }
 
-        $user->save();
-        $_SESSION['success'] = "Профіль успішно оновлено!";
-        header("Location: settings.php");
-        exit;
+        if ($email_changed) {
+            require_once __DIR__ . '/../mailer.php';
+            // Повідомляємо стару пошту
+            Mailer::sendEmailChangedNotification($user->email, $new_email);
+            
+            $user->email = $new_email;
+            $user->email_verified = 0;
+            $user->save();
+            
+            $code = $user->generateVerificationCode();
+            Mailer::sendVerificationEmail($user->email, $code);
+            
+            $_SESSION['success'] = "Профіль оновлено! На нову пошту надіслано код підтвердження.";
+            header("Location: verify.php");
+            exit;
+        } else {
+            $user->save();
+            $_SESSION['success'] = "Профіль успішно оновлено!";
+            header("Location: settings.php");
+            exit;
+        }
     }
 
     /*

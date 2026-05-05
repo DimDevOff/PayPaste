@@ -17,11 +17,14 @@ class User {
     public $role;             // Роль користувача (user, admin)
     public $theme;            // Обрана кольорова тема інтерфейсу
     public $api_key;          // Ключ для доступу до API
+    public $email_verified;   // Статус верифікації
+    public $verification_code; // Код
+    public $verification_expires_at; // Час життя коду
 
     /**
      * Конструктор моделі користувача
      */
-    public function __construct($email, $password_hash, $nickname = 'Anon', $credits = 100, $unlocked_pastes = [], $role = 'user', $id = null, $telegram_id = null, $github_id = null, $theme = 'retro', $api_key = null) {
+    public function __construct($email, $password_hash, $nickname = 'Anon', $credits = 100, $unlocked_pastes = [], $role = 'user', $id = null, $telegram_id = null, $github_id = null, $theme = 'retro', $api_key = null, $email_verified = 0, $verification_code = null, $verification_expires_at = null) {
         $this->email = $email;
         $this->password_hash = $password_hash;
         $this->nickname = trim($nickname);
@@ -33,6 +36,9 @@ class User {
         $this->github_id = $github_id;
         $this->theme = $theme;
         $this->api_key = $api_key;
+        $this->email_verified = (int)$email_verified;
+        $this->verification_code = $verification_code;
+        $this->verification_expires_at = $verification_expires_at;
     }
 
     /**
@@ -58,7 +64,7 @@ class User {
             $theme = 'retro';
         }
         
-        return new self($row['email'], $row['password_hash'], $row['nickname'], $row['credits'], $unlocked, $row['role'], $row['id'], $row['telegram_id'], $row['github_id'], $theme, $row['api_key'] ?? null);
+        return new self($row['email'], $row['password_hash'], $row['nickname'], $row['credits'], $unlocked, $row['role'], $row['id'], $row['telegram_id'], $row['github_id'], $theme, $row['api_key'] ?? null, $row['email_verified'] ?? 0, $row['verification_code'] ?? null, $row['verification_expires_at'] ?? null);
     }
 
     /**
@@ -67,8 +73,8 @@ class User {
     public function save() {
         $pdo = DB::getInstance()->getPDO();
         $stmt = $pdo->prepare("
-            INSERT INTO users (id, email, telegram_id, github_id, password_hash, nickname, credits, role, theme, api_key)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            INSERT INTO users (id, email, telegram_id, github_id, password_hash, nickname, credits, role, theme, api_key, email_verified, verification_code, verification_expires_at)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             ON DUPLICATE KEY UPDATE
                 email = VALUES(email),
                 telegram_id = VALUES(telegram_id),
@@ -78,7 +84,10 @@ class User {
                 credits = VALUES(credits),
                 role = VALUES(role),
                 theme = VALUES(theme),
-                api_key = VALUES(api_key)
+                api_key = VALUES(api_key),
+                email_verified = VALUES(email_verified),
+                verification_code = VALUES(verification_code),
+                verification_expires_at = VALUES(verification_expires_at)
         ");
         $stmt->execute([
             $this->id,
@@ -90,7 +99,10 @@ class User {
             $this->credits,
             $this->role,
             $this->theme,
-            $this->api_key
+            $this->api_key,
+            $this->email_verified,
+            $this->verification_code,
+            $this->verification_expires_at
         ]);
         
         // Оновлюємо розблоковані пасти
@@ -302,5 +314,38 @@ class User {
             $cacheUser->password_hash = null;
             $_SESSION['_user_cache'] = $cacheUser;
         }
+    }
+
+    /**
+     * Генерує новий код підтвердження пошти
+     */
+    public function generateVerificationCode() {
+        $this->verification_code = str_pad(random_int(0, 999999), 6, '0', STR_PAD_LEFT);
+        $this->verification_expires_at = date('Y-m-d H:i:s', time() + 15 * 60); // 15 хвилин
+        $this->email_verified = 0;
+        $this->save();
+        return $this->verification_code;
+    }
+
+    /**
+     * Перевірка коду підтвердження пошти
+     */
+    public function verifyEmail($code) {
+        if ($this->email_verified) return true;
+        if (empty($this->verification_code) || empty($this->verification_expires_at)) return false;
+        
+        if (strtotime($this->verification_expires_at) < time()) {
+            return false; // протерміновано
+        }
+        
+        if ($this->verification_code === $code) {
+            $this->email_verified = 1;
+            $this->verification_code = null;
+            $this->verification_expires_at = null;
+            $this->save();
+            return true;
+        }
+        
+        return false;
     }
 }

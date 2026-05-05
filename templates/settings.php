@@ -37,9 +37,14 @@ $myPasskeys = Passkey::findByUserId($_SESSION['user_id']);
                     </div>
 
                     <div class="form-group">
-                        <label>Email:</label>
-                        <input type="text" class="form-control" value="<?= htmlspecialchars($user->email) ?>" disabled>
-                        <small class="text-muted">Email змінити неможливо.</small>
+                        <label for="email">Email:</label>
+                        <input type="email" 
+                               name="email" 
+                               id="email" 
+                               class="form-control" 
+                               value="<?= htmlspecialchars($user->email) ?>" 
+                               required>
+                        <small class="text-muted">Увага! При зміні пошти потрібно буде її заново підтвердити.</small>
                     </div>
 
                     <hr style="border-top: 1px dashed var(--border-color); margin-top: 30px; margin-bottom: 20px;">
