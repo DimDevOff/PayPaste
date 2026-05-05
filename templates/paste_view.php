@@ -11,6 +11,11 @@
         <a href="index.php" class="btn btn-default">← На головну</a>
     </div>
 <?php else: ?>
+    <!-- highlight.js integration -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+    <script>hljs.highlightAll();</script>
+    
     <div class="panel panel-default">
         <div class="panel-heading">
             <h3 class="panel-title">
@@ -81,7 +86,11 @@
                         </button>
                         <span id="copy-msg" style="margin-left: 10px; color: var(--accent); font-weight: bold; display: none; background: var(--bg-secondary); padding: 2px 5px; border: 1px solid var(--accent);">СКОПІЙОВАНО! ✅</span>
                     </div>
-                    <textarea id="paste-textarea" class="form-control" rows="20" readonly style="font-family: monospace; cursor: text;"><?= htmlspecialchars(Paste::stripTags($paste->content)) ?></textarea>
+                    
+                    <div class="code-container" style="position: relative; border: 2px solid var(--border-color); background: #0d1117; margin-bottom: 20px;">
+                        <pre style="margin: 0; border: none; border-radius: 0; background: transparent; padding: 15px; overflow-x: auto;"><code class="language-<?= htmlspecialchars($paste->language ?: 'plaintext') ?>"><?= htmlspecialchars(Paste::stripTags($paste->content)) ?></code></pre>
+                        <textarea id="paste-textarea" style="display:none;"><?= htmlspecialchars(Paste::stripTags($paste->content)) ?></textarea>
+                    </div>
 
                     <!-- Adsterra: Banner 300×250 (після контенту) -->
                     <?php if (!isset($hide_ads) || !$hide_ads): ?>

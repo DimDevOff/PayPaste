@@ -15,11 +15,12 @@ class Paste {
     public $created_at;
     public $expires_at;
     public $is_pending_rewrite;
+    public $language;
 
     /**
      * Конструктор пасти.
      */
-    public function __construct($title, $content, $user_id = null, $is_paid = false, $view_cost = 0, $is_private = false, $id = null, $created_at = null, $expires_at = null, $is_pending_rewrite = false) {
+    public function __construct($title, $content, $user_id = null, $is_paid = false, $view_cost = 0, $is_private = false, $id = null, $created_at = null, $expires_at = null, $is_pending_rewrite = false, $language = 'plaintext') {
         $this->title = trim($title);
         $this->content = trim($content);
         $this->user_id = $user_id;
@@ -30,6 +31,7 @@ class Paste {
         $this->created_at = $created_at ?? date('Y-m-d H:i:s');
         $this->expires_at = $expires_at;
         $this->is_pending_rewrite = (bool)$is_pending_rewrite;
+        $this->language = $language ?: 'plaintext';
     }
 
     /**
@@ -37,7 +39,7 @@ class Paste {
      */
     private static function instantiateFromRow($row) {
         if (!$row) return null;
-        return new self($row['title'], $row['content'], $row['user_id'], $row['is_paid'], $row['view_cost'], $row['is_private'], $row['id'], $row['created_at'], $row['expires_at'], $row['is_pending_rewrite']);
+        return new self($row['title'], $row['content'], $row['user_id'], $row['is_paid'], $row['view_cost'], $row['is_private'], $row['id'], $row['created_at'], $row['expires_at'], $row['is_pending_rewrite'], $row['language'] ?? 'plaintext');
     }
 
     /**
@@ -54,8 +56,8 @@ class Paste {
     public function save() {
         $pdo = DB::getInstance()->getPDO();
         $stmt = $pdo->prepare("
-            INSERT INTO pastes (id, title, content, user_id, is_paid, is_private, view_cost, created_at, expires_at, is_pending_rewrite)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            INSERT INTO pastes (id, title, content, user_id, is_paid, is_private, view_cost, created_at, expires_at, is_pending_rewrite, language)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             ON DUPLICATE KEY UPDATE
                 title = VALUES(title),
                 content = VALUES(content),
@@ -64,7 +66,8 @@ class Paste {
                 is_private = VALUES(is_private),
                 view_cost = VALUES(view_cost),
                 expires_at = VALUES(expires_at),
-                is_pending_rewrite = VALUES(is_pending_rewrite)
+                is_pending_rewrite = VALUES(is_pending_rewrite),
+                language = VALUES(language)
         ");
         $stmt->execute([
             $this->id,
@@ -76,7 +79,8 @@ class Paste {
             $this->view_cost,
             $this->created_at,
             $this->expires_at,
-            $this->is_pending_rewrite ? 1 : 0
+            $this->is_pending_rewrite ? 1 : 0,
+            $this->language
         ]);
         
         $this->syncTags();
@@ -89,7 +93,7 @@ class Paste {
         $pdo = DB::getInstance()->getPDO();
         $stmt = $pdo->prepare("
             UPDATE pastes 
-            SET title = ?, content = ?, is_paid = ?, is_private = ?, view_cost = ?, expires_at = ?
+            SET title = ?, content = ?, is_paid = ?, is_private = ?, view_cost = ?, expires_at = ?, language = ?
             WHERE id = ?
         ");
         $stmt->execute([
@@ -99,6 +103,7 @@ class Paste {
             $this->is_private ? 1 : 0,
             $this->view_cost,
             $this->expires_at,
+            $this->language,
             $this->id
         ]);
         

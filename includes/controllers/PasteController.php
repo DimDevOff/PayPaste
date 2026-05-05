@@ -49,6 +49,7 @@ class PasteController { // Клас контролера паст
         }
 
         $content = trim($data['content'] ?? '');
+        $language = trim($data['language'] ?? 'plaintext');
         $is_private = (isset($data['is_private']) && $data['is_private'] == '1');
         $is_paid = (isset($data['is_paid']) && $data['is_paid'] == '1');
         
@@ -144,7 +145,7 @@ class PasteController { // Клас контролера паст
                 $tx->save();
             }
 
-            $paste = new Paste($title, $content, $user_id, $is_paid, $view_cost, $is_private, null, null, $expires_at, $is_pending_rewrite);
+            $paste = new Paste($title, $content, $user_id, $is_paid, $view_cost, $is_private, null, null, $expires_at, $is_pending_rewrite, $language);
             $paste->save();
             
             if ($is_paid && isset($tx)) {

@@ -55,6 +55,33 @@ endif;
         <input type="file" name="attachment" class="form-control" accept="image/png, image/jpeg, image/gif, .pdf, .zip, .txt">
     </div>
 
+    <div class="form-group block-info">
+        <label class="text-info"><strong>💻 Мова програмування (для підсвітки)</strong></label>
+        <select class="form-control" name="language">
+            <?php 
+                $languages = [
+                    'plaintext' => '📝 Текст (Plain Text)',
+                    'php' => '🐘 PHP',
+                    'javascript' => '📜 JavaScript',
+                    'python' => '🐍 Python',
+                    'cpp' => '⚙️ C++',
+                    'sql' => '🗄️ SQL',
+                    'java' => '☕ Java',
+                    'html' => '🌐 HTML',
+                    'css' => '🎨 CSS',
+                    'ruby' => '💎 Ruby',
+                    'go' => '🐹 Go',
+                    'rust' => '🦀 Rust',
+                    'bash' => '🐚 Bash',
+                ];
+                $selected_lang = $old['language'] ?? 'plaintext';
+                foreach($languages as $val => $label): 
+            ?>
+                <option value="<?= $val ?>" <?= $selected_lang == $val ? 'selected' : '' ?>><?= $label ?></option>
+            <?php endforeach; ?>
+        </select>
+    </div>
+
     <div class="checkbox">
         <label>
             <input type="checkbox" name="is_private" value="1" <?= (isset($old['is_private']) && $old['is_private'] == '1') ? 'checked' : '' ?>> <strong>Приватна</strong> (тільки за посиланням, сховається з публічного списку)

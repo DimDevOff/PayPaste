@@ -31,6 +31,7 @@ CREATE TABLE IF NOT EXISTS pastes (
     is_private BOOLEAN DEFAULT FALSE,
     expires_at TIMESTAMP NULL,
     is_pending_rewrite BOOLEAN DEFAULT FALSE,
+    language VARCHAR(50) DEFAULT 'plaintext',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE SET NULL
 );

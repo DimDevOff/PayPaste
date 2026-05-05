@@ -88,7 +88,8 @@ function handleGet($id, $user) {
         'created_at' => $paste->created_at,
         'expires_at' => $paste->expires_at,
         'is_paid' => $paste->is_paid,
-        'view_cost' => $paste->view_cost
+        'view_cost' => $paste->view_cost,
+        'language' => $paste->language
     ]);
 }
 
@@ -104,6 +105,7 @@ function handlePost($user) {
     $view_cost = isset($input['view_cost']) ? (int)$input['view_cost'] : 0;
     $is_private = isset($input['is_private']) ? (bool)$input['is_private'] : false;
     $ttl_minutes = isset($input['ttl_minutes']) ? (int)$input['ttl_minutes'] : 10080; // 7 днів за замовчуванням
+    $language = $input['language'] ?? 'plaintext';
     
     if (empty($content)) {
         json_response(['error' => 'Контент пасти не може бути порожнім.'], 400);
@@ -122,7 +124,7 @@ function handlePost($user) {
     
     $expires_at = date('Y-m-d H:i:s', time() + ($ttl_minutes * 60));
     
-    $paste = new Paste($title, $content, $user->id, $is_paid, $view_cost, $is_private, null, null, $expires_at);
+    $paste = new Paste($title, $content, $user->id, $is_paid, $view_cost, $is_private, null, null, $expires_at, false, $language);
     
     try {
         $pdo = DB::getInstance()->getPDO();
