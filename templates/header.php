@@ -36,7 +36,9 @@ if (!in_array($_theme, $_allowedThemes)) $_theme = 'retro';
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 
     <!-- Adsterra: Social Bar (глобально, всі сторінки) -->
+    <?php if (!isset($hide_ads) || !$hide_ads): ?>
     <script src="<?= ADSTERRA_SOCIAL_BAR_URL ?>"></script>
+    <?php endif; ?>
 </head>
 <body>
 
@@ -88,7 +90,8 @@ if (!in_array($_theme, $_allowedThemes)) $_theme = 'retro';
 </nav>
 
 <div class="container main-content">
-    <!-- Adsterra: Banner 320×50 (мобільний лідербord) -->
+    <!-- Adsterra: Banner 320×50 (мобільний лідерборд) -->
+    <?php if (!isset($hide_ads) || !$hide_ads): ?>
     <div class="text-center" style="margin-bottom: 20px; overflow: hidden;">
         <script>
             atOptions = {
@@ -101,6 +104,7 @@ if (!in_array($_theme, $_allowedThemes)) $_theme = 'retro';
         </script>
         <script src="<?= ADSTERRA_INVOKE_BASE_URL ?>/<?= ADSTERRA_320x50_KEY ?>/invoke.js"></script>
     </div>
+    <?php endif; ?>
 
     <?php if(isset($_SESSION['error'])): ?>
         <div class="alert alert-danger"><?= htmlspecialchars($_SESSION['error']); unset($_SESSION['error']); ?></div>

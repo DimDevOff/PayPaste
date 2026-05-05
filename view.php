@@ -56,7 +56,9 @@ if ($paste) {
     }
     // Перевірка на Рекламний Квест (тільки для безкоштовних паст, які не авторські і не адмінські)
     $ads_watched = $_SESSION['ads_watched'] ?? 0;
-    $requires_quest = (!$paste->is_paid && !$is_author && !$is_admin && $ads_watched < 3);
+    // публічні безкоштовні пасти відкриваються одразу без реклами
+    $requires_quest = false; 
+    $hide_ads = (!$paste->is_paid && !$paste->is_private);
 
     // SEO Дані
     $page_title = htmlspecialchars($paste->title);

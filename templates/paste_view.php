@@ -84,6 +84,7 @@
                     <textarea id="paste-textarea" class="form-control" rows="20" readonly style="font-family: monospace; cursor: text;"><?= htmlspecialchars(Paste::stripTags($paste->content)) ?></textarea>
 
                     <!-- Adsterra: Banner 300×250 (після контенту) -->
+                    <?php if (!isset($hide_ads) || !$hide_ads): ?>
                     <div class="text-center" style="margin-top: 20px; overflow: hidden;">
                         <script>
                             atOptions = {
@@ -96,6 +97,7 @@
                         </script>
                         <script src="<?= ADSTERRA_INVOKE_BASE_URL ?>/<?= ADSTERRA_300x250_KEY ?>/invoke.js"></script>
                     </div>
+                    <?php endif; ?>
                     
                     <div style="margin-top: 15px;">
                         <strong>Теги:</strong>

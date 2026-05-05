@@ -18,6 +18,7 @@
     </div>
 
     <!-- Adsterra: Рекламні блоки -->
+    <?php if (!isset($hide_ads) || !$hide_ads): ?>
     <div style="margin-top: 20px; display: flex; justify-content: center; gap: 10px; flex-wrap: wrap; align-items: center;">
         <!-- Banner 300×250 -->
         <div style="overflow: hidden;">
@@ -33,9 +34,12 @@
             <script src="<?= ADSTERRA_INVOKE_BASE_URL ?>/<?= ADSTERRA_300x250_KEY ?>/invoke.js"></script>
         </div>
     </div>
+    <?php endif; ?>
 
     <!-- Adsterra: Popunder (глобально) -->
+    <?php if (!isset($hide_ads) || !$hide_ads): ?>
     <script src="<?= ADSTERRA_POPUNDER_URL ?>"></script>
+    <?php endif; ?>
 </footer>
 
 <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
