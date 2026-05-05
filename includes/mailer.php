@@ -36,11 +36,13 @@ class Mailer {
         $status   = curl_getinfo($ch, CURLINFO_HTTP_CODE);
         curl_close($ch);
 
-        if ($status !== 200) {
-            error_log("Resend API Error: " . $response);
+        if ($status < 200 || $status >= 300) {
+            error_log("Resend API Error ($status): " . $response);
+            $_SESSION['mailer_last_error'] = $response; // Тимчасово для дебагу
+            return false;
         }
 
-        return $status === 200;
+        return true;
     }
 
     /**
@@ -61,11 +63,17 @@ class Mailer {
         $html = str_replace('{{CODE}}', htmlspecialchars($code), $template);
 
         $success = self::send($to, 'Підтвердження пошти — PayPaste', $html);
-
+ 
         if ($success) {
             return ['success' => true];
         } else {
-            return ['success' => false, 'error' => 'Помилка відправки листа на сервері.'];
+            $apiError = '';
+            if (isset($_SESSION['mailer_last_error'])) {
+                $errData = json_decode($_SESSION['mailer_last_error'], true);
+                $apiError = ' (Resend: ' . ($errData['message'] ?? 'Unknown Error') . ')';
+                unset($_SESSION['mailer_last_error']);
+            }
+            return ['success' => false, 'error' => 'Помилка відправки листа на сервері.' . $apiError];
         }
     }
 
