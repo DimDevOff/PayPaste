@@ -76,9 +76,6 @@ class PasteService {
             $expiresAt = date('Y-m-d H:i:s', time() + ($expiresIn * 60));
         }
 
-        $pdo = DB::getInstance()->getPDO();
-        $pdo->beginTransaction();
-
         try {
             // Списання кредитів за створення платної пасти
             if ($isPaid && $user) {
@@ -102,12 +99,8 @@ class PasteService {
                 self::handleFileUpload($paste->id, $_FILES['attachment']);
             }
 
-            $pdo->commit();
             return $paste;
         } catch (Exception $e) {
-            if ($pdo->inTransaction()) {
-                $pdo->rollBack();
-            }
             throw $e;
         }
     }
@@ -145,9 +138,6 @@ class PasteService {
             return ['success' => false, 'message' => "Не вистачає кредитів для покупки доступу!"];
         }
 
-        $pdo = DB::getInstance()->getPDO();
-        $pdo->beginTransaction();
-
         try {
             // Списання у покупця
             CreditService::deduct(
@@ -178,12 +168,8 @@ class PasteService {
                 }
             }
 
-            $pdo->commit();
             return ['success' => true, 'message' => "Доступ успішно придбано!"];
         } catch (Exception $e) {
-            if ($pdo->inTransaction()) {
-                $pdo->rollBack();
-            }
             throw $e;
         }
     }
