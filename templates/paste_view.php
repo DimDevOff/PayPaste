@@ -87,9 +87,17 @@
                         <span id="copy-msg" style="margin-left: 10px; color: var(--accent); font-weight: bold; display: none; background: var(--bg-secondary); padding: 2px 5px; border: 1px solid var(--accent);">СКОПІЙОВАНО! ✅</span>
                     </div>
                     
-                    <div class="code-container" style="position: relative; border: 2px solid var(--border-color); background: #0d1117; margin-bottom: 20px;">
-                        <pre style="margin: 0; border: none; border-radius: 0; background: transparent; padding: 15px; overflow-x: auto;"><code class="language-<?= htmlspecialchars($paste->language ?: 'plaintext') ?>"><?= htmlspecialchars(Paste::stripTags($paste->content)) ?></code></pre>
-                        <textarea id="paste-textarea" style="display:none;"><?= htmlspecialchars(Paste::stripTags($paste->content)) ?></textarea>
+                    <div class="code-container" style="position: relative; border: 2px solid var(--border-color); background: #0d1117; margin-bottom: 20px; box-shadow: 5px 5px 0px rgba(0,0,0,0.2);">
+                        <div style="background: #161b22; padding: 5px 15px; border-bottom: 1px solid #30363d; display: flex; justify-content: space-between; align-items: center;">
+                            <span style="color: #8b949e; font-size: 11px; font-family: monospace; text-transform: uppercase;"><?= htmlspecialchars($paste->language ?: 'plaintext') ?></span>
+                            <div style="display: flex; gap: 5px;">
+                                <div style="width: 10px; height: 10px; border-radius: 50%; background: #ff5f56;"></div>
+                                <div style="width: 10px; height: 10px; border-radius: 50%; background: #ffbd2e;"></div>
+                                <div style="width: 10px; height: 10px; border-radius: 50%; background: #27c93f;"></div>
+                            </div>
+                        </div>
+                        <pre style="margin: 0; border: none; border-radius: 0; background: transparent; padding: 0; overflow-x: auto;"><code class="hljs language-<?= htmlspecialchars($paste->language ?: 'plaintext') ?>" style="padding: 15px; display: block; background: transparent !important;"><?= htmlspecialchars($paste->content) ?></code></pre>
+                        <textarea id="paste-textarea" style="display:none;"><?= htmlspecialchars($paste->content) ?></textarea>
                     </div>
 
                     <!-- Adsterra: Banner 300×250 (після контенту) -->

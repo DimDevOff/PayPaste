@@ -82,6 +82,12 @@ endif;
         </select>
     </div>
 
+    <div class="form-group block-info">
+        <label class="text-info"><strong>🏷️ Теги (через кому або пробіл)</strong></label>
+        <input type="text" class="form-control" name="tags" placeholder="напр: php, проект, робота" value="<?= htmlspecialchars($old['tags'] ?? '') ?>">
+        <p class="help-block" style="font-size: 10px;">* Не обов'язково. Символ # додавати не потрібно.</p>
+    </div>
+
     <div class="checkbox">
         <label>
             <input type="checkbox" name="is_private" value="1" <?= (isset($old['is_private']) && $old['is_private'] == '1') ? 'checked' : '' ?>> <strong>Приватна</strong> (тільки за посиланням, сховається з публічного списку)

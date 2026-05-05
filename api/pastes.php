@@ -89,7 +89,8 @@ function handleGet($id, $user) {
         'expires_at' => $paste->expires_at,
         'is_paid' => $paste->is_paid,
         'view_cost' => $paste->view_cost,
-        'language' => $paste->language
+        'language' => $paste->language,
+        'tags' => $paste->getTags()
     ]);
 }
 
@@ -106,6 +107,7 @@ function handlePost($user) {
     $is_private = isset($input['is_private']) ? (bool)$input['is_private'] : false;
     $ttl_minutes = isset($input['ttl_minutes']) ? (int)$input['ttl_minutes'] : 10080; // 7 днів за замовчуванням
     $language = $input['language'] ?? 'plaintext';
+    $tags = $input['tags'] ?? '';
     
     if (empty($content)) {
         json_response(['error' => 'Контент пасти не може бути порожнім.'], 400);
@@ -131,6 +133,7 @@ function handlePost($user) {
         $pdo->beginTransaction();
         
         $paste->save();
+        $paste->syncTags($tags);
         
         $user->credits -= $creation_fee;
         $user->save();

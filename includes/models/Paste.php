@@ -82,8 +82,6 @@ class Paste {
             $this->is_pending_rewrite ? 1 : 0,
             $this->language
         ]);
-        
-        $this->syncTags();
     }
 
     /**
@@ -107,7 +105,6 @@ class Paste {
             $this->id
         ]);
         
-        $this->syncTags();
         return true;
     }
 
@@ -151,28 +148,33 @@ class Paste {
     /**
      * Синхронізація тегів пасти. Парсить теги з контенту та зберігає в БД.
      */
-    public function syncTags() {
+    public function syncTags($tags_input = '') {
         $pdo = DB::getInstance()->getPDO();
         
-        // Знаходимо всі теги у форматі #тег (літери, цифри, підкреслення)
-        // Підтримуємо кирилицю
-        preg_match_all('/#([\w\x{0400}-\x{04FF}]+)/u', $this->content, $matches);
-        $tags = array_unique($matches[1]);
+        // Отримуємо теги з вводу (розділені комою або пробілом)
+        $tags = preg_split('/[,\s]+/', $tags_input, -1, PREG_SPLIT_NO_EMPTY);
+        
+        // Очищення: прибираємо символ # якщо він є, переводимо в нижній регістр
+        $final_tags = array_map(function($tag) {
+            return mb_strtolower(trim(ltrim($tag, '#')));
+        }, $tags);
+        
+        $final_tags = array_unique(array_filter($final_tags));
 
         // Видаляємо старі теги
         $stmt = $pdo->prepare("DELETE FROM paste_tags WHERE paste_id = ?");
         $stmt->execute([$this->id]);
 
         // Додаємо нові теги
-        if (!empty($tags)) {
+        if (!empty($final_tags)) {
             $sql = "INSERT INTO paste_tags (paste_id, tag) VALUES ";
             $placeholders = [];
             $values = [];
-            foreach ($tags as $tag) {
+            foreach ($final_tags as $tag) {
                 if (mb_strlen($tag) > 50) $tag = mb_substr($tag, 0, 50);
                 $placeholders[] = "(?, ?)";
                 $values[] = $this->id;
-                $values[] = mb_strtolower($tag);
+                $values[] = $tag;
             }
             $sql .= implode(', ', $placeholders);
             $stmt = $pdo->prepare($sql);

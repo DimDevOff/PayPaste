@@ -147,6 +147,10 @@ class PasteController { // Клас контролера паст
 
             $paste = new Paste($title, $content, $user_id, $is_paid, $view_cost, $is_private, null, null, $expires_at, $is_pending_rewrite, $language);
             $paste->save();
+
+            // Мануальна синхронізація тегів з окремого поля
+            $tags_input = $data['tags'] ?? '';
+            $paste->syncTags($tags_input);
             
             if ($is_paid && isset($tx)) {
                  $tx->related_paste_id = $paste->id;

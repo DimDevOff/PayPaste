@@ -558,9 +558,20 @@ footer,
 }
 
 code {
-    background-color: var(--input-bg) !important;
-    color: var(--accent) !important;
+    background-color: var(--input-bg);
+    color: var(--accent);
     border: 1px solid var(--border-color);
+    padding: 2px 4px;
+    border-radius: 4px;
+}
+
+/* Не застосовувати глобальні стилі code для блоків з підсвіткою */
+pre code {
+    background-color: transparent !important;
+    color: inherit !important;
+    border: none !important;
+    padding: 0 !important;
+    font-family: Consolas, Monaco, 'Andale Mono', 'Ubuntu Mono', monospace !important;
 }
 
 /* 
