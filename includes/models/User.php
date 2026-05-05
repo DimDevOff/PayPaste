@@ -72,6 +72,17 @@ class User {
      */
     public function save() {
         $pdo = DB::getInstance()->getPDO();
+        
+        // Якщо хеш порожній (наприклад, об'єкт із кешу сесії), дістаємо його з БД
+        if (empty($this->password_hash)) {
+            $stmt = $pdo->prepare("SELECT password_hash FROM users WHERE id = ?");
+            $stmt->execute([$this->id]);
+            $hash = $stmt->fetchColumn();
+            if ($hash) {
+                $this->password_hash = $hash;
+            }
+        }
+
         $stmt = $pdo->prepare("
             INSERT INTO users (id, email, telegram_id, github_id, password_hash, nickname, credits, role, theme, api_key, email_verified, verification_code, verification_expires_at)
             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
