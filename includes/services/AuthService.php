@@ -249,6 +249,7 @@ class AuthService {
         }
 
         self::setSession($user);
+        self::setRememberCookie($user);
         return $user;
     }
 
