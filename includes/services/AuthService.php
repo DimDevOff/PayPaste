@@ -486,4 +486,50 @@ class AuthService {
 
         return true;
     }
+
+    /**
+     * Генерує новий код підтвердження пошти для користувача.
+     *
+     * @param User $user Користувач
+     * @return string Згенерований 6-значний код
+     */
+    public static function generateVerificationCode(User $user): string {
+        $user->verification_code = str_pad(random_int(0, 999999), 6, '0', STR_PAD_LEFT);
+        $user->verification_expires_at = date('Y-m-d H:i:s', time() + 15 * 60); // 15 хвилин
+        $user->email_verified = 0;
+        $user->save();
+        return $user->verification_code;
+    }
+
+    /**
+     * Реєструє нового користувача для Passkey-авторизації (без звичайного пароля).
+     *
+     * @param string $email Email
+     * @param string $password Тимчасовий пароль
+     * @param string $nickname Нікнейм
+     * @return User Створений користувач
+     */
+    public static function registerPasskeyUser(string $email, string $password, string $nickname): User {
+        $user = new User($email, password_hash($password, PASSWORD_DEFAULT), $nickname, 100);
+        $user->save();
+        return $user;
+    }
+
+    /**
+     * Видаляє користувача адміністратором.
+     *
+     * @param string $userId ID користувача
+     * @return bool Успішність операції
+     */
+    public static function deleteByAdmin(string $userId): bool {
+        $user = User::findById($userId);
+        if (!$user) {
+            return false;
+        }
+        Passkey::deleteByUserId($userId);
+        $pdo = DB::getInstance()->getPDO();
+        $stmt = $pdo->prepare("DELETE FROM users WHERE id = ?");
+        $stmt->execute([$userId]);
+        return true;
+    }
 }

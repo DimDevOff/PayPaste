@@ -23,9 +23,9 @@ if (!$order) {
 
 $user = User::findById($order->user_id);
 
-// Якщо замовлення виконано, оновимо дані користувача (і кеш сесії)
+// Якщо замовлення виконано, перезавантажимо користувача для актуального балансу
 if ($order->status === 'completed' && $user) {
-    $user->refreshData();
+    $user = User::findById($order->user_id);
     session_write_close(); // Примусово зберігаємо сесію прямо зараз
 }
 

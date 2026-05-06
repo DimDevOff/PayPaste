@@ -109,7 +109,7 @@ class SettingsController {
                 require_once __DIR__ . '/../mailer.php';
                 Mailer::sendEmailChangedNotification($user->email, $new_email);
 
-                $code = $user->generateVerificationCode();
+                $code = AuthService::generateVerificationCode($user);
                 Mailer::sendVerificationEmail($user->email, $code);
 
                 $_SESSION['success'] = "Профіль оновлено! На нову пошту надіслано код підтвердження.";

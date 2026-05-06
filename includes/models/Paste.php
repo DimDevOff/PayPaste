@@ -364,6 +364,7 @@ class Paste {
 
     /**
      * Видалення пасти адміністратором.
+     * @deprecated Використовуйте PasteService::delete()
      */
     public static function delete_paste_by_admin($id) {
         $pdo = DB::getInstance()->getPDO();
@@ -395,6 +396,7 @@ class Paste {
     /**
      * Очищення протермінованих паст та їх файлів.
      * Викликається через Cron скриптом cron/cleanup.php.
+     * @deprecated Використовуйте PasteService::cleanupExpired()
      */
     public static function cleanupExpired() {
         $pdo = DB::getInstance()->getPDO();

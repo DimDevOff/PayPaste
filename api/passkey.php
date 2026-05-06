@@ -119,8 +119,7 @@ switch ($action) {
         if (!$user_id) {
             $email = 'passkey_' . substr($result['credential_id'], 0, 16) . '@paypaste.local';
             $random_pass = bin2hex(random_bytes(16));
-            $user = new User($email, password_hash($random_pass, PASSWORD_DEFAULT), $nickname, 100);
-            $user->save();
+            $user = AuthService::registerPasskeyUser($email, $random_pass, $nickname);
             $user_id = $user->id;
         }
 

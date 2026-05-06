@@ -2,7 +2,8 @@
 header('Content-Type: application/json');
 require_once __DIR__ . '/api_helper.php';
 require_once __DIR__ . '/../includes/models/Paste.php';
-require_once __DIR__ . '/../includes/models/Transaction.php';
+require_once __DIR__ . '/../includes/models/User.php';
+require_once __DIR__ . '/../includes/services/PasteService.php';
 
 $user = authenticate_api();
 $method = $_SERVER['REQUEST_METHOD'];
@@ -41,42 +42,15 @@ function handleGet($id, $user) {
         json_response(['error' => 'Це приватна паста. Доступ заборонено.'], 403);
     }
     
-    // Перевірка оплати
-    if ($paste->is_paid && $paste->user_id !== $user->id && $user->role !== 'admin' && !$user->hasUnlocked($paste->id)) {
-        // Спроба автоматичної оплати кредитами
-        if ($user->credits < $paste->view_cost) {
+    // Автоматична оплата при GET, якщо паста платна та заблокована
+    if (PasteService::isLocked($paste, $user)) {
+        $result = PasteService::unlock($paste->id, $user->id);
+        if (!$result['success']) {
             json_response([
-                'error' => 'Паста платна. У вас недостатньо кредитів.',
+                'error' => $result['message'] ?: 'Паста платна. У вас недостатньо кредитів.',
                 'cost' => $paste->view_cost,
                 'balance' => $user->credits
             ], 402); // Payment Required
-        }
-        
-        // Знімаємо кредити
-        try {
-            $pdo = DB::getInstance()->getPDO();
-            $pdo->beginTransaction();
-            
-            $user->credits -= $paste->view_cost;
-            $user->unlockPaste($paste->id); // Це викличе save() всередині
-            
-            // Запис транзакції
-            Transaction::create($user->id, -$paste->view_cost, 'purchase', null, $paste->id, null, "Купівля доступу до пасти (API)");
-            
-            // Нараховуємо автору (якщо є)
-            if ($paste->user_id) {
-                $author = User::findById($paste->user_id);
-                if ($author) {
-                    $author->credits += $paste->view_cost;
-                    $author->save();
-                    Transaction::create($author->id, $paste->view_cost, 'sale', null, $paste->id, null, "Продаж доступу до пасти (API)");
-                }
-            }
-            
-            $pdo->commit();
-        } catch (Exception $e) {
-            if ($pdo->inTransaction()) $pdo->rollBack();
-            json_response(['error' => 'Помилка при обробці оплати.'], 500);
         }
     }
     
@@ -100,58 +74,38 @@ function handleGet($id, $user) {
 function handlePost($user) {
     $input = json_decode(file_get_contents('php://input'), true) ?? $_POST;
     
-    $title = $input['title'] ?? 'Без назви (API)';
-    $content = $input['content'] ?? '';
-    $is_paid = isset($input['is_paid']) ? (bool)$input['is_paid'] : false;
-    $view_cost = isset($input['view_cost']) ? (int)$input['view_cost'] : 0;
-    $is_private = isset($input['is_private']) ? (bool)$input['is_private'] : false;
-    $ttl_minutes = isset($input['ttl_minutes']) ? (int)$input['ttl_minutes'] : 10080; // 7 днів за замовчуванням
-    $language = $input['language'] ?? 'plaintext';
-    $tags = $input['tags'] ?? '';
-    
-    if (empty($content)) {
-        json_response(['error' => 'Контент пасти не може бути порожнім.'], 400);
-    }
-    
-    // Розрахунок вартості створення
-    $creation_fee = ceil(mb_strlen($content) / 10);
-    
-    if ($user->credits < $creation_fee) {
-        json_response([
-            'error' => 'Недостатньо кредитів для створення пасти.',
-            'required' => $creation_fee,
-            'balance' => $user->credits
-        ], 402);
-    }
-    
-    $expires_at = date('Y-m-d H:i:s', time() + ($ttl_minutes * 60));
-    
-    $paste = new Paste($title, $content, $user->id, $is_paid, $view_cost, $is_private, null, null, $expires_at, false, $language);
+    // Мапінг API-полів у формат PasteService::create()
+    $data = [
+        'title' => $input['title'] ?? 'Без назви (API)',
+        'content' => $input['content'] ?? '',
+        'is_private' => (isset($input['is_private']) && $input['is_private']) ? '1' : null,
+        'is_paid' => (isset($input['is_paid']) && $input['is_paid']) ? '1' : null,
+        'view_cost' => $input['view_cost'] ?? 0,
+        'expires_in' => isset($input['ttl_minutes']) ? (int)$input['ttl_minutes'] : 10080, // 7 днів за замовчуванням
+        'language' => $input['language'] ?? 'plaintext',
+        'tags' => $input['tags'] ?? '',
+    ];
     
     try {
-        $pdo = DB::getInstance()->getPDO();
-        $pdo->beginTransaction();
-        
-        $paste->save();
-        $paste->syncTags($tags);
-        
-        $user->credits -= $creation_fee;
-        $user->save();
-        
-        Transaction::create($user->id, -$creation_fee, 'creation_fee', null, $paste->id, null, "Комісія за створення пасти (API)");
-        
-        $pdo->commit();
+        $paste = PasteService::create($data, $user->id);
         
         json_response([
             'id' => $paste->id,
             'url' => APP_URL . "/view.php?id=" . $paste->id,
             'title' => $paste->title,
-            'creation_fee' => $creation_fee,
+            'creation_fee' => CreditService::calculateCreationCost($paste->content),
             'remaining_credits' => $user->credits
         ], 201);
     } catch (Exception $e) {
-        if (isset($pdo) && $pdo->inTransaction()) $pdo->rollBack();
-        json_response(['error' => 'Помилка при створенні пасти.'], 500);
+        $msg = $e->getMessage();
+        if (strpos($msg, 'Недостатньо кредитів') !== false || strpos($msg, 'creation_fee') !== false) {
+            json_response([
+                'error' => $msg,
+                'required' => CreditService::calculateCreationCost($data['content'] ?? ''),
+                'balance' => $user->credits
+            ], 402);
+        }
+        json_response(['error' => $msg], 400);
     }
 }
 
@@ -161,13 +115,14 @@ function handlePost($user) {
 function handleDelete($id, $user) {
     if (!$id) json_response(['error' => 'ID пасти обов\'язковий.'], 400);
     
-    $paste = Paste::findById($id);
-    if (!$paste) json_response(['error' => 'Пасту не знайдено.'], 404);
-    
-    if ($paste->user_id !== $user->id && $user->role !== 'admin') {
-        json_response(['error' => 'У вас немає прав для видалення цієї пасти.'], 403);
+    try {
+        PasteService::delete($id, $user->id);
+        json_response(['success' => true, 'message' => 'Пасту видалено.']);
+    } catch (Exception $e) {
+        $msg = $e->getMessage();
+        if (strpos($msg, 'не знайдено') !== false) {
+            json_response(['error' => 'Пасту не знайдено.'], 404);
+        }
+        json_response(['error' => $msg], 403);
     }
-    
-    $paste->delete();
-    json_response(['success' => true, 'message' => 'Пасту видалено.']);
 }

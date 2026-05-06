@@ -305,4 +305,27 @@ class PasteService {
 
         return $paste->is_private;
     }
+
+    /**
+     * Очищує протерміновані пасти та їх прикріплені файли.
+     * Рекомендується викликати через Cron.
+     *
+     * @return int Кількість видалених паст
+     */
+    public static function cleanupExpired(): int {
+        $pdo = DB::getInstance()->getPDO();
+        $stmt = $pdo->query("SELECT id FROM pastes WHERE expires_at IS NOT NULL AND expires_at <= NOW()");
+        $ids = $stmt->fetchAll(PDO::FETCH_COLUMN);
+
+        $count = 0;
+        foreach ($ids as $id) {
+            try {
+                self::delete($id, null); // null = адмін/система
+                $count++;
+            } catch (Exception $e) {
+                // Ігноруємо помилки при масовому очищенні
+            }
+        }
+        return $count;
+    }
 }

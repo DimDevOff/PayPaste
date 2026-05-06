@@ -42,7 +42,7 @@ class AuthController { // Клас контролера авторизації
             $user = AuthService::register($email, $password, $confirm, $nickname);
 
             require_once __DIR__ . '/../mailer.php';
-            $code = $user->generateVerificationCode();
+            $code = AuthService::generateVerificationCode($user);
             Mailer::sendVerificationEmail($user->email, $code);
 
             AuthService::setSession($user);

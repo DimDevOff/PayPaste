@@ -194,6 +194,7 @@ class User {
 
     /**
      * Повне видалення користувача та його Passkey-ключів
+     * @deprecated Використовуйте AuthService::deleteAccount()
      */
     public function delete() {
         require_once __DIR__ . '/Passkey.php';
@@ -279,6 +280,7 @@ class User {
 
     /**
      * Видалення користувача адміністратором
+     * @deprecated Використовуйте AuthService::deleteByAdmin()
      */
     public static function delete_by_admin($id) {
         $pdo = DB::getInstance()->getPDO();
@@ -309,6 +311,7 @@ class User {
     /**
      * Оновлює критичні дані користувача прямо з бази даних (баланс, розблоковані пасти)
      * Це потрібно для підтримки актуальності кешу сесії.
+     * @deprecated Використовуйте пряме перезавантаження об'єкта через User::findById()
      */
     public function refreshData() {
         $pdo = DB::getInstance()->getPDO();
@@ -334,6 +337,7 @@ class User {
 
     /**
      * Генерує новий код підтвердження пошти
+     * @deprecated Використовуйте AuthService::generateVerificationCode()
      */
     public function generateVerificationCode() {
         $this->verification_code = str_pad(random_int(0, 999999), 6, '0', STR_PAD_LEFT);

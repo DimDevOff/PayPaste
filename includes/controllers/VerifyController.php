@@ -40,7 +40,7 @@ class VerifyController {
                 }
             } 
             elseif ($action === 'resend_code') {
-                $code = $user->generateVerificationCode();
+                $code = AuthService::generateVerificationCode($user);
                 $result = Mailer::sendVerificationEmail($user->email, $code);
 
                 if ($result['success']) {
