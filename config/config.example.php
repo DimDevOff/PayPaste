@@ -45,3 +45,4 @@ define('OLLAMA_MODEL', 'gemma4:31b-cloud');
 
 // Resend Email
 define('RESEND_API_KEY', 'YOUR_RESEND_API_KEY');
+define('MAIL_FROM', 'PayPaste <noreply@yourdomain.com>');

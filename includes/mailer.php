@@ -15,7 +15,7 @@ class Mailer {
 
         $apiKey = RESEND_API_KEY;
         $payload = json_encode([
-            'from'    => 'PayPaste <onboarding@resend.dev>',
+            'from'    => MAIL_FROM,
             'to'      => [$to],
             'subject' => $subject,
             'html'    => $html
