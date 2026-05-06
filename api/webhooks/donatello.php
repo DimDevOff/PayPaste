@@ -6,7 +6,7 @@
  */
 require_once __DIR__ . '/../../includes/models/Order.php';
 require_once __DIR__ . '/../../includes/models/User.php';
-require_once __DIR__ . '/../../includes/models/Transaction.php';
+require_once __DIR__ . '/../../includes/services/CreditService.php';
 
 // Очікуваний токен для верифікації запитів від Donatello
 $expected_token = DONATELLO_TOKEN ?: 'PASTE_YOUR_TOKEN';
@@ -78,11 +78,18 @@ function process_donate($donate) {
                 $credits = floor($amount * 4); 
             }
 
-            // Оновлення балансу користувача
+            // Нарахування кредитів користувачу через CreditService
             $user = User::findById($order->user_id);
             if ($user) {
-                $user->credits += $credits;
-                $user->save();
+                CreditService::credit(
+                    $user,
+                    $credits,
+                    'topup',
+                    'Поповнення через Donatello на суму ' . $amount . ' UAH',
+                    null,
+                    $order->id,
+                    'donatello'
+                );
 
                 // Оновлення статусу замовлення на 'completed'
                 $order->status = 'completed';
@@ -90,17 +97,6 @@ function process_donate($donate) {
                 $order->service = 'donatello';
                 $order->external_provider_id = $pubId;
                 $order->save();
-
-                // Запис фінансової транзакції в історію
-                $tx = new Transaction([
-                    'user_id' => $user->id,
-                    'amount' => $credits,
-                    'type' => 'topup',
-                    'service' => 'donatello',
-                    'related_order_id' => $order->id,
-                    'description' => 'Поповнення через Donatello на суму ' . $amount . ' UAH'
-                ]);
-                $tx->save();
             }
         }
     }

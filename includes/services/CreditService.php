@@ -44,7 +44,7 @@ class CreditService {
      * @return bool Успішність операції
      * @throws Exception При помилці БД або недостатньому балансі
      */
-    public static function deduct(User $user, int $amount, string $type, ?string $description = null, ?string $pasteId = null, ?string $orderId = null): bool {
+    public static function deduct(User $user, int $amount, string $type, ?string $description = null, ?string $pasteId = null, ?string $orderId = null, ?string $service = null): bool {
         if ($amount <= 0) {
             throw new Exception("Сума списання має бути позитивною.");
         }
@@ -64,6 +64,7 @@ class CreditService {
                 'user_id' => $user->id,
                 'amount' => -$amount,
                 'type' => $type,
+                'service' => $service,
                 'related_paste_id' => $pasteId,
                 'related_order_id' => $orderId,
                 'description' => $description ?? self::defaultDescription($type)
@@ -93,7 +94,7 @@ class CreditService {
      * @return bool Успішність операції
      * @throws Exception При помилці БД
      */
-    public static function credit(User $user, int $amount, string $type, ?string $description = null, ?string $pasteId = null, ?string $orderId = null): bool {
+    public static function credit(User $user, int $amount, string $type, ?string $description = null, ?string $pasteId = null, ?string $orderId = null, ?string $service = null): bool {
         if ($amount <= 0) {
             throw new Exception("Сума нарахування має бути позитивною.");
         }
@@ -109,6 +110,7 @@ class CreditService {
                 'user_id' => $user->id,
                 'amount' => $amount,
                 'type' => $type,
+                'service' => $service,
                 'related_paste_id' => $pasteId,
                 'related_order_id' => $orderId,
                 'description' => $description ?? self::defaultDescription($type)
@@ -138,7 +140,7 @@ class CreditService {
      * @return bool Успішність операції
      * @throws Exception При помилці БД або недостатньому балансі
      */
-    public static function transfer(User $from, User $to, int $amount, string $type, ?string $description = null, ?string $pasteId = null): bool {
+    public static function transfer(User $from, User $to, int $amount, string $type, ?string $description = null, ?string $pasteId = null, ?string $service = null): bool {
         if ($amount <= 0) {
             throw new Exception("Сума переказу має бути позитивною.");
         }
@@ -159,6 +161,7 @@ class CreditService {
                 'user_id' => $from->id,
                 'amount' => -$amount,
                 'type' => $type,
+                'service' => $service,
                 'related_paste_id' => $pasteId,
                 'description' => $description ?? self::defaultDescription($type)
             ]);
@@ -172,6 +175,7 @@ class CreditService {
                 'user_id' => $to->id,
                 'amount' => $amount,
                 'type' => 'sale',
+                'service' => $service,
                 'related_paste_id' => $pasteId,
                 'description' => $description ?? self::defaultDescription('sale')
             ]);

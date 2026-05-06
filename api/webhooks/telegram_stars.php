@@ -1,7 +1,7 @@
 <?php
 require_once __DIR__ . '/../../includes/models/Order.php';
 require_once __DIR__ . '/../../includes/models/User.php';
-require_once __DIR__ . '/../../includes/models/Transaction.php';
+require_once __DIR__ . '/../../includes/services/CreditService.php';
 
 // Токен бота. Отримуємо з .env файлу або залишаємо дефолт
 $bot_token = TELEGRAM_BOT_TOKEN ?: 'YOUR_BOT_TOKEN_HERE'; 
@@ -21,7 +21,7 @@ function tgRequest($method, $data = []) {
     $ch = curl_init($url);
     curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
     curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($data));
-    curl_setopt($ch, CURLOPT_HTTPHEADER, ['Content-Type: application/json']);
+    curl_setopt($ch, CURLOPT_HTTPHEADER, ['Content: application/json']);
     $response = curl_exec($ch);
     curl_close($ch);
     return json_decode($response, true);
@@ -130,25 +130,21 @@ if (isset($update['message']['successful_payment'])) {
     if ($order && $order->status === 'pending') {
         $user = User::findById($order->user_id);
         if ($user) {
-            $user->credits += $credits;
-            $user->save();
+            CreditService::credit(
+                $user,
+                $credits,
+                'topup',
+                "Поповнення через Telegram Stars ($stars ⭐)",
+                null,
+                $order->id,
+                'tg_stars'
+            );
 
             $order->status = 'completed';
             $order->amount_credits = $credits;
             $order->service = 'tg_stars';
             $order->external_provider_id = $payment['telegram_payment_charge_id'] ?? 'tg_'.time();
             $order->save();
-
-            // Запис транзакції
-            $tx = new Transaction([
-                'user_id' => $user->id,
-                'amount' => $credits,
-                'type' => 'topup',
-                'service' => 'tg_stars',
-                'related_order_id' => $order->id,
-                'description' => "Поповнення через Telegram Stars ($stars ⭐)"
-            ]);
-            $tx->save();
 
             tgRequest('sendMessage', [
                 'chat_id' => $chat_id,
@@ -167,4 +163,3 @@ if (isset($update['message']['successful_payment'])) {
 
 // Повертаємо 200 OK для Telegram, щоб не слав повторно
 http_response_code(200);
-

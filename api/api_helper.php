@@ -2,7 +2,7 @@
 require_once __DIR__ . '/../includes/bootstrap.php';
 require_once __DIR__ . '/../includes/jwt.php';
 require_once __DIR__ . '/../includes/RateLimiter.php';
-require_once __DIR__ . '/../includes/models/Transaction.php';
+require_once __DIR__ . '/../includes/services/CreditService.php';
 
 /**
  * Функція автентифікації для REST API.
@@ -35,20 +35,17 @@ function authenticate_api() {
     
     // ПЛАТНИЙ ЗАПИТ: За ідеєю сервісу, кожен запит знімає 1 кредит
     $api_fee = 1;
-    if ($user->credits < $api_fee) {
+    if (!CreditService::hasEnoughCredits($user, $api_fee)) {
         json_response([
-            'error' => 'Недостатньо кредитів для виконання API запиту.', 
-            'required' => $api_fee, 
+            'error' => 'Недостатньо кредитів для виконання API запиту.',
+            'required' => $api_fee,
             'balance' => $user->credits
         ], 402);
     }
-    
-    // Списуємо кредит та записуємо транзакцію
-    $user->credits -= $api_fee;
-    $user->save();
-    
-    Transaction::create($user->id, -$api_fee, 'api_usage', null, null, null, "Плата за API запит");
-    
+
+    // Списуємо кредит та записуємо транзакцію через CreditService
+    CreditService::deduct($user, $api_fee, 'api_usage', 'Плата за API запит');
+
     return $user;
 }
 
