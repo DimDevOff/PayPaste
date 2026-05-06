@@ -1,5 +1,6 @@
 <?php
 require_once __DIR__ . '/includes/bootstrap.php';
+require_once __DIR__ . '/includes/services/PasteService.php';
 
 // Обробка POST-запитів (unlock_paste)
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -65,7 +66,7 @@ if ($paste) {
     $page_description = "Перегляд пасти '" . htmlspecialchars($paste->title) . "' на PayPaste. Автор: " . ($paste->user_id ? "Зареєстрований користувач" : "Анонім");
 
     // Встановлюємо флаг для шаблону
-    $is_locked = $paste->is_paid && !$is_author && !$has_unlocked && !$is_admin;
+    $is_locked = PasteService::isLocked($paste, $user);
 } else {
     $is_locked = false;
     $requires_quest = false;

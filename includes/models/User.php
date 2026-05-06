@@ -165,15 +165,6 @@ class User {
     }
 
     /**
-     * Прив'язка Telegram аккаунта до профілю
-     * @deprecated Використовуйте AuthService::linkOAuth()
-     */
-    public function linkTelegram($telegram_id) {
-        $this->telegram_id = $telegram_id;
-        $this->save();
-    }
-
-    /**
      * Пошук користувача за GitHub ID
      */
     public static function findByGithubId($github_id) {
@@ -184,56 +175,10 @@ class User {
     }
 
     /**
-     * Прив'язка GitHub аккаунта до профілю
-     * @deprecated Використовуйте AuthService::linkOAuth()
-     */
-    public function linkGithub($github_id) {
-        $this->github_id = $github_id;
-        $this->save();
-    }
-
-    /**
-     * Повне видалення користувача та його Passkey-ключів
-     * @deprecated Використовуйте AuthService::deleteAccount()
-     */
-    public function delete() {
-        require_once __DIR__ . '/Passkey.php';
-        Passkey::deleteByUserId($this->id);
-        
-        $pdo = DB::getInstance()->getPDO();
-        $stmt = $pdo->prepare("DELETE FROM users WHERE id = ?");
-        $stmt->execute([$this->id]);
-    }
-
-    /**
-     * Встановлює нову тему для користувача та зберігає в БД
-     * @deprecated Використовуйте пряме присвоєння $user->theme + $user->save()
-     */
-    public function setTheme($theme) {
-        $allowed = ['retro', 'dark', 'terminal', 'light', 'github-orange', 'retro-green'];
-        if (!in_array($theme, $allowed)) {
-            $theme = 'retro';
-        }
-        $this->theme = $theme;
-        $this->save();
-    }
-
-    /**
      * Перевірка, чи має користувач доступ до конкретної пасти
      */
     public function hasUnlocked($paste_id) {
         return in_array($paste_id, $this->unlocked_pastes);
-    }
-    
-    /**
-     * Додає пасту до списку розблокованих
-     * @deprecated Використовуйте PasteService::unlock()
-     */
-    public function unlockPaste($paste_id) {
-        if (!in_array($paste_id, $this->unlocked_pastes)) {
-            $this->unlocked_pastes[] = $paste_id;
-            $this->save();
-        }
     }
 
     /**
@@ -279,26 +224,6 @@ class User {
     }
 
     /**
-     * Видалення користувача адміністратором
-     * @deprecated Використовуйте AuthService::deleteByAdmin()
-     */
-    public static function delete_by_admin($id) {
-        $pdo = DB::getInstance()->getPDO();
-        $stmt = $pdo->prepare("DELETE FROM users WHERE id = ?");
-        $stmt->execute([$id]);
-    }
-
-    /**
-     * Генерує новий API-ключ для користувача
-     * @deprecated Використовуйте AuthService::generateApiKey()
-     */
-    public function generateApiKey() {
-        $this->api_key = 'pp_' . bin2hex(random_bytes(24));
-        $this->save();
-        return $this->api_key;
-    }
-
-    /**
      * Пошук користувача за API-ключем
      */
     public static function findByApiKey($api_key) {
@@ -307,66 +232,5 @@ class User {
         $stmt = $pdo->prepare("SELECT * FROM users WHERE api_key = ?");
         $stmt->execute([$api_key]);
         return self::instantiateFromRow($stmt->fetch());
-    }
-    /**
-     * Оновлює критичні дані користувача прямо з бази даних (баланс, розблоковані пасти)
-     * Це потрібно для підтримки актуальності кешу сесії.
-     * @deprecated Використовуйте пряме перезавантаження об'єкта через User::findById()
-     */
-    public function refreshData() {
-        $pdo = DB::getInstance()->getPDO();
-        
-        // Оновлюємо баланс
-        $stmt = $pdo->prepare("SELECT credits FROM users WHERE id = ?");
-        $stmt->execute([$this->id]);
-        $res = $stmt->fetchColumn();
-        if ($res !== false) {
-            $this->credits = (int)$res;
-        }
-        
-        // Оновлюємо список розблокованих паст
-        $this->unlocked_pastes = self::loadUnlockedPastes($this->id);
-
-        // Синхронізуємо з сесією
-        if (isset($_SESSION['user_id']) && $_SESSION['user_id'] === $this->id) {
-            $cacheUser = clone $this;
-            $cacheUser->password_hash = null;
-            $_SESSION['_user_cache'] = $cacheUser;
-        }
-    }
-
-    /**
-     * Генерує новий код підтвердження пошти
-     * @deprecated Використовуйте AuthService::generateVerificationCode()
-     */
-    public function generateVerificationCode() {
-        $this->verification_code = str_pad(random_int(0, 999999), 6, '0', STR_PAD_LEFT);
-        $this->verification_expires_at = date('Y-m-d H:i:s', time() + 15 * 60); // 15 хвилин
-        $this->email_verified = 0;
-        $this->save();
-        return $this->verification_code;
-    }
-
-    /**
-     * Перевірка коду підтвердження пошти
-     * @deprecated Використовуйте AuthService::verifyEmail()
-     */
-    public function verifyEmail($code) {
-        if ($this->email_verified) return true;
-        if (empty($this->verification_code) || empty($this->verification_expires_at)) return false;
-        
-        if (strtotime($this->verification_expires_at) < time()) {
-            return false; // протерміновано
-        }
-        
-        if ($this->verification_code === $code) {
-            $this->email_verified = 1;
-            $this->verification_code = null;
-            $this->verification_expires_at = null;
-            $this->save();
-            return true;
-        }
-        
-        return false;
     }
 }

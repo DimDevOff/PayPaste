@@ -278,7 +278,20 @@ class PasteService {
             }
         }
 
-        Paste::delete_paste_by_admin($pasteId);
+        // Видалення прикріплених файлів з диска
+        $uploadDir = __DIR__ . '/../../data/uploads/';
+        $files = glob($uploadDir . $pasteId . '.*');
+        if ($files) {
+            foreach ($files as $file) {
+                if (is_file($file)) {
+                    unlink($file);
+                }
+            }
+        }
+
+        $pdo = DB::getInstance()->getPDO();
+        $stmt = $pdo->prepare("DELETE FROM pastes WHERE id = ?");
+        $stmt->execute([$pasteId]);
         return true;
     }
 

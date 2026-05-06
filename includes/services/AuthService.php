@@ -431,7 +431,9 @@ class AuthService {
      */
     public static function deleteAccount(User $user): bool {
         Passkey::deleteByUserId($user->id);
-        $user->delete();
+        $pdo = DB::getInstance()->getPDO();
+        $stmt = $pdo->prepare("DELETE FROM users WHERE id = ?");
+        $stmt->execute([$user->id]);
         self::logout();
         return true;
     }

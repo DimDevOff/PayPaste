@@ -223,7 +223,6 @@ class Paste {
         $paste = self::instantiateFromRow($row);
         
         if ($paste->isExpired()) {
-            self::delete_paste_by_admin($id);
             return null;
         }
         
@@ -362,54 +361,5 @@ class Paste {
         return $stmt->fetchAll();
     }
 
-    /**
-     * Видалення пасти адміністратором.
-     * @deprecated Використовуйте PasteService::delete()
-     */
-    public static function delete_paste_by_admin($id) {
-        $pdo = DB::getInstance()->getPDO();
-
-        // Видалення прикріплених файлів з диска
-        $uploadDir = __DIR__ . '/../../data/uploads/';
-        $files = glob($uploadDir . $id . '.*');
-        if ($files) {
-            foreach ($files as $file) {
-                if (is_file($file)) {
-                    unlink($file);
-                }
-            }
-        }
-
-        $stmt = $pdo->prepare("DELETE FROM pastes WHERE id = ?");
-        $stmt->execute([$id]);
-        return true;
-    }
-
-    /**
-     * Видалення поточної пасти.
-     * @deprecated Використовуйте PasteService::delete()
-     */
-    public function delete() {
-        self::delete_paste_by_admin($this->id);
-    }
-
-    /**
-     * Очищення протермінованих паст та їх файлів.
-     * Викликається через Cron скриптом cron/cleanup.php.
-     * @deprecated Використовуйте PasteService::cleanupExpired()
-     */
-    public static function cleanupExpired() {
-        $pdo = DB::getInstance()->getPDO();
-        $stmt = $pdo->query("SELECT id FROM pastes WHERE expires_at IS NOT NULL AND expires_at <= NOW()");
-        $ids = $stmt->fetchAll(PDO::FETCH_COLUMN);
-        
-        $count = 0;
-        foreach ($ids as $id) {
-            if (self::delete_paste_by_admin($id)) {
-                $count++;
-            }
-        }
-        return $count;
-    }
 }
 
