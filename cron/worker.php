@@ -12,6 +12,9 @@
  *   * * * * * php /path/to/cron/worker.php >> /path/to/data/logs/worker.log 2>&1
  */
 
+// Worker не потребує сесій, CSRF, кукі — працює в CLI
+define('NO_SESSION', true);
+
 require_once __DIR__ . '/../includes/bootstrap.php';
 require_once __DIR__ . '/../includes/Queue.php';
 require_once __DIR__ . '/../includes/Moderation.php';

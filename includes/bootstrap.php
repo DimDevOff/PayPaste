@@ -7,11 +7,15 @@
 require_once __DIR__ . '/../config/db.php';
 require_once __DIR__ . '/models/User.php';
 require_once __DIR__ . '/models/Paste.php';
-require_once __DIR__ . '/csrf.php';
 require_once __DIR__ . '/Queue.php';
 
-if (session_status() === PHP_SESSION_NONE) {
-    session_start();
+// Сесії та CSRF потрібні лише для веб-запитів (не для CLI worker-а)
+if (!defined('NO_SESSION')) {
+    require_once __DIR__ . '/csrf.php';
+
+    if (session_status() === PHP_SESSION_NONE) {
+        session_start();
+    }
 }
 
 /**
@@ -60,14 +64,16 @@ function redirect($location) {
     exit;
 }
 
-// Глобальна перевірка верифікації пошти
-$current_page = basename($_SERVER['PHP_SELF']);
-$allowed_unverified_pages = ['verify.php', 'login.php'];
+// Глобальна перевірка верифікації пошти (тільки для веб-запитів)
+if (!defined('NO_SESSION')) {
+    $current_page = basename($_SERVER['PHP_SELF']);
+    $allowed_unverified_pages = ['verify.php', 'login.php'];
 
-if (isset($_SESSION['user_id'])) {
-    $user = getCurrentUser();
-    if ($user && !$user->email_verified && !in_array($current_page, $allowed_unverified_pages)) {
-        redirect('verify.php');
+    if (isset($_SESSION['user_id'])) {
+        $user = getCurrentUser();
+        if ($user && !$user->email_verified && !in_array($current_page, $allowed_unverified_pages)) {
+            redirect('verify.php');
+        }
     }
 }
 
