@@ -40,6 +40,30 @@
                     <hr>
                     <p class="text-muted"><small>Ваші налаштування приватності та ціни будуть застосовані автоматично після завершення.</small></p>
                 </div>
+            <?php elseif(isset($paste->moderation_status) && $paste->moderation_status === 'pending'): ?>
+                <div class="alert alert-warning text-center" style="border: 2px dashed var(--accent); padding: 40px; background: var(--bg-secondary);">
+                    <h2 class="blink-text" style="color: var(--link-color);">🔍 МОДЕРАЦІЯ...</h2>
+                    <p style="font-size: 1.2em;">Ця паста проходить автоматичну перевірку модерації.</p>
+                    <p>Вона стане доступною для всіх після підтвердження. <strong>Зайдіть пізніше</strong> (через 1-2 хвилини).</p>
+                    <div class="progress" style="height: 20px; margin-top: 20px;">
+                        <div class="progress-bar progress-bar-striped active" role="progressbar" style="width: 100%; background-color: var(--accent);"></div>
+                    </div>
+                    <hr>
+                    <p class="text-muted"><small>Якщо паста не пройде модерацію, ви зможете відредагувати текст або скористатися AI-переписуванням.</small></p>
+                </div>
+            <?php elseif(isset($paste->moderation_status) && $paste->moderation_status === 'rejected'): ?>
+                <div class="alert alert-danger text-center" style="border: 2px solid var(--panel-danger-border); padding: 30px; background: var(--bg-secondary);">
+                    <h3 style="color: var(--danger);">❌ МОДЕРАЦІЯ ВІДХИЛЕНА</h3>
+                    <p style="font-size: 1.1em;">Ваша паста не пройшла автоматичну перевірку модерації.</p>
+                    <?php
+                    $modResult = json_decode($paste->moderation_result ?? '[]', true);
+                    if (!empty($modResult)):
+                    ?>
+                        <p>Причини: <strong><?= htmlspecialchars(implode(', ', $modResult)) ?></strong></p>
+                    <?php endif; ?>
+                    <hr>
+                    <p>Ви можете <a href="create.php" style="color: var(--link-color); font-weight: bold;">створити нову пасту</a> з відредагованим текстом або попросити AI перефразувати її.</p>
+                </div>
             <?php elseif(isset($is_locked) && $is_locked): ?>
                 <div class="alert alert-warning text-center" style="border: 2px dashed var(--panel-danger-border); padding: 30px; background: var(--bg-secondary);">
                    <h2>Ця паста платна!</h2>

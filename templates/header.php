@@ -20,7 +20,7 @@ if (!in_array($_theme, $_allowedThemes)) $_theme = 'retro';
     <!-- SEO Meta Tags -->
     <title><?= isset($page_title) ? $page_title . " - PayPaste" : "PayPaste - Швидкий обмін кодом та текстом" ?></title>
     <meta name="description" content="<?= isset($page_description) ? $page_description : "PayPaste - сервіс для збереження тексту та коду в стилі ретро. Купуйте та продавайте доступ до ексклюзивного контенту!" ?>">
-    <meta name="keywords" content="pastebin, code share, pay to view, php, mysql, retro web, dimdevoff">
+    <meta name="keywords" content="pastebin, code share, pay to view, php, mysql, retro web">
     
     <!-- OpenGraph (Facebook, Telegram, Discord) -->
     <meta property="og:title" content="<?= isset($page_title) ? $page_title : "PayPaste" ?>">

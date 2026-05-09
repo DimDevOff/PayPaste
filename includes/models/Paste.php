@@ -15,12 +15,14 @@ class Paste {
     public $created_at;
     public $expires_at;
     public $is_pending_rewrite;
+    public $moderation_status;
+    public $moderation_result;
     public $language;
 
     /**
      * Конструктор пасти.
      */
-    public function __construct($title, $content, $user_id = null, $is_paid = false, $view_cost = 0, $is_private = false, $id = null, $created_at = null, $expires_at = null, $is_pending_rewrite = false, $language = 'plaintext') {
+    public function __construct($title, $content, $user_id = null, $is_paid = false, $view_cost = 0, $is_private = false, $id = null, $created_at = null, $expires_at = null, $is_pending_rewrite = false, $moderation_status = 'approved', $moderation_result = null, $language = 'plaintext') {
         $this->title = trim($title);
         $this->content = trim($content);
         $this->user_id = $user_id;
@@ -31,6 +33,8 @@ class Paste {
         $this->created_at = $created_at ?? date('Y-m-d H:i:s');
         $this->expires_at = $expires_at;
         $this->is_pending_rewrite = (bool)$is_pending_rewrite;
+        $this->moderation_status = $moderation_status ?: 'approved';
+        $this->moderation_result = $moderation_result;
         $this->language = $language ?: 'plaintext';
     }
 
@@ -39,7 +43,14 @@ class Paste {
      */
     private static function instantiateFromRow($row) {
         if (!$row) return null;
-        return new self($row['title'], $row['content'], $row['user_id'], $row['is_paid'], $row['view_cost'], $row['is_private'], $row['id'], $row['created_at'], $row['expires_at'], $row['is_pending_rewrite'], $row['language'] ?? 'plaintext');
+        return new self(
+            $row['title'], $row['content'], $row['user_id'], $row['is_paid'],
+            $row['view_cost'], $row['is_private'], $row['id'], $row['created_at'],
+            $row['expires_at'], $row['is_pending_rewrite'],
+            $row['moderation_status'] ?? 'approved',
+            $row['moderation_result'] ?? null,
+            $row['language'] ?? 'plaintext'
+        );
     }
 
     /**
@@ -56,8 +67,8 @@ class Paste {
     public function save() {
         $pdo = DB::getInstance()->getPDO();
         $stmt = $pdo->prepare("
-            INSERT INTO pastes (id, title, content, user_id, is_paid, is_private, view_cost, created_at, expires_at, is_pending_rewrite, language)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            INSERT INTO pastes (id, title, content, user_id, is_paid, is_private, view_cost, created_at, expires_at, is_pending_rewrite, moderation_status, moderation_result, language)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             ON DUPLICATE KEY UPDATE
                 title = VALUES(title),
                 content = VALUES(content),
@@ -67,6 +78,8 @@ class Paste {
                 view_cost = VALUES(view_cost),
                 expires_at = VALUES(expires_at),
                 is_pending_rewrite = VALUES(is_pending_rewrite),
+                moderation_status = VALUES(moderation_status),
+                moderation_result = VALUES(moderation_result),
                 language = VALUES(language)
         ");
         $stmt->execute([
@@ -80,6 +93,8 @@ class Paste {
             $this->created_at,
             $this->expires_at,
             $this->is_pending_rewrite ? 1 : 0,
+            $this->moderation_status,
+            $this->moderation_result,
             $this->language
         ]);
     }
@@ -244,7 +259,7 @@ class Paste {
             $sql .= " INNER JOIN paste_tags pt ON p.id = pt.paste_id";
         }
         
-        $sql .= " WHERE p.is_private = 0 AND p.is_pending_rewrite = 0 AND (p.expires_at IS NULL OR p.expires_at > NOW())";
+        $sql .= " WHERE p.is_private = 0 AND p.is_pending_rewrite = 0 AND p.moderation_status = 'approved' AND (p.expires_at IS NULL OR p.expires_at > NOW())";
         
         $params = [];
         
@@ -309,7 +324,7 @@ class Paste {
             $sql .= " INNER JOIN paste_tags pt ON p.id = pt.paste_id";
         }
         
-        $sql .= " WHERE p.is_pending_rewrite = 0 AND (p.expires_at IS NULL OR p.expires_at > NOW())";
+        $sql .= " WHERE p.is_pending_rewrite = 0 AND p.moderation_status = 'approved' AND (p.expires_at IS NULL OR p.expires_at > NOW())";
         
         $params = [];
         if ($search !== '') {

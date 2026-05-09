@@ -32,7 +32,31 @@ if (!$paste) {
     if (!$is_author && !$is_admin) {
         header("HTTP/1.0 403 Forbidden");
         $paste = null;
-        $_SESSION['error'] = "Ця паста тимчасово недоступна, вона проходить модерацію.";
+        $_SESSION['error'] = "Ця паста тимчасово недоступна, вона проходить AI-переписування.";
+        header("Location: index.php");
+        exit;
+    }
+} elseif (isset($paste->moderation_status) && $paste->moderation_status === 'pending') {
+    // Паста очікує результат модерації через OpenAI
+    if ($user) {
+        $is_author = ($paste->user_id === $user->id);
+    }
+    if (!$is_author && !$is_admin) {
+        header("HTTP/1.0 403 Forbidden");
+        $paste = null;
+        $_SESSION['error'] = "Ця паста проходить перевірку модерації та незабаром стане доступною.";
+        header("Location: index.php");
+        exit;
+    }
+} elseif (isset($paste->moderation_status) && $paste->moderation_status === 'rejected') {
+    // Паста відхилена модерацією
+    if ($user) {
+        $is_author = ($paste->user_id === $user->id);
+    }
+    if (!$is_author && !$is_admin) {
+        header("HTTP/1.0 403 Forbidden");
+        $paste = null;
+        $_SESSION['error'] = "Ця паста була відхилена модерацією та недоступна.";
         header("Location: index.php");
         exit;
     }

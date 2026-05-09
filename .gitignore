@@ -1,5 +1,7 @@
-# Секретні дані
+# Секретні дані та інші непублічні файли
 .env
+config/config.php
+config/bad_words.json
 
 # Завантажені файли
 uploads/
@@ -22,7 +24,3 @@ Thumbs.db
 .agents/
 .pi-lens
 AGENTS.md
-config/config.php
-config/bad_words.json
-paypaste.md
-scratch/

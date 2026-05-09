@@ -31,9 +31,12 @@ CREATE TABLE IF NOT EXISTS pastes (
     is_private BOOLEAN DEFAULT FALSE,
     expires_at TIMESTAMP NULL,
     is_pending_rewrite BOOLEAN DEFAULT FALSE,
+    moderation_status ENUM('pending', 'approved', 'rejected') DEFAULT 'approved',
+    moderation_result JSON NULL COMMENT 'JSON-масив категорій порушень при rejected',
     language VARCHAR(50) DEFAULT 'plaintext',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE SET NULL
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE SET NULL,
+    INDEX idx_moderation_status (moderation_status)
 );
 
 -- Таблиця для куплених підписок/доступів до платних паст
@@ -108,4 +111,23 @@ CREATE TABLE IF NOT EXISTS rate_limits (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     INDEX idx_action_key (action_key),
     INDEX idx_created_at (created_at)
+);
+
+-- 7. Черга фонових задач (MySQL-backed queue для зовнішніх інтеграцій)
+CREATE TABLE IF NOT EXISTS jobs (
+    id VARCHAR(50) PRIMARY KEY,
+    type ENUM('moderation_check', 'moderation_rewrite', 'email_verify', 'email_changed', 'email_custom') NOT NULL,
+    status ENUM('queued', 'processing', 'completed', 'failed', 'dead') DEFAULT 'queued',
+    payload JSON NOT NULL,
+    attempts INT DEFAULT 0,
+    max_attempts INT DEFAULT 3,
+    idempotency_key VARCHAR(255) NULL UNIQUE COMMENT 'Захист від дублювання задач',
+    scheduled_at DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT 'Час планованого виконання (для backoff)',
+    started_at DATETIME NULL COMMENT 'Час початку обробки',
+    completed_at DATETIME NULL COMMENT 'Час завершення',
+    last_error TEXT NULL COMMENT 'Остання помилка',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    INDEX idx_status_scheduled (status, scheduled_at),
+    INDEX idx_type_status (type, status),
+    INDEX idx_idempotency (idempotency_key)
 );

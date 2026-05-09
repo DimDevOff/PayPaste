@@ -10,6 +10,7 @@ if (php_sapi_name() !== 'cli' && !isset($_GET['force'])) {
 }
 
 require_once __DIR__ . '/../includes/services/PasteService.php';
+require_once __DIR__ . '/../includes/Queue.php';
 
 echo "[" . date('Y-m-d H:i:s') . "] Початок очищення протермінованих паст...\n";
 
@@ -18,4 +19,12 @@ try {
     echo "[" . date('Y-m-d H:i:s') . "] Очищення завершено. Видалено паст: $deletedCount\n";
 } catch (Exception $e) {
     echo "[" . date('Y-m-d H:i:s') . "] Помилка при очищенні: " . $e->getMessage() . "\n";
+}
+
+// Очищення старих завершених/мертвих задач з черги
+try {
+    $jobsDeleted = Queue::cleanup();
+    echo "[" . date('Y-m-d H:i:s') . "] Очищення черги: видалено $jobsDeleted старих задач.\n";
+} catch (Exception $e) {
+    echo "[" . date('Y-m-d H:i:s') . "] Помилка при очищенні черги: " . $e->getMessage() . "\n";
 }

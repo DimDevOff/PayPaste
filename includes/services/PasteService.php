@@ -20,7 +20,7 @@ class PasteService {
      * @return Paste Створена паста
      * @throws Exception При помилці валідації або БД
      */
-    public static function create(array $data, ?string $userId = null, bool $isPendingRewrite = false): Paste {
+    public static function create(array $data, ?string $userId = null, bool $isPendingRewrite = false, string $moderationStatus = 'approved'): Paste {
         $title = trim($data['title'] ?? 'Без назви');
         if ($title === '') $title = 'Без назви';
 
@@ -87,7 +87,7 @@ class PasteService {
                 );
             }
 
-            $paste = new Paste($title, $content, $userId, $isPaid, $viewCost, $isPrivate, null, null, $expiresAt, $isPendingRewrite, $language);
+            $paste = new Paste($title, $content, $userId, $isPaid, $viewCost, $isPrivate, null, null, $expiresAt, $isPendingRewrite, $moderationStatus, null, $language);
             $paste->save();
 
             // Синхронізація тегів

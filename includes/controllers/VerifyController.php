@@ -41,12 +41,12 @@ class VerifyController {
             } 
             elseif ($action === 'resend_code') {
                 $code = AuthService::generateVerificationCode($user);
-                $result = Mailer::sendVerificationEmail($user->email, $code);
+                $result = Mailer::enqueueVerificationEmail($user->email, $code);
 
                 if ($result['success']) {
-                    $_SESSION['success_msg'] = 'Новий код надіслано на вашу пошту.';
+                    $_SESSION['success_msg'] = 'Новий код поставлено у чергу відправки. Перевірте пошту через хвилину.';
                 } else {
-                    $_SESSION['error_msg'] = $result['error'];
+                    $_SESSION['error_msg'] = $result['error'] ?? 'Помилка постановки листа у чергу.';
                 }
                 
                 // PRG pattern
