@@ -88,7 +88,8 @@ function process_donate($donate) {
                     'Поповнення через Donatello на суму ' . $amount . ' UAH',
                     null,
                     $order->id,
-                    'donatello'
+                    'donatello',
+                    'topup:donatello:' . $order->id
                 );
 
                 // Оновлення статусу замовлення на 'completed'
