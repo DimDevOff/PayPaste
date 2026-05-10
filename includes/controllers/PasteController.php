@@ -35,7 +35,8 @@ class PasteController { // Клас контролера паст
     Модерація через OpenAI виконується асинхронно через чергу.
     */
     private function create($data, $is_pending_rewrite = false) {
-        if (!RateLimiter::check('create:' . $_SERVER['REMOTE_ADDR'], 5, 60)) {
+        $user_id = isset($_SESSION['user_id']) ? $_SESSION['user_id'] : null;
+        if (!RateLimiter::checkAction('create_paste', 5, 60, ['user_id' => $user_id, 'ip_limit' => 120])) {
             $_SESSION['error'] = "Занадто багато спроб створення паст. Спробуйте пізніше.";
             header("Location: create.php");
             exit;
@@ -60,8 +61,6 @@ class PasteController { // Клас контролера паст
         // Очищаємо прапорець модерації, якщо все добре або ми її пропустили
         unset($_SESSION['moderation_failed']);
         unset($_SESSION['flagged_categories']);
-
-        $user_id = isset($_SESSION['user_id']) ? $_SESSION['user_id'] : null;
 
         try {
             // Якщо це NOT a rewrite і NOT skip_moderation — ставимо статус "pending"
@@ -125,7 +124,8 @@ class PasteController { // Клас контролера паст
     Якщо все пройшло успішно, то доступ до пасти відкривається.
     */
     private function unlock($data) {
-        if (!RateLimiter::check('unlock:' . $_SERVER['REMOTE_ADDR'], 10, 60)) {
+        $user_id = isset($_SESSION['user_id']) ? $_SESSION['user_id'] : null;
+        if (!RateLimiter::checkAction('unlock_paste', 10, 60, ['user_id' => $user_id, 'ip_limit' => 200])) {
             $_SESSION['error'] = "Занадто багато спроб розблокування. Спробуйте пізніше.";
             header("Location: index.php");
             exit;

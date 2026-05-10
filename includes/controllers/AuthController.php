@@ -32,7 +32,7 @@ class AuthController { // Клас контролера авторизації
     Email-верифікація ставиться у чергу (асинхронно).
     */
     private function register($email, $password, $confirm, $nickname) {
-        if (!RateLimiter::check('register:' . $_SERVER['REMOTE_ADDR'], 5, 60)) {
+        if (!RateLimiter::checkAction('register', 5, 60, ['subject' => $email, 'ip_limit' => 150])) {
             $_SESSION['error'] = "Занадто багато реєстрацій. Спробуйте пізніше.";
             header("Location: login.php");
             exit;
@@ -73,7 +73,7 @@ class AuthController { // Клас контролера авторизації
     Якщо всі перевірки пройдені, то користувач входить.
     */
     private function login($email, $password, $remember = false) {
-        if (!RateLimiter::check('login:' . $_SERVER['REMOTE_ADDR'], 5, 60)) {
+        if (!RateLimiter::checkAction('login', 5, 60, ['subject' => $email, 'ip_limit' => 150])) {
             $_SESSION['error'] = "Занадто багато спроб входу. Спробуйте пізніше.";
             header("Location: login.php");
             exit;

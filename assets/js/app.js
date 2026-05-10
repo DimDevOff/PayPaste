@@ -76,6 +76,11 @@ $(document).ready(function() {
                     $.ajax({
                         url: 'api/webhooks/verify_ad.php',
                         method: 'POST',
+                        data: {
+                            paste_id: $btn.data('paste-id'),
+                            ad_token: $btn.data('ad-token'),
+                            csrf_token: $btn.data('csrf-token')
+                        },
                         dataType: 'json',
                         success: function(data) {
                             if (data.success) {
@@ -84,16 +89,26 @@ $(document).ready(function() {
                                     alert('✅ Вітаємо! Квест пройдено. Доступ відкрито!');
                                     location.reload();
                                 } else {
+                                    $btn.data('ad-token', data.next_token);
+                                    $btn.attr('data-ad-token', data.next_token);
                                     alert('✅ Рекламу зараховано! Залишилося: ' + data.remaining);
                                     $('#quest-timer-container').hide();
                                     $btn.show().removeClass('blink-text').text('📺 ПЕРЕГЛЯНУТИ НАСТУПНУ (10 сек)');
                                     $timer.text('10');
                                     $bar.css('width', '0%');
                                 }
+                            } else {
+                                alert('❌ ' + (data.message || 'Підтвердження реклами відхилено.'));
+                                $('#quest-timer-container').hide();
+                                $btn.show();
                             }
                         },
-                        error: function() {
-                            alert('❌ Помилка при підтвердженні. Спробуйте ще раз.');
+                        error: function(xhr) {
+                            let message = 'Помилка при підтвердженні. Спробуйте ще раз.';
+                            if (xhr.responseJSON && xhr.responseJSON.message) {
+                                message = xhr.responseJSON.message;
+                            }
+                            alert('❌ ' + message);
                             $('#quest-timer-container').hide();
                             $btn.show();
                         }

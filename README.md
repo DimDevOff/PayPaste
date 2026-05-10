@@ -85,6 +85,11 @@ php cron/worker.php --type=email_verify
 0 * * * * php /path/to/project/cron/cleanup.php --force >> /path/to/project/data/logs/cleanup.log 2>&1
 ```
 
+## Фінансові інваріанти й anti-abuse
+
+- Rate limiting використовує комбінований ключ: дія, user id або серверний session fingerprint, браузерний сигнал і нормалізований IP-фактор.
+- IP не є єдиним ключем блокування; для NAT/shared networks застосовується лише м'який velocity-ліміт із більшим порогом.
+
 ## Структура
 
 ```text
@@ -103,4 +108,3 @@ includes/
 templates/              # html шаблони
 data/uploads/           # файли користувачів
 ```
-
