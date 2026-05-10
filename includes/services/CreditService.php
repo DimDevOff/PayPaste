@@ -8,6 +8,46 @@ require_once __DIR__ . '/../models/User.php';
  * Відповідає за списання, нарахування, запис транзакцій та фінансові операції.
  */
 class CreditService {
+    /**
+     * Відкриває транзакцію лише якщо її ще немає.
+     *
+     * @param PDO $pdo
+     * @return bool true якщо транзакцію відкрив цей виклик
+     */
+    private static function beginTransactionIfNeeded(PDO $pdo): bool {
+        if ($pdo->inTransaction()) {
+            return false;
+        }
+
+        $pdo->beginTransaction();
+        return true;
+    }
+
+    /**
+     * Завершує транзакцію лише якщо її відкрив цей сервіс.
+     *
+     * @param PDO $pdo
+     * @param bool $ownsTransaction
+     * @return void
+     */
+    private static function commitIfNeeded(PDO $pdo, bool $ownsTransaction): void {
+        if ($ownsTransaction && $pdo->inTransaction()) {
+            $pdo->commit();
+        }
+    }
+
+    /**
+     * Відкат транзакції лише якщо її відкрив цей сервіс.
+     *
+     * @param PDO $pdo
+     * @param bool $ownsTransaction
+     * @return void
+     */
+    private static function rollBackIfNeeded(PDO $pdo, bool $ownsTransaction): void {
+        if ($ownsTransaction && $pdo->inTransaction()) {
+            $pdo->rollBack();
+        }
+    }
 
     /**
      * Розраховує вартість створення платної пасти на основі довжини контенту.
@@ -54,7 +94,7 @@ class CreditService {
         }
 
         $pdo = DB::getInstance()->getPDO();
-        $pdo->beginTransaction();
+        $ownsTransaction = self::beginTransactionIfNeeded($pdo);
 
         try {
             $user->credits -= $amount;
@@ -71,12 +111,10 @@ class CreditService {
             ]);
             $tx->save();
 
-            $pdo->commit();
+            self::commitIfNeeded($pdo, $ownsTransaction);
             return true;
         } catch (Exception $e) {
-            if ($pdo->inTransaction()) {
-                $pdo->rollBack();
-            }
+            self::rollBackIfNeeded($pdo, $ownsTransaction);
             throw $e;
         }
     }
@@ -100,7 +138,7 @@ class CreditService {
         }
 
         $pdo = DB::getInstance()->getPDO();
-        $pdo->beginTransaction();
+        $ownsTransaction = self::beginTransactionIfNeeded($pdo);
 
         try {
             $user->credits += $amount;
@@ -117,12 +155,10 @@ class CreditService {
             ]);
             $tx->save();
 
-            $pdo->commit();
+            self::commitIfNeeded($pdo, $ownsTransaction);
             return true;
         } catch (Exception $e) {
-            if ($pdo->inTransaction()) {
-                $pdo->rollBack();
-            }
+            self::rollBackIfNeeded($pdo, $ownsTransaction);
             throw $e;
         }
     }
@@ -150,7 +186,7 @@ class CreditService {
         }
 
         $pdo = DB::getInstance()->getPDO();
-        $pdo->beginTransaction();
+        $ownsTransaction = self::beginTransactionIfNeeded($pdo);
 
         try {
             // Списання у відправника
@@ -181,12 +217,10 @@ class CreditService {
             ]);
             $txTo->save();
 
-            $pdo->commit();
+            self::commitIfNeeded($pdo, $ownsTransaction);
             return true;
         } catch (Exception $e) {
-            if ($pdo->inTransaction()) {
-                $pdo->rollBack();
-            }
+            self::rollBackIfNeeded($pdo, $ownsTransaction);
             throw $e;
         }
     }
