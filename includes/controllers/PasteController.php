@@ -7,6 +7,7 @@ require_once __DIR__ . '/../services/CreditService.php'; // Завантажен
 require_once __DIR__ . '/../csrf.php'; // Завантаження CSRF
 require_once __DIR__ . '/../RateLimiter.php'; // Завантаження RateLimiter
 require_once __DIR__ . '/../Moderation.php'; // Завантаження Модерації
+require_once __DIR__ . '/../Queue.php'; // Завантаження Черги
 
 class PasteController { // Клас контролера паст
     public function handleRequest() { // Обробка запитів
@@ -31,9 +32,11 @@ class PasteController { // Клас контролера паст
     Потім перевіряє чи користувач має достатньо кредитів для створення платної пасти.
     
     Якщо всі перевірки пройдені, то користувач створює пасту.
+    Модерація через OpenAI виконується асинхронно через чергу.
     */
     private function create($data, $is_pending_rewrite = false) {
-        if (!RateLimiter::check('create:' . $_SERVER['REMOTE_ADDR'], 5, 60)) {
+        $user_id = isset($_SESSION['user_id']) ? $_SESSION['user_id'] : null;
+        if (!RateLimiter::checkAction('create_paste', 5, 60, ['user_id' => $user_id, 'ip_limit' => 120])) {
             $_SESSION['error'] = "Занадто багато спроб створення паст. Спробуйте пізніше.";
             header("Location: create.php");
             exit;
@@ -41,15 +44,16 @@ class PasteController { // Клас контролера паст
 
         $_SESSION['old_input'] = $data; // Збереження введених даних для UX
 
-        // --- МОДЕРАЦІЯ (OpenAI) ---
+        // --- МОДЕРАЦІЯ: лише локальна перевірка синхронно ---
         $content = trim($data['content'] ?? '');
         $skip_moderation = $data['skip_moderation'] ?? false;
         if (!$skip_moderation) {
-            $violations = Moderation::check($content);
-            if ($violations) {
+            // Локальна перевірка (швидка, без зовнішніх API)
+            $localViolations = Moderation::localCheck($content);
+            if ($localViolations) {
                 $_SESSION['error'] = "Текст не пройшов автоматичну модерацію та містить заборонений контент!";
                 $_SESSION['moderation_failed'] = true;
-                $_SESSION['flagged_categories'] = $violations;
+                $_SESSION['flagged_categories'] = $localViolations;
                 header("Location: create.php");
                 exit;
             }
@@ -58,12 +62,50 @@ class PasteController { // Клас контролера паст
         unset($_SESSION['moderation_failed']);
         unset($_SESSION['flagged_categories']);
 
-        $user_id = isset($_SESSION['user_id']) ? $_SESSION['user_id'] : null;
-
         try {
-            $paste = PasteService::create($data, $user_id, $is_pending_rewrite);
+            // Якщо це NOT a rewrite і NOT skip_moderation — ставимо статус "pending"
+            // і enqueue-мо задачу модерації через OpenAI
+            $moderationStatus = 'approved'; // За замовчуванням
+            $needsAsyncModeration = false;
+
+            if (!$skip_moderation && !$is_pending_rewrite) {
+                // Локальна перевірка пройшла, але потрібна зовнішня через OpenAI
+                $moderationStatus = 'pending';
+                $needsAsyncModeration = true;
+            }
+
+            $paste = PasteService::create($data, $user_id, $is_pending_rewrite, $moderationStatus);
+
+            // Постановка задачі модерації у чергу (асинхронна перевірка через OpenAI)
+            if ($needsAsyncModeration) {
+                Queue::push(
+                    Queue::TYPE_MODERATION_CHECK,
+                    [
+                        'paste_id' => $paste->id,
+                        'content'  => $content
+                    ],
+                    'mod_check:' . $paste->id // Ідемпотентність: одна перевірка на пасту
+                );
+            }
+
+            // Постановка задачі AI-переписування у чергу
+            if ($is_pending_rewrite) {
+                Queue::push(
+                    Queue::TYPE_MODERATION_REWRITE,
+                    [
+                        'paste_id' => $paste->id,
+                        'content'  => $content
+                    ],
+                    'mod_rewrite:' . $paste->id
+                );
+            }
 
             unset($_SESSION['old_input']); // Очищення введених даних при успіху
+
+            if ($needsAsyncModeration) {
+                $_SESSION['success'] = "Пасту створено! Вона проходить перевірку модерації та незабаром стане доступною.";
+            }
+
             header("Location: view.php?id=" . $paste->id);
             exit;
         } catch (Exception $e) {
@@ -82,7 +124,8 @@ class PasteController { // Клас контролера паст
     Якщо все пройшло успішно, то доступ до пасти відкривається.
     */
     private function unlock($data) {
-        if (!RateLimiter::check('unlock:' . $_SERVER['REMOTE_ADDR'], 10, 60)) {
+        $user_id = isset($_SESSION['user_id']) ? $_SESSION['user_id'] : null;
+        if (!RateLimiter::checkAction('unlock_paste', 10, 60, ['user_id' => $user_id, 'ip_limit' => 200])) {
             $_SESSION['error'] = "Занадто багато спроб розблокування. Спробуйте пізніше.";
             header("Location: index.php");
             exit;
@@ -113,6 +156,7 @@ class PasteController { // Клас контролера паст
 
     /**
      * Метод для автоматичного перефразування та публікації пасти.
+     * Постановка задачі у чергу замість синхронного виклику Ollama.
      */
     private function rewriteAndPublish($data) {
         if (!isset($_SESSION['user_id']) && isset($data['is_paid']) && $data['is_paid']) {

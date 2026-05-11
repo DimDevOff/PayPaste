@@ -137,7 +137,8 @@ if (isset($update['message']['successful_payment'])) {
                 "Поповнення через Telegram Stars ($stars ⭐)",
                 null,
                 $order->id,
-                'tg_stars'
+                'tg_stars',
+                'topup:tg_stars:' . $order->id
             );
 
             $order->status = 'completed';

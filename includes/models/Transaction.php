@@ -13,6 +13,7 @@ class Transaction {
     public $related_paste_id;
     public $related_order_id;
     public $description;
+    public $idempotency_key;
     public $created_at;
 
     /**
@@ -27,6 +28,7 @@ class Transaction {
         $this->related_paste_id = $data['related_paste_id'] ?? null;
         $this->related_order_id = $data['related_order_id'] ?? null;
         $this->description = $data['description'] ?? null;
+        $this->idempotency_key = $data['idempotency_key'] ?? null;
         $this->created_at = $data['created_at'] ?? date('Y-m-d H:i:s');
     }
 
@@ -38,16 +40,16 @@ class Transaction {
         if ($this->id !== null && is_numeric($this->id)) {
             $stmt = $pdo->prepare("
                 UPDATE transactions SET
-                    user_id = ?, amount = ?, type = ?, service = ?, related_paste_id = ?, related_order_id = ?, description = ?
+                    user_id = ?, amount = ?, type = ?, service = ?, related_paste_id = ?, related_order_id = ?, description = ?, idempotency_key = ?
                 WHERE id = ?
             ");
-            $stmt->execute([$this->user_id, $this->amount, $this->type, $this->service, $this->related_paste_id, $this->related_order_id, $this->description, $this->id]);
+            $stmt->execute([$this->user_id, $this->amount, $this->type, $this->service, $this->related_paste_id, $this->related_order_id, $this->description, $this->idempotency_key, $this->id]);
         } else {
             $stmt = $pdo->prepare("
-                INSERT INTO transactions (user_id, amount, type, service, related_paste_id, related_order_id, description, created_at)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                INSERT INTO transactions (user_id, amount, type, service, related_paste_id, related_order_id, description, idempotency_key, created_at)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
             ");
-            $stmt->execute([$this->user_id, $this->amount, $this->type, $this->service, $this->related_paste_id, $this->related_order_id, $this->description, $this->created_at]);
+            $stmt->execute([$this->user_id, $this->amount, $this->type, $this->service, $this->related_paste_id, $this->related_order_id, $this->description, $this->idempotency_key, $this->created_at]);
             $this->id = $pdo->lastInsertId();
         }
     }

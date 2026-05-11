@@ -2,64 +2,34 @@
 /**
  * Клас Moderation для автоматичної перевірки та перефразування контенту.
  * Використовує OpenAI Moderation API та Ollama Cloud.
+ *
+ * Режими роботи:
+ *   - check()        : повна перевірка (локальна + зовнішня), для синхронного контексту
+ *   - localCheck()   : лише локальна перевірка (швидка, без зовнішніх API)
+ *   - checkExternal() : лише зовнішня перевірка OpenAI (для worker-а)
+ *   - rewrite()       : перефразування через Ollama (для worker-а)
  */
 class Moderation {
     /**
-     * Перевірка тексту через OpenAI Moderation API.
+     * Повна перевірка тексту (локальна + OpenAI).
+     * Використовується лише для синхронних сценаріїв, де зовнішній виклик допустимий.
      * @param string $text
      * @return array|false Повертає список категорій порушень або false, якщо текст чистий.
      */
     public static function check($text) {
-        // 1. Локальна перевірка на стоп-слова (fallback)
+        // 1. Локальна перевірка на стоп-слова
         $localViolations = self::localCheck($text);
         if ($localViolations) {
             return $localViolations;
         }
 
-        if (!defined('OPENAI_API_KEY') || empty(OPENAI_API_KEY)) {
-            return false; 
-        }
-
-        $ch = curl_init('https://api.openai.com/v1/moderations');
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-        curl_setopt($ch, CURLOPT_POST, true);
-        curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode([
-            'input' => $text
-        ]));
-        curl_setopt($ch, CURLOPT_HTTPHEADER, [
-            'Content-Type: application/json',
-            'Authorization: Bearer ' . OPENAI_API_KEY
-        ]);
-
-        $response = curl_exec($ch);
-        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-        curl_close($ch);
-
-        if ($httpCode !== 200) {
-            error_log("OpenAI Moderation API Error: " . $response);
-            // Якщо сервіс недоступний, ми покладаємось на результати локальної перевірки,
-            // яка вже була виконана на початку методу.
-            return false;
-        }
-
-        $data = json_decode($response, true);
-        $results = $data['results'][0] ?? null;
-
-        if ($results && $results['flagged']) {
-            $violated = [];
-            foreach ($results['categories'] as $category => $isViolated) {
-                if ($isViolated) {
-                    $violated[] = $category;
-                }
-            }
-            return $violated;
-        }
-
-        return false;
+        // 2. Зовнішня перевірка через OpenAI
+        return self::checkExternal($text);
     }
 
     /**
      * Локальна перевірка на основі чорного списку слів.
+     * Швидка, не потребує зовнішніх API — використовується синхронно.
      */
     public static function localCheck($text) {
         $text = mb_strtolower($text);
@@ -98,7 +68,61 @@ class Moderation {
     }
 
     /**
+     * Зовнішня перевірка тексту через OpenAI Moderation API.
+     * Використовується worker-ом після успішної локальної перевірки.
+     *
+     * @param string $text Текст для перевірки
+     * @return array|false Список категорій порушень або false (чистий / сервіс недоступний)
+     */
+    public static function checkExternal($text) {
+        if (!defined('OPENAI_API_KEY') || empty(OPENAI_API_KEY)) {
+            return false; // Якщо ключ відсутній — вважаємо текст чистим
+        }
+
+        $ch = curl_init('https://api.openai.com/v1/moderations');
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_POST, true);
+        curl_setopt($ch, CURLOPT_TIMEOUT, 30); // Таймаут 30 секунд
+        curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode([
+            'input' => $text
+        ]));
+        curl_setopt($ch, CURLOPT_HTTPHEADER, [
+            'Content-Type: application/json',
+            'Authorization: Bearer ' . OPENAI_API_KEY
+        ]);
+
+        $response = curl_exec($ch);
+        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        $curlError = curl_error($ch);
+        curl_close($ch);
+
+        if ($curlError) {
+            throw new \RuntimeException("OpenAI cURL помилка: $curlError");
+        }
+
+        if ($httpCode !== 200) {
+            throw new \RuntimeException("OpenAI Moderation API повернув HTTP $httpCode: $response");
+        }
+
+        $data = json_decode($response, true);
+        $results = $data['results'][0] ?? null;
+
+        if ($results && $results['flagged']) {
+            $violated = [];
+            foreach ($results['categories'] as $category => $isViolated) {
+                if ($isViolated) {
+                    $violated[] = $category;
+                }
+            }
+            return $violated;
+        }
+
+        return false;
+    }
+
+    /**
      * Перефразування тексту через Ollama Cloud.
+     * Використовується worker-ом для асинхронного AI-переписування.
      * @param string $text
      * @return string Виправлений текст.
      */
@@ -116,6 +140,7 @@ class Moderation {
         $ch = curl_init(OLLAMA_API_URL . '/generate');
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
         curl_setopt($ch, CURLOPT_POST, true);
+        curl_setopt($ch, CURLOPT_TIMEOUT, 120); // Таймаут 120 секунд для генерації
         curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode([
             'model' => OLLAMA_MODEL,
             'prompt' => $prompt,
@@ -128,14 +153,24 @@ class Moderation {
 
         $response = curl_exec($ch);
         $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        $curlError = curl_error($ch);
         curl_close($ch);
 
+        if ($curlError) {
+            throw new \RuntimeException("Ollama cURL помилка: $curlError");
+        }
+
         if ($httpCode !== 200) {
-            error_log("Ollama Cloud API Error: " . $response);
-            return $text;
+            throw new \RuntimeException("Ollama Cloud API повернув HTTP $httpCode: $response");
         }
 
         $data = json_decode($response, true);
-        return $data['response'] ?? $text;
+        $rewritten = $data['response'] ?? '';
+
+        if (empty($rewritten)) {
+            throw new \RuntimeException("Ollama повернув порожню відповідь");
+        }
+
+        return $rewritten;
     }
 }

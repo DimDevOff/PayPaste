@@ -20,7 +20,7 @@ class PasteService {
      * @return Paste Створена паста
      * @throws Exception При помилці валідації або БД
      */
-    public static function create(array $data, ?string $userId = null, bool $isPendingRewrite = false): Paste {
+    public static function create(array $data, ?string $userId = null, bool $isPendingRewrite = false, string $moderationStatus = 'approved'): Paste {
         $title = trim($data['title'] ?? 'Без назви');
         if ($title === '') $title = 'Без назви';
 
@@ -87,7 +87,7 @@ class PasteService {
                 );
             }
 
-            $paste = new Paste($title, $content, $userId, $isPaid, $viewCost, $isPrivate, null, null, $expiresAt, $isPendingRewrite, $language);
+            $paste = new Paste($title, $content, $userId, $isPaid, $viewCost, $isPrivate, null, null, $expiresAt, $isPendingRewrite, $moderationStatus, null, $language);
             $paste->save();
 
             // Синхронізація тегів
@@ -138,40 +138,8 @@ class PasteService {
             return ['success' => false, 'message' => "Не вистачає кредитів для покупки доступу!"];
         }
 
-        try {
-            // Списання у покупця
-            CreditService::deduct(
-                $user,
-                $paste->view_cost,
-                'purchase',
-                'Купівля доступу до пасти',
-                $pasteId
-            );
-
-            // Додавання до розблокованих
-            if (!in_array($pasteId, $user->unlocked_pastes)) {
-                $user->unlocked_pastes[] = $pasteId;
-                $user->save();
-            }
-
-            // Нарахування автору
-            if ($paste->user_id) {
-                $author = User::findById($paste->user_id);
-                if ($author) {
-                    CreditService::credit(
-                        $author,
-                        $paste->view_cost,
-                        'sale',
-                        'Продаж доступу до пасти',
-                        $pasteId
-                    );
-                }
-            }
-
-            return ['success' => true, 'message' => "Доступ успішно придбано!"];
-        } catch (Exception $e) {
-            throw $e;
-        }
+        $author = $paste->user_id ? User::findById($paste->user_id) : null;
+        return CreditService::purchasePasteAccess($user, $author, $pasteId, $paste->view_cost);
     }
 
     /**

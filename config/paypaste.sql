@@ -31,9 +31,12 @@ CREATE TABLE IF NOT EXISTS pastes (
     is_private BOOLEAN DEFAULT FALSE,
     expires_at TIMESTAMP NULL,
     is_pending_rewrite BOOLEAN DEFAULT FALSE,
+    moderation_status ENUM('pending', 'approved', 'rejected') DEFAULT 'approved',
+    moderation_result JSON NULL COMMENT 'JSON-масив категорій порушень при rejected',
     language VARCHAR(50) DEFAULT 'plaintext',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE SET NULL
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE SET NULL,
+    INDEX idx_moderation_status (moderation_status)
 );
 
 -- Таблиця для куплених підписок/доступів до платних паст
@@ -64,22 +67,41 @@ CREATE TABLE IF NOT EXISTS transactions (
     id INT AUTO_INCREMENT PRIMARY KEY,
     user_id VARCHAR(50) NOT NULL,
     amount INT NOT NULL, -- Позитивне значення (поповнення) або негативне (списання)
-    type ENUM('topup', 'purchase', 'sale', 'creation_fee', 'api_usage') NOT NULL,
+    type ENUM('topup', 'purchase', 'sale', 'creation_fee', 'api_usage', 'ad_reward') NOT NULL,
       -- topup: поповнення балансу
       -- purchase: купівля платної пасти
       -- sale: продаж своєї платної пасти (хтось купив)
       -- creation_fee: зняття комісії за створення платної пасти
+      -- ad_reward: нагорода за перегляд реклами (квест)
     service VARCHAR(50) NULL, -- Деталі джерела (наприклад, donatello, tg_stars)
     related_paste_id VARCHAR(50) NULL, -- Якщо транзакція пов'язана з пастою
     related_order_id VARCHAR(50) NULL, -- Якщо транзакція пов'язана з замовленням (для topup)
     description VARCHAR(255) NULL,
+    idempotency_key VARCHAR(255) NULL UNIQUE COMMENT 'Ідемпотентний ключ: повторна операція з тим самим ключем ігнорується',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
     FOREIGN KEY (related_paste_id) REFERENCES pastes(id) ON DELETE SET NULL,
     FOREIGN KEY (related_order_id) REFERENCES orders(id) ON DELETE SET NULL
 );
 
--- 4. Passkeys (WebAuthn/FIDO2 credentials)
+-- 4. Серверні рекламні події (ad_events) — TASK-70
+-- Замінює довіру до сесій при підрахунку прогресу рекламного квесту.
+CREATE TABLE IF NOT EXISTS ad_events (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    paste_id VARCHAR(50) NOT NULL,
+    user_id VARCHAR(50) NULL COMMENT 'NULL для анонімів — ключем є user_session_hash',
+    user_session_hash VARCHAR(64) NOT NULL COMMENT 'Хеш відбитка сесії + користувача',
+    quest_id VARCHAR(32) NOT NULL COMMENT 'ID квесту',
+    nonce VARCHAR(32) NOT NULL COMMENT 'Одноразовий ідентифікатор події з токена',
+    step TINYINT NOT NULL COMMENT 'Номер зарахованої події (1-3)',
+    accepted_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE KEY uk_ad_event_nonce (paste_id, user_session_hash, nonce),
+    INDEX idx_ad_events_paste_user (paste_id, user_session_hash),
+    INDEX idx_ad_events_quest (quest_id),
+    FOREIGN KEY (paste_id) REFERENCES pastes(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- 6. Passkeys (WebAuthn/FIDO2 credentials)
 CREATE TABLE IF NOT EXISTS passkeys (
     id VARCHAR(50) PRIMARY KEY,
     user_id VARCHAR(50) NOT NULL,
@@ -92,7 +114,7 @@ CREATE TABLE IF NOT EXISTS passkeys (
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
 
--- 5. Теги паст (для швидкого пошуку та фільтрації)
+-- 7. Теги паст (для швидкого пошуку та фільтрації)
 CREATE TABLE IF NOT EXISTS paste_tags (
     paste_id VARCHAR(50) NOT NULL,
     tag VARCHAR(50) NOT NULL,
@@ -101,11 +123,30 @@ CREATE TABLE IF NOT EXISTS paste_tags (
     INDEX idx_tag (tag)
 );
 
--- 6. Історія лімітів запитів (Rate Limiting)
+-- 8. Історія лімітів запитів (Rate Limiting)
 CREATE TABLE IF NOT EXISTS rate_limits (
     id INT AUTO_INCREMENT PRIMARY KEY,
     action_key VARCHAR(255) NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     INDEX idx_action_key (action_key),
     INDEX idx_created_at (created_at)
+);
+
+-- 9. Черга фонових задач (MySQL-backed queue для зовнішніх інтеграцій)
+CREATE TABLE IF NOT EXISTS jobs (
+    id VARCHAR(50) PRIMARY KEY,
+    type ENUM('moderation_check', 'moderation_rewrite', 'email_verify', 'email_changed', 'email_custom') NOT NULL,
+    status ENUM('queued', 'processing', 'completed', 'failed', 'dead') DEFAULT 'queued',
+    payload JSON NOT NULL,
+    attempts INT DEFAULT 0,
+    max_attempts INT DEFAULT 3,
+    idempotency_key VARCHAR(255) NULL UNIQUE COMMENT 'Захист від дублювання задач',
+    scheduled_at DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT 'Час планованого виконання (для backoff)',
+    started_at DATETIME NULL COMMENT 'Час початку обробки',
+    completed_at DATETIME NULL COMMENT 'Час завершення',
+    last_error TEXT NULL COMMENT 'Остання помилка',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    INDEX idx_status_scheduled (status, scheduled_at),
+    INDEX idx_type_status (type, status),
+    INDEX idx_idempotency (idempotency_key)
 );

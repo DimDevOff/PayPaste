@@ -38,7 +38,11 @@
                     <h4 class="list-group-item-heading" style="word-wrap:break-word; margin-bottom: 2px;"><?= htmlspecialchars($p->title ?: 'Без назви') ?></h4>
                     <p class="list-group-item-text text-muted" style="font-size:11px; margin-bottom: 5px;">
                         <?= $p->created_at ?>
-                        <?php if($p->is_paid): ?> <span class="label label-warning" style="font-size:9px;">PAID</span> <?php endif; ?>
+                        <?php if($p->is_paid): ?>
+                            <span class="label label-warning" style="font-size:9px;">
+                                <?= (int)($p->view_cost ?? 0) ?> КР
+                            </span>
+                        <?php endif; ?>
                     </p>
                 </a>
                 

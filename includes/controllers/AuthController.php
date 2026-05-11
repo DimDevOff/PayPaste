@@ -5,6 +5,7 @@ require_once __DIR__ . '/../models/User.php'; // Завантаження мод
 require_once __DIR__ . '/../services/AuthService.php'; // Завантаження AuthService
 require_once __DIR__ . '/../csrf.php'; // Завантаження CSRF
 require_once __DIR__ . '/../RateLimiter.php'; // Завантаження RateLimiter
+require_once __DIR__ . '/../mailer.php'; // Завантаження Mailer (для enqueue)
 
 class AuthController { // Клас контролера авторизації
     public function handleRequest() { // Обробка запитів
@@ -28,9 +29,10 @@ class AuthController { // Клас контролера авторизації
     Потім перевіряє чи паролі співпадають.
     Потім перевіряє чи користувач з таким email вже існує.
     Якщо всі перевірки пройдені, то користувач реєструється.
+    Email-верифікація ставиться у чергу (асинхронно).
     */
     private function register($email, $password, $confirm, $nickname) {
-        if (!RateLimiter::check('register:' . $_SERVER['REMOTE_ADDR'], 5, 60)) {
+        if (!RateLimiter::checkAction('register', 5, 60, ['subject' => $email, 'ip_limit' => 150])) {
             $_SESSION['error'] = "Занадто багато реєстрацій. Спробуйте пізніше.";
             header("Location: login.php");
             exit;
@@ -41,13 +43,21 @@ class AuthController { // Клас контролера авторизації
         try {
             $user = AuthService::register($email, $password, $confirm, $nickname);
 
-            require_once __DIR__ . '/../mailer.php';
+            // Генеруємо код та ставимо відправку email у чергу (асинхронно)
             $code = AuthService::generateVerificationCode($user);
-            Mailer::sendVerificationEmail($user->email, $code);
+            $emailResult = Mailer::enqueueVerificationEmail($user->email, $code);
 
             AuthService::setSession($user);
             unset($_SESSION['old_input']);
-            $_SESSION['success'] = "Реєстрація майже завершена! Вам нараховано 100 кредитів. Введіть код підтвердження, надісланий на пошту.";
+
+            if ($emailResult['success']) {
+                $_SESSION['success'] = "Реєстрація майже завершена! Вам нараховано 100 кредитів. Код підтвердження надсилається на вашу пошту.";
+            } else {
+                // Черга не прийняла задачу (rate limit або помилка), але користувач вже створений
+                $_SESSION['warning'] = "Реєстрація завершена! Однак не вдалося поставити лист у чергу: " . ($emailResult['error'] ?? 'невідома помилка');
+                $_SESSION['info'] = "Ви можете запросити повторну відправку коду на сторінці верифікації.";
+            }
+
             header("Location: verify.php");
             exit;
         } catch (Exception $e) {
@@ -63,7 +73,7 @@ class AuthController { // Клас контролера авторизації
     Якщо всі перевірки пройдені, то користувач входить.
     */
     private function login($email, $password, $remember = false) {
-        if (!RateLimiter::check('login:' . $_SERVER['REMOTE_ADDR'], 5, 60)) {
+        if (!RateLimiter::checkAction('login', 5, 60, ['subject' => $email, 'ip_limit' => 150])) {
             $_SESSION['error'] = "Занадто багато спроб входу. Спробуйте пізніше.";
             header("Location: login.php");
             exit;
@@ -94,4 +104,3 @@ class AuthController { // Клас контролера авторизації
         exit;
     }
 }
-

@@ -33,7 +33,7 @@ switch ($method) {
  */
 function handleGet($id, $user) {
     if (!$id) json_response(['error' => 'ID пасти обов\'язковий.'], 400);
-    
+
     $paste = Paste::findById($id);
     if (!$paste) json_response(['error' => 'Пасту не знайдено або термін дії закінчився.'], 404);
     
@@ -84,15 +84,33 @@ function handlePost($user) {
         'expires_in' => isset($input['ttl_minutes']) ? (int)$input['ttl_minutes'] : 10080, // 7 днів за замовчуванням
         'language' => $input['language'] ?? 'plaintext',
         'tags' => $input['tags'] ?? '',
+        'skip_moderation' => false,
     ];
     
     try {
-        $paste = PasteService::create($data, $user->id);
+        // Локальна перевірка модерації (швидка)
+        require_once __DIR__ . '/../includes/Moderation.php';
+        $localViolations = Moderation::localCheck($data['content']);
+        if ($localViolations) {
+            json_response(['error' => 'Контент не пройшов локальну перевірку модерації', 'violations' => $localViolations], 400);
+        }
+
+        // Паста створюється зі статусом 'pending', зовнішня модерація йде через чергу
+        $paste = PasteService::create($data, $user->id, false, 'pending');
+
+        // Постановка задачі модерації у чергу
+        require_once __DIR__ . '/../includes/Queue.php';
+        Queue::push(
+            Queue::TYPE_MODERATION_CHECK,
+            ['paste_id' => $paste->id, 'content' => $data['content']],
+            'mod_check:' . $paste->id
+        );
         
         json_response([
             'id' => $paste->id,
             'url' => APP_URL . "/view.php?id=" . $paste->id,
             'title' => $paste->title,
+            'moderation_status' => 'pending',
             'creation_fee' => CreditService::calculateCreationCost($paste->content),
             'remaining_credits' => $user->credits
         ], 201);

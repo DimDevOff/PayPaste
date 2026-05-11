@@ -107,12 +107,14 @@ class SettingsController {
 
             if ($result['email_changed']) {
                 require_once __DIR__ . '/../mailer.php';
-                Mailer::sendEmailChangedNotification($user->email, $new_email);
+
+                // Асинхронна відправка повідомлень через чергу
+                Mailer::enqueueEmailChangedNotification($user->email, $new_email);
 
                 $code = AuthService::generateVerificationCode($user);
-                Mailer::sendVerificationEmail($user->email, $code);
+                Mailer::enqueueVerificationEmail($user->email, $code);
 
-                $_SESSION['success'] = "Профіль оновлено! На нову пошту надіслано код підтвердження.";
+                $_SESSION['success'] = "Профіль оновлено! Код підтвердження надсилається на нову пошту.";
                 header("Location: verify.php");
                 exit;
             } else {

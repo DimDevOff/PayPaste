@@ -1,0 +1,29 @@
+[Unit]
+Description=PayPaste Queue Worker (background job processor)
+After=network.target mysql.service
+Wants=mysql.service
+
+[Service]
+Type=simple
+User=www-data
+Group=www-data
+WorkingDirectory=/var/www/paypaste
+ExecStart=/usr/bin/php /var/www/paypaste/cron/worker.php --daemon
+Restart=always
+RestartSec=5
+StandardOutput=append:/var/www/paypaste/data/logs/worker-stdout.log
+StandardError=append:/var/www/paypaste/data/logs/worker-stderr.log
+
+# Обмеження ресурсів для малих VPS/одноплатних серверів
+MemoryMax=128M
+MemoryHigh=96M
+CPUWeight=20
+
+# Безпека
+NoNewPrivileges=true
+ProtectSystem=strict
+ReadWritePaths=/var/www/paypaste/data /tmp
+PrivateTmp=true
+
+[Install]
+WantedBy=multi-user.target

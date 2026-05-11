@@ -46,3 +46,19 @@ define('OLLAMA_MODEL', 'gemma4:31b-cloud');
 // Resend Email
 define('RESEND_API_KEY', 'YOUR_RESEND_API_KEY');
 define('MAIL_FROM', 'PayPaste <noreply@yourdomain.com>');
+
+// Черга фонових задач
+// Ймовірність (%) лінивої обробки при кожному веб-запиту.
+// 0 = вимкнено, рекомендовано для production із фоновим worker-ом.
+// 3 = легкий тимчасовий fallback, якщо worker недоступний.
+// 10 = агресивний fallback для середовищ без постійного worker-а.
+define('QUEUE_INLINE_PROBABILITY', 0);
+//
+// Запуск worker-а:
+//   sudo systemctl start paypaste-worker     (daemon)
+//   php cron/worker.php                      (одноразово)
+//   php cron/worker.php --daemon             (ручний daemon)
+//   php cron/worker.php --type=email         (лише email-задачі)
+//
+// Cron (якщо без systemd):
+//   * * * * * php /path/to/cron/worker.php >> /path/to/data/logs/worker.log 2>&1

@@ -40,6 +40,30 @@
                     <hr>
                     <p class="text-muted"><small>Ваші налаштування приватності та ціни будуть застосовані автоматично після завершення.</small></p>
                 </div>
+            <?php elseif(isset($paste->moderation_status) && $paste->moderation_status === 'pending'): ?>
+                <div class="alert alert-warning text-center" style="border: 2px dashed var(--accent); padding: 40px; background: var(--bg-secondary);">
+                    <h2 class="blink-text" style="color: var(--link-color);">🔍 МОДЕРАЦІЯ...</h2>
+                    <p style="font-size: 1.2em;">Ця паста проходить автоматичну перевірку модерації.</p>
+                    <p>Вона стане доступною для всіх після підтвердження. <strong>Зайдіть пізніше</strong> (через 1-2 хвилини).</p>
+                    <div class="progress" style="height: 20px; margin-top: 20px;">
+                        <div class="progress-bar progress-bar-striped active" role="progressbar" style="width: 100%; background-color: var(--accent);"></div>
+                    </div>
+                    <hr>
+                    <p class="text-muted"><small>Якщо паста не пройде модерацію, ви зможете відредагувати текст або скористатися AI-переписуванням.</small></p>
+                </div>
+            <?php elseif(isset($paste->moderation_status) && $paste->moderation_status === 'rejected'): ?>
+                <div class="alert alert-danger text-center" style="border: 2px solid var(--panel-danger-border); padding: 30px; background: var(--bg-secondary);">
+                    <h3 style="color: var(--danger);">❌ МОДЕРАЦІЯ ВІДХИЛЕНА</h3>
+                    <p style="font-size: 1.1em;">Ваша паста не пройшла автоматичну перевірку модерації.</p>
+                    <?php
+                    $modResult = json_decode($paste->moderation_result ?? '[]', true);
+                    if (!empty($modResult)):
+                    ?>
+                        <p>Причини: <strong><?= htmlspecialchars(implode(', ', $modResult)) ?></strong></p>
+                    <?php endif; ?>
+                    <hr>
+                    <p>Ви можете <a href="create.php" style="color: var(--link-color); font-weight: bold;">створити нову пасту</a> з відредагованим текстом або попросити AI перефразувати її.</p>
+                </div>
             <?php elseif(isset($is_locked) && $is_locked): ?>
                 <div class="alert alert-warning text-center" style="border: 2px dashed var(--panel-danger-border); padding: 30px; background: var(--bg-secondary);">
                    <h2>Ця паста платна!</h2>
@@ -55,12 +79,26 @@
             <?php elseif(isset($requires_quest) && $requires_quest): ?>
                 <div class="alert alert-info text-center" id="quest-container" style="border: 2px solid var(--link-color); padding: 20px; background: var(--bg-secondary);">
                     <h3 style="color: var(--link-color); margin-top: 0;">🚀 Рекламний Квест!</h3>
-                    <p>Для доступу до цієї безкоштовної пасти, ви маєте пройти невеликий квест.</p>
-                    <p>Потрібно переглянути 3 реклами від наших партнерів (по 10 секунд кожна).</p>
+                    <p>Ця паста платна: <strong><?= (int)$paste->view_cost ?> кредитів</strong>.</p>
+                    <form action="view.php" method="POST" style="margin: 15px 0;">
+                        <?= csrf_field() ?>
+                        <input type="hidden" name="action" value="unlock_paste">
+                        <input type="hidden" name="paste_id" value="<?= htmlspecialchars($paste->id) ?>">
+                        <button class="btn btn-warning btn-lg blink-text" style="font-weight:bold;">Купити доступ за <?= (int)$paste->view_cost ?> КР</button>
+                    </form>
+                    <hr>
+                    <p>Або пройдіть рекламний квест: 3 підтверджені перегляди по 10 секунд.</p>
                     <div id="quest-status" style="margin: 15px 0;">
-                        <strong>Прогрес: <span id="ads-count"><?= $_SESSION['ads_watched'] ?? 0 ?></span> / 3</strong>
+                        <strong>Прогрес: <span id="ads-count"><?= (int)($ad_quest_progress ?? 0) ?></span> / 3</strong>
                     </div>
-                    <a href="<?= ADSTERRA_SMARTLINK_URL ?>" target="_blank" id="start-quest-btn" class="btn btn-primary btn-lg blink-text" style="font-weight:bold; display: inline-block; text-decoration: none;">
+                    <a href="<?= htmlspecialchars(ADSTERRA_SMARTLINK_URL) ?>"
+                       target="_blank"
+                       id="start-quest-btn"
+                       class="btn btn-primary btn-lg blink-text"
+                       data-paste-id="<?= htmlspecialchars($paste->id) ?>"
+                       data-ad-token="<?= htmlspecialchars($ad_quest_token ?? '') ?>"
+                       data-csrf-token="<?= htmlspecialchars($_SESSION['csrf_token'] ?? '') ?>"
+                       style="font-weight:bold; display: inline-block; text-decoration: none;">
                         📺 ПЕРЕГЛЯНУТИ РЕКЛАМУ (10 сек)
                     </a>
                     <div id="quest-timer-container" style="display:none; margin-top:15px;">
