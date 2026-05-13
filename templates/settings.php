@@ -49,14 +49,25 @@ $myPasskeys = Passkey::findByUserId($_SESSION['user_id']);
 
                     <hr style="border-top: 1px dashed var(--border-color); margin-top: 30px; margin-bottom: 20px;">
                     <h4 style="text-transform: uppercase; font-weight: bold;">Зміна пароля</h4>
-                    <p class="text-muted" style="font-size: 0.9em; margin-bottom: 15px;">Залиште поля порожніми, якщо облом вигадувати новий пароль.</p>
+                    <p class="text-muted" style="font-size: 0.9em; margin-bottom: 15px;">Залиште поля порожніми, якщо не бажаєте змінювати пароль.</p>
+
+                    <div class="form-group">
+                        <label for="current_password">Поточний пароль:</label>
+                        <input type="password" 
+                               name="current_password" 
+                               id="current_password" 
+                               class="form-control"
+                               autocomplete="current-password">
+                        <small class="text-muted">Обов'язково при зміні пароля.</small>
+                    </div>
 
                     <div class="form-group">
                         <label for="password">Новий пароль:</label>
                         <input type="password" 
                                name="password" 
                                id="password" 
-                               class="form-control">
+                               class="form-control"
+                               autocomplete="new-password">
                     </div>
 
                     <div class="form-group" style="margin-bottom: 25px;">
@@ -64,7 +75,8 @@ $myPasskeys = Passkey::findByUserId($_SESSION['user_id']);
                         <input type="password" 
                                name="password_confirm" 
                                id="password_confirm" 
-                               class="form-control">
+                               class="form-control"
+                               autocomplete="new-password">
                     </div>
 
                     <button type="submit" class="btn btn-warning btn-block blink-text" style="font-family: 'Courier New', Courier, monospace; font-weight: bold; font-size: 1.1em; white-space: normal; height: auto;">✓ ЗБЕРЕГТИ ЗМІНИ ✓</button>
@@ -474,6 +486,26 @@ document.addEventListener('submit', function(e) {
         }
     }
 });
+
+// Валідація: поточний пароль обов'язковий при зміні пароля
+(function() {
+    var form = document.querySelector('form[action="settings.php"]');
+    if (!form) return;
+    var currentPw = document.getElementById('current_password');
+    var newPw = document.getElementById('password');
+    var confirmPw = document.getElementById('password_confirm');
+
+    form.addEventListener('submit', function(e) {
+        if (newPw && newPw.value.length > 0) {
+            if (!currentPw || currentPw.value.length === 0) {
+                e.preventDefault();
+                alert('Введіть поточний пароль для зміни пароля!');
+                if (currentPw) currentPw.focus();
+                return;
+            }
+        }
+    });
+})();
 
 // Підтвердження видалення акаунта
 document.getElementById('btn-confirm-delete-account').addEventListener('click', function(e) {
