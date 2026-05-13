@@ -52,10 +52,11 @@
 
 ### Telegram-боти
 
-| Константа                  | Тип    | Опис                                                                 |
-| -------------------------- | ------ | -------------------------------------------------------------------- |
-| `TELEGRAM_BOT_TOKEN`       | string | Токен Telegram-бота для платежів (Telegram Stars) та сповіщень       |
-| `TELEGRAM_LOGIN_BOT_TOKEN` | string | Токен окремого Telegram-бота для авторизації (Telegram Login Widget) |
+| Константа                  | Тип    | Опис                                                                                                |
+| -------------------------- | ------ | --------------------------------------------------------------------------------------------------- |
+| `TELEGRAM_BOT_TOKEN`       | string | Токен Telegram-бота для платежів (Telegram Stars) та сповіщень                                      |
+| `TELEGRAM_LOGIN_BOT_TOKEN` | string | Токен окремого Telegram-бота для авторизації (Telegram Login Widget)                                |
+| `TELEGRAM_WEBHOOK_SECRET`  | string | Секрет для верифікації webhook-запитів Telegram (передається через `secret_token` при `setWebhook`) |
 
 ### Платіжна система Donatello
 
@@ -478,7 +479,7 @@ jobs (незалежна таблиця черги)
 | `includes/webauthn.php`           | Використовує `WEBAUTHN_RP_ID`, `WEBAUTHN_ORIGIN`                                    |
 | `api/oauth.php`                   | Використовує `TELEGRAM_LOGIN_BOT_TOKEN`, `GITHUB_CLIENT_ID`, `GITHUB_CLIENT_SECRET` |
 | `api/webhooks/donatello.php`      | Використовує `DONATELLO_TOKEN` для перевірки підпису                                |
-| `api/webhooks/telegram_stars.php` | Використовує `TELEGRAM_BOT_TOKEN`                                                   |
+| `api/webhooks/telegram_stars.php` | Використовує `TELEGRAM_BOT_TOKEN`, `TELEGRAM_WEBHOOK_SECRET`                        |
 | `api/webhooks/verify_ad.php`      | Працює з таблицею `ad_events` з `paypaste.sql`                                      |
 | `cron/ai_worker.php`              | Використовує AI-константи, таблицю `jobs`                                           |
 | `cron/cleanup.php`                | Працює з таблицями `rate_limits`, `jobs`                                            |
@@ -504,6 +505,7 @@ jobs (незалежна таблиця черги)
 | `APP_URL`                                  | `includes/controllers/`, шаблони                   | Формування redirect-URL        |
 | `TELEGRAM_BOT_TOKEN`                       | `api/oauth.php`, `api/webhooks/telegram_stars.php` | Авторизація та платежі         |
 | `TELEGRAM_LOGIN_BOT_TOKEN`                 | `api/oauth.php`                                    | Telegram Login Widget          |
+| `TELEGRAM_WEBHOOK_SECRET`                  | `api/webhooks/telegram_stars.php`                  | Верифікація webhook-підпису    |
 | `DONATELLO_TOKEN`                          | `api/webhooks/donatello.php`                       | Перевірка webhook-підпису      |
 | `DONATELLO_URL`                            | `templates/credits.php`                            | Посилання на сторінку донату   |
 | `GITHUB_CLIENT_ID`, `GITHUB_CLIENT_SECRET` | `api/oauth.php`                                    | GitHub OAuth flow              |

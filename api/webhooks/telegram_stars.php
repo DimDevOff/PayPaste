@@ -3,6 +3,15 @@ require_once __DIR__ . '/../../includes/models/Order.php';
 require_once __DIR__ . '/../../includes/models/User.php';
 require_once __DIR__ . '/../../includes/services/CreditService.php';
 
+// Верифікація webhook-запиту: перевіряємо secret_token від Telegram
+$secret = $_SERVER['HTTP_X_TELEGRAM_BOT_API_SECRET_TOKEN'] ?? '';
+if (!defined('TELEGRAM_WEBHOOK_SECRET') || empty(TELEGRAM_WEBHOOK_SECRET) || !hash_equals(TELEGRAM_WEBHOOK_SECRET, $secret)) {
+    http_response_code(401);
+    header('Content-Type: application/json');
+    echo json_encode(['error' => 'unauthorized']);
+    exit;
+}
+
 // Токен бота. Отримуємо з .env файлу або залишаємо дефолт
 $bot_token = TELEGRAM_BOT_TOKEN ?: 'YOUR_BOT_TOKEN_HERE'; 
 
