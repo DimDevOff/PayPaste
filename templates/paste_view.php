@@ -13,8 +13,8 @@
 <?php else: ?>
     <!-- highlight.js integration -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
-    <script>hljs.highlightAll();</script>
+    <script nonce="<?= csp_nonce() ?>" src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+    <script nonce="<?= csp_nonce() ?>">hljs.highlightAll();</script>
     
     <div class="panel panel-default">
         <div class="panel-heading">
@@ -158,7 +158,7 @@
                     <!-- Adsterra: Banner 300×250 (після контенту) -->
                     <?php if (!isset($hide_ads) || !$hide_ads): ?>
                     <div class="text-center" style="margin-top: 20px; overflow: hidden;">
-                        <script>
+                        <script nonce="<?= csp_nonce() ?>">
                             atOptions = {
                                 'key' : '<?= ADSTERRA_300x250_KEY ?>',
                                 'format' : 'iframe',
@@ -167,7 +167,7 @@
                                 'params' : {}
                             };
                         </script>
-                        <script src="<?= ADSTERRA_INVOKE_BASE_URL ?>/<?= ADSTERRA_300x250_KEY ?>/invoke.js"></script>
+                        <script nonce="<?= csp_nonce() ?>" src="<?= ADSTERRA_INVOKE_BASE_URL ?>/<?= ADSTERRA_300x250_KEY ?>/invoke.js"></script>
                     </div>
                     <?php endif; ?>
                     

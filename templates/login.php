@@ -16,19 +16,19 @@ unset($_SESSION['old_input']);
                         </a>
                     </div>
                     <div class="col-xs-12 col-sm-6 text-center">
-                        <script async src="https://telegram.org/js/telegram-widget.js?21" data-telegram-login="PayPasteBot" data-auth-url="<?= rtrim(APP_URL, '/') ?>/api/oauth.php?provider=telegram" data-request-access="write" data-size="large"></script>
+                        <script nonce="<?= csp_nonce() ?>" async src="https://telegram.org/js/telegram-widget.js?21" data-telegram-login="PayPasteBot" data-auth-url="<?= rtrim(APP_URL, '/') ?>/api/oauth.php?provider=telegram" data-request-access="write" data-size="large"></script>
                     </div>
                 </div>
                 
                 <!-- Passkey -->
                 <div style="margin-bottom: 15px; display:none;" class="login-only">
-                    <button type="button" id="btn-passkey-login" class="btn btn-warning btn-block passkey-btn" style="font-weight:bold; border: 1px dashed var(--accent);" onclick="loginWithPasskey()">
+                    <button type="button" id="btn-passkey-login" class="btn btn-warning btn-block passkey-btn" style="font-weight:bold; border: 1px dashed var(--accent);">
                         🔑 Увійти через Passkey
                     </button>
                 </div>
 
                 <div style="margin-bottom: 20px;" class="reg-only">
-                    <button type="button" id="btn-passkey-register" class="btn btn-warning btn-block passkey-btn" style="font-weight:bold; border: 1px dashed var(--accent);" onclick="registerPasskey()">
+                    <button type="button" id="btn-passkey-register" class="btn btn-warning btn-block passkey-btn" style="font-weight:bold; border: 1px dashed var(--accent);">
                         🔑 Зареєструватись через Passkey
                     </button>
                 </div>
@@ -80,10 +80,10 @@ unset($_SESSION['old_input']);
 
                 <div class="text-center" style="margin-top: 20px;">
                     <div class="reg-only">
-                        Вже маєте акаунт? <a href="#" onclick="switchToLogin(event)">Увійти сюди</a>
+                        Вже маєте акаунт? <a href="#" id="link-to-login">Увійти сюди</a>
                     </div>
                     <div class="login-only" style="display:none;">
-                        Ще немає акаунту? <a href="#" onclick="switchToRegister(event)">Зареєструватись</a>
+                        Ще немає акаунту? <a href="#" id="link-to-register">Зареєструватись</a>
                     </div>
                 </div>
 
@@ -92,7 +92,7 @@ unset($_SESSION['old_input']);
     </div>
 </div>
 
-<script>
+<script nonce="<?= csp_nonce() ?>">
     function switchToLogin(e) {
         if(e) e.preventDefault();
         
@@ -125,6 +125,12 @@ unset($_SESSION['old_input']);
         url.searchParams.set('mode', 'register');
         window.history.replaceState({}, '', url);
     }
+
+    // Обробники подій (замість inline onclick)
+    document.getElementById('btn-passkey-login').addEventListener('click', function() { loginWithPasskey(); });
+    document.getElementById('btn-passkey-register').addEventListener('click', function() { registerPasskey(); });
+    document.getElementById('link-to-login').addEventListener('click', switchToLogin);
+    document.getElementById('link-to-register').addEventListener('click', switchToRegister);
 
     // Перевірка режиму при завантаженні
     window.addEventListener('DOMContentLoaded', (event) => {

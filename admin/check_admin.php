@@ -1,5 +1,9 @@
 <?php
 session_start();
+
+// Централізовані security headers для адмін-панелі
+require_once __DIR__ . '/../includes/security_headers.php';
+
 if (!isset($_SESSION['user_id']) || !isset($_SESSION['role']) || $_SESSION['role'] !== 'admin') {
     // Якщо не адмін - викидаємо на головну
     header("Location: ../index.php"); 

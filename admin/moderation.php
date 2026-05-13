@@ -224,7 +224,7 @@ $needsReview = $pendingCount + $failedCount;
                 <td><small><?= date('d.m H:i', strtotime($p['created_at'])) ?></small></td>
                 <td>
                     <!-- Схвалити -->
-                    <form method="POST" style="display:inline;" onsubmit="return confirm('Схвалити цю пасту?');">
+                    <form method="POST" style="display:inline;" class="form-approve">
                         <?= csrf_field() ?>
                         <input type="hidden" name="action" value="approve">
                         <input type="hidden" name="paste_id" value="<?= htmlspecialchars($p['id']) ?>">
@@ -235,12 +235,12 @@ $needsReview = $pendingCount + $failedCount;
                     </form>
 
                     <!-- Відхилити (з причиною) -->
-                    <form method="POST" style="display:inline;" class="reject-form" onsubmit="return confirmReject(this);">
+                    <form method="POST" style="display:inline;" class="reject-form">
                         <?= csrf_field() ?>
                         <input type="hidden" name="action" value="reject">
                         <input type="hidden" name="paste_id" value="<?= htmlspecialchars($p['id']) ?>">
                         <input type="hidden" name="redirect" value="<?= htmlspecialchars($_SERVER['REQUEST_URI']) ?>">
-                        <button type="button" class="btn btn-reject btn-xs" title="Відхилити" onclick="toggleReason(this)">
+                        <button type="button" class="btn btn-reject btn-xs" title="Відхилити" data-toggle-reason>
                             ❌ Відхилити
                         </button>
                         <div class="reject-reason">
@@ -291,16 +291,31 @@ $needsReview = $pendingCount + $failedCount;
     <?php endif; ?>
 </div>
 
-<script>
-function toggleReason(btn) {
-    var form = btn.closest('.reject-form');
-    var reasonDiv = form.querySelector('.reject-reason');
-    reasonDiv.style.display = reasonDiv.style.display === 'none' || !reasonDiv.style.display ? 'block' : 'none';
-}
+<script nonce="<?= csp_nonce() ?>">
+// Обробники подій (замість inline onclick/onsubmit)
+document.addEventListener('click', function(e) {
+    var toggleBtn = e.target.closest('[data-toggle-reason]');
+    if (toggleBtn) {
+        var form = toggleBtn.closest('.reject-form');
+        var reasonDiv = form.querySelector('.reject-reason');
+        reasonDiv.style.display = reasonDiv.style.display === 'none' || !reasonDiv.style.display ? 'block' : 'none';
+    }
+});
 
-function confirmReject(form) {
-    return confirm('Відхилити цю пасту?');
-}
+document.addEventListener('submit', function(e) {
+    // Схвалити — підтвердження
+    if (e.target.classList.contains('form-approve')) {
+        if (!confirm('Схвалити цю пасту?')) {
+            e.preventDefault();
+        }
+    }
+    // Відхилити — підтвердження
+    if (e.target.classList.contains('reject-form')) {
+        if (!confirm('Відхилити цю пасту?')) {
+            e.preventDefault();
+        }
+    }
+});
 </script>
 
 </body>

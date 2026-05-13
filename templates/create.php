@@ -132,7 +132,7 @@ endif;
     <button type="submit" class="btn btn-success btn-lg btn-block" style="font-weight: bold; font-size: 20px;">ЗБЕРЕГТИ ПАСТУ</button>
 </form>
 
-<script>
+<script nonce="<?= csp_nonce() ?>">
 document.addEventListener('DOMContentLoaded', function() {
     const isPaidCheck = document.getElementById('is_paid');
     if (!isPaidCheck) return;

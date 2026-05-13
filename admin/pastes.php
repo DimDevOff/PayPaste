@@ -144,8 +144,7 @@ if (!function_exists('buildUrl')) {
                                class="btn btn-warning btn-xs">
                                 <span class="glyphicon glyphicon-pencil"></span>
                             </a>
-                            <form action="delete_paste.php" method="POST" style="display:inline;"
-                                  onsubmit="return confirm('Ви впевнені, що хочете видалити цю пасту?');">
+                            <form action="delete_paste.php" method="POST" style="display:inline;" class="form-confirm-delete">
                                 <?= csrf_field() ?>
                                 <input type="hidden" name="id" value="<?= htmlspecialchars($p['id']) ?>">
                                 <button type="submit" class="btn btn-danger btn-xs">
@@ -200,6 +199,16 @@ if (!function_exists('buildUrl')) {
     </div>
     <?php endif; ?>
 </div>
+
+<script nonce="<?= csp_nonce() ?>">
+document.addEventListener('submit', function(e) {
+    if (e.target.classList.contains('form-confirm-delete')) {
+        if (!confirm('Ви впевнені, що хочете видалити цю пасту?')) {
+            e.preventDefault();
+        }
+    }
+});
+</script>
 
 </body>
 </html>
