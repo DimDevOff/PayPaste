@@ -57,12 +57,29 @@
                     <p style="font-size: 1.1em;">Ваша паста не пройшла автоматичну перевірку модерації.</p>
                     <?php
                     $modResult = json_decode($paste->moderation_result ?? '[]', true);
-                    if (!empty($modResult)):
+                    if (!empty($modResult) && isset($modResult['reason'])):
+                        // Формат moderation_result від Worker: масив категорій
                     ?>
+                        <p>Причини: <strong><?= htmlspecialchars(implode(', ', (array)$modResult)) ?></strong></p>
+                    <?php elseif (!empty($modResult) && is_array($modResult)): ?>
                         <p>Причини: <strong><?= htmlspecialchars(implode(', ', $modResult)) ?></strong></p>
                     <?php endif; ?>
                     <hr>
                     <p>Ви можете <a href="create.php" style="color: var(--link-color); font-weight: bold;">створити нову пасту</a> з відредагованим текстом або попросити AI перефразувати її.</p>
+                </div>
+            <?php elseif(isset($paste->moderation_status) && $paste->moderation_status === 'moderation_failed'): ?>
+                <div class="alert alert-warning text-center" style="border: 3px dashed #c0392b; padding: 30px; background: var(--bg-secondary);">
+                    <h3 style="color: #e74c3c;">⚠️ МОДЕРАЦІЯ НЕ ЗАВЕРШЕНА</h3>
+                    <p style="font-size: 1.1em;">Зовнішній сервіс модерації був недоступний, тому перевірка не завершилася.</p>
+                    <p>Ваша паста <strong>не буде опублікована автоматично</strong> і очікує ручного розгляду.</p>
+                    <?php
+                    $modResult = json_decode($paste->moderation_result ?? '[]', true);
+                    if (!empty($modResult) && isset($modResult['detail'])):
+                    ?>
+                        <p class="text-muted"><small>Деталі: <?= htmlspecialchars($modResult['detail']) ?></small></p>
+                    <?php endif; ?>
+                    <hr>
+                    <p>Зачекайте на ручну перевірку адміністратором або <a href="create.php" style="color: var(--link-color); font-weight: bold;">створіть нову пасту</a>.</p>
                 </div>
             <?php elseif(isset($is_locked) && $is_locked): ?>
                 <div class="alert alert-warning text-center" style="border: 2px dashed var(--panel-danger-border); padding: 30px; background: var(--bg-secondary);">

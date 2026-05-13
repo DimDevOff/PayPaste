@@ -53,6 +53,7 @@ if (!function_exists('buildUrl')) {
     <ul class="nav navbar-nav">
       <li><a href="index.php">Статистика</a></li>
       <li class="active"><a href="pastes.php">Управління Пастами</a></li>
+      <li><a href="moderation.php">🛡️ Модерація</a></li>
       <li><a href="users.php">Користувачі</a></li>
       <li><a href="transactions.php">Транзакції</a></li>
     </ul>
@@ -123,6 +124,15 @@ if (!function_exists('buildUrl')) {
                             <?php endif; ?>
                             <?php if ($p['is_private']): ?>
                                 <span class="label label-default">🔒 Приватна</span>
+                            <?php endif; ?>
+                            <?php if (isset($p['moderation_status'])): ?>
+                                <?php if ($p['moderation_status'] === 'moderation_failed'): ?>
+                                    <span class="label label-danger">⚠️ Мод. збій</span>
+                                <?php elseif ($p['moderation_status'] === 'pending'): ?>
+                                    <span class="label label-info">⏳ Перевірка</span>
+                                <?php elseif ($p['moderation_status'] === 'rejected'): ?>
+                                    <span class="label label-danger">❌ Відхилена</span>
+                                <?php endif; ?>
                             <?php endif; ?>
                         </td>
                         <td>

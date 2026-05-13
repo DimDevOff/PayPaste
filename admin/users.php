@@ -53,6 +53,7 @@ if (!function_exists('buildUrl')) {
     <ul class="nav navbar-nav">
       <li><a href="index.php">Статистика</a></li>
       <li><a href="pastes.php">Управління Пастами</a></li>
+      <li><a href="moderation.php">🛡️ Модерація</a></li>
       <li class="active"><a href="users.php">Користувачі</a></li>
       <li><a href="transactions.php">Транзакції</a></li>
     </ul>

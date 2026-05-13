@@ -61,6 +61,18 @@ if (!$paste) {
         header("Location: index.php");
         exit;
     }
+} elseif (isset($paste->moderation_status) && $paste->moderation_status === 'moderation_failed') {
+    // Модерація не завершилася через збій сервісу — контент НЕ approved автоматично
+    if ($user) {
+        $is_author = ($paste->user_id === $user->id);
+    }
+    if (!$is_author && !$is_admin) {
+        header("HTTP/1.0 403 Forbidden");
+        $paste = null;
+        $_SESSION['error'] = "Модерація цієї пасти не завершилася через технічний збій. Вона недоступна до ручної перевірки.";
+        header("Location: index.php");
+        exit;
+    }
 } elseif ($paste->is_private) {
     if ($user) {
         $is_author = ($paste->user_id === $user->id);

@@ -31,7 +31,7 @@ CREATE TABLE IF NOT EXISTS pastes (
     is_private BOOLEAN DEFAULT FALSE,
     expires_at TIMESTAMP NULL,
     is_pending_rewrite BOOLEAN DEFAULT FALSE,
-    moderation_status ENUM('pending', 'approved', 'rejected') DEFAULT 'approved',
+    moderation_status ENUM('pending', 'approved', 'rejected', 'moderation_failed') DEFAULT 'pending',
     moderation_result JSON NULL COMMENT 'JSON-масив категорій порушень при rejected',
     language VARCHAR(50) DEFAULT 'plaintext',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
