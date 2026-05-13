@@ -13,8 +13,9 @@ RewriteRule ^api/pastes/([a-zA-Z0-9_]+)$ api/pastes.php?id=$1 [QSA,L]
 # POST /api/pastes -> api/pastes.php
 RewriteRule ^api/pastes/?$ api/pastes.php [L]
 
-# Заборона перегляду папок
+# Заборона прямого веб-доступу до захищених каталогів
 <IfModule mod_rewrite.c>
+    RewriteRule ^config/ - [F,L]
     RewriteRule ^data/ - [F,L]
     RewriteRule ^includes/ - [F,L]
     RewriteRule ^templates/ - [F,L]
