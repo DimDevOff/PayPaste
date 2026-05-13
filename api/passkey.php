@@ -188,6 +188,22 @@ switch ($action) {
 
         $passkey->updateCounter($result['new_counter']);
 
+        // Аномалія лічильника — сигнал про можливе клонування ключа
+        if (!empty($result['counter_anomaly'])) {
+            error_log(
+                "WebAuthn: Вхід з аномальним лічильником, user_id={$passkey->user_id}"
+                . " credential_id={$passkey->credential_id}"
+            );
+            // Передаємо клієнту попередження — фронтенд може показати повідомлення
+            echo json_encode([
+                'success' => true,
+                'redirect' => 'index.php',
+                'warning' => 'Виявлено аномалію автентифікатора. Рекомендуємо перереєструвати passkey.'
+            ]);
+            unset($_SESSION['webauthn_challenge']);
+            break;
+        }
+
         AuthService::passkeyLogin($passkey->credential_id);
 
         unset($_SESSION['webauthn_challenge']);
@@ -232,6 +248,14 @@ switch ($action) {
         }
 
         $passkey->updateCounter($result['new_counter']);
+
+        // Аномалія лічильника при підтвердженні деструктивної дії
+        if (!empty($result['counter_anomaly'])) {
+            error_log(
+                "WebAuthn: Аномалія лічильника при confirm_delete, user_id={$passkey->user_id}"
+            );
+        }
+
         $_SESSION['passkey_confirmed_delete'] = true;
         
         unset($_SESSION['webauthn_challenge']);
