@@ -46,7 +46,7 @@ class PasteController { // Клас контролера паст
 
         // --- МОДЕРАЦІЯ: лише локальна перевірка синхронно ---
         $content = trim($data['content'] ?? '');
-        $skip_moderation = $data['skip_moderation'] ?? false;
+        $skip_moderation = $is_pending_rewrite;
         if (!$skip_moderation) {
             // Локальна перевірка (швидка, без зовнішніх API)
             $localViolations = Moderation::localCheck($content);
@@ -171,10 +171,8 @@ class PasteController { // Клас контролера паст
             header("Location: create.php");
             exit;
         }
-
         // Замість очікування, ми створюємо пасту зі статусом "в черзі"
-        $data['skip_moderation'] = true;
-        
+        // skip_moderation визначається автоматично через $is_pending_rewrite=true
         // Очищаємо помилки модерації
         unset($_SESSION['moderation_failed']);
         unset($_SESSION['flagged_categories']);
