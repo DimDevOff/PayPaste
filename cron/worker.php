@@ -12,6 +12,12 @@
  *   * * * * * php /path/to/cron/worker.php >> /path/to/data/logs/worker.log 2>&1
  */
 
+// Блокуємо прямий веб-доступ — cron-скрипти не повинні виконуватись через браузер
+if (php_sapi_name() !== 'cli') {
+    http_response_code(403);
+    die('Доступ заборонено. Цей скрипт призначений лише для CLI.');
+}
+
 // Worker не потребує сесій, CSRF, кукі — працює в CLI
 define('NO_SESSION', true);
 

@@ -18,4 +18,5 @@ RewriteRule ^api/pastes/?$ api/pastes.php [L]
     RewriteRule ^data/ - [F,L]
     RewriteRule ^includes/ - [F,L]
     RewriteRule ^templates/ - [F,L]
+    RewriteRule ^cron/ - [F,L]
 </IfModule>
