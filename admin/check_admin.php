@@ -5,5 +5,7 @@ if (!isset($_SESSION['user_id']) || !isset($_SESSION['role']) || $_SESSION['role
     header("Location: ../index.php"); 
     exit();
 }
+// Регенерація session_id для захисту від session fixation в адмін-панелі
+session_regenerate_id(true);
 ?>
 

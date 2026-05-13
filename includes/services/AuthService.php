@@ -105,6 +105,9 @@ class AuthService {
      * @param User $user Користувач
      */
     public static function setSession(User $user): void {
+        // Регенерація session_id для захисту від session fixation
+        session_regenerate_id(true);
+
         $_SESSION['user_id'] = $user->id;
         $_SESSION['role'] = $user->role;
         unset($_SESSION['old_input']);
