@@ -46,12 +46,12 @@ class Passkey {
             INSERT INTO passkeys (id, user_id, credential_id, public_key_pem, counter, aaguid, transports, created_at)
             VALUES (?, ?, ?, ?, ?, ?, ?, ?)
             ON DUPLICATE KEY UPDATE
-                user_id = VALUES(user_id),
-                credential_id = VALUES(credential_id),
-                public_key_pem = VALUES(public_key_pem),
-                counter = VALUES(counter),
-                aaguid = VALUES(aaguid),
-                transports = VALUES(transports)
+                user_id = ?,
+                credential_id = ?,
+                public_key_pem = ?,
+                counter = ?,
+                aaguid = ?,
+                transports = ?
         ");
         $stmt->execute([
             $this->id,
@@ -61,7 +61,14 @@ class Passkey {
             $this->counter,
             $this->aaguid,
             $this->transports,
-            $this->created_at
+            $this->created_at,
+            // Значення для ON DUPLICATE KEY UPDATE (використовуємо prepared statements для сумісності з MariaDB 10.4)
+            $this->user_id,
+            $this->credential_id,
+            $this->public_key_pem,
+            $this->counter,
+            $this->aaguid,
+            $this->transports
         ]);
     }
 
