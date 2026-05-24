@@ -59,10 +59,10 @@
                     <?php endforeach; ?>
 
                     <?php if($has_more): ?>
-                        <button class="btn btn-xs btn-link toggle-tags" data-target=".hidden-tags-<?= $p->id ?>" style="padding:0; color: var(--text-primary); text-decoration:none; vertical-align: middle;">
+                        <button class="btn btn-xs btn-link toggle-tags" data-target=".hidden-tags-<?= htmlspecialchars($p->id, ENT_QUOTES, 'UTF-8') ?>" style="padding:0; color: var(--text-primary); text-decoration:none; vertical-align: middle;">
                             <span class="glyphicon glyphicon-chevron-down" style="font-size: 10px;"></span>
                         </button>
-                        <div class="hidden-tags-<?= $p->id ?>" style="display:none; margin-top: 5px;">
+                        <div class="hidden-tags-<?= htmlspecialchars($p->id, ENT_QUOTES, 'UTF-8') ?>" style="display:none; margin-top: 5px;">
                             <?php foreach($hidden_tags as $ht): ?>
                                 <a href="index.php?tag=<?= urlencode($ht) ?>" class="btn btn-xs" style="background: <?= Paste::getTagColor($ht) ?>; color: #fff; padding: 0 4px; font-size: 10px; margin-bottom: 2px;">#<?= htmlspecialchars($ht) ?></a>
                             <?php endforeach; ?>
