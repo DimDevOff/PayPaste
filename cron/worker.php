@@ -40,6 +40,12 @@ foreach ($argv ?? [] as $arg) {
     }
 }
 
+// Валідація типу задачі за білим списком (безпека)
+if ($FILTER_TYPE !== null && !in_array($FILTER_TYPE, Queue::getTypes(), true)) {
+    fwrite(STDERR, "Помилка: Неприпустимий тип воркера: '$FILTER_TYPE'. Дозволені типи: " . implode(', ', Queue::getTypes()) . "\n");
+    exit(1);
+}
+
 $BATCH_SIZE  = 10;
 $SLEEP_BETWEEN = 2;      // Секунд між батчами в daemon-режимі
 $CURL_TIMEOUT = 30;       // Таймаут для зовнішніх API-викликів
