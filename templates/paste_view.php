@@ -151,7 +151,7 @@
                                 <div style="width: 10px; height: 10px; border-radius: 50%; background: #27c93f;"></div>
                             </div>
                         </div>
-                        <pre style="margin: 0; border: none; border-radius: 0; background: transparent; padding: 0; overflow-x: auto;"><code class="hljs language-<?= htmlspecialchars($paste->language ?: 'plaintext') ?>" style="padding: 15px; display: block; background: transparent !important;"><?= htmlspecialchars($paste->content) ?></code></pre>
+                        <pre style="margin: 0; border: none; border-radius: 0; background: transparent; padding: 0; overflow-x: auto;"><code class="hljs language-<?= htmlspecialchars($paste->language ?: 'plaintext') ?>" style="padding: 15px; display: block; background: transparent !important; color: #c9d1d9 !important;"><?= htmlspecialchars($paste->content) ?></code></pre>
                         <textarea id="paste-textarea" style="display:none;"><?= htmlspecialchars($paste->content) ?></textarea>
                     </div>
 
