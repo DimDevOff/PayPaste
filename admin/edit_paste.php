@@ -45,6 +45,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
 
         $paste->update();
+        AuditLog::log($_SESSION['user_id'], 'edit_settings', $paste->id);
         $success_msg = 'Паста успішно оновлена!';
     }
 }

@@ -25,6 +25,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $paste->moderation_status = 'approved';
                 $paste->moderation_result = null;
                 $paste->update();
+                AuditLog::log($_SESSION['user_id'], 'approve_moderation', $paste->id);
                 $_SESSION['success'] = "Пасту {$paste->id} схвалено.";
             } elseif ($action === 'reject') {
                 $paste->moderation_status = 'rejected';
@@ -33,6 +34,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     ? json_encode(['reason' => 'manual_rejection', 'detail' => $reason], JSON_UNESCAPED_UNICODE)
                     : json_encode(['reason' => 'manual_rejection', 'detail' => 'Відхилено адміністратором вручну'], JSON_UNESCAPED_UNICODE);
                 $paste->update();
+                AuditLog::log($_SESSION['user_id'], 'reject_moderation', $paste->id);
                 $_SESSION['success'] = "Пасту {$paste->id} відхилено.";
             }
         }
@@ -151,7 +153,7 @@ $needsReview = $pendingCount + $failedCount;
 <div class="container" style="padding-bottom:40px;">
     <h2 class="page-header" style="margin-top:0;">
         🛡️ Ручна модерація
-        <small><?= number_format($totalCount) ?> паст на розгляді</small>
+        <small><?= number_format($totalCount ?? 0) ?> паст на розгляді</small>
     </h2>
 
     <?php if (isset($_SESSION['success'])): ?>
@@ -270,7 +272,7 @@ $needsReview = $pendingCount + $failedCount;
     <div class="row">
         <div class="col-sm-6 page-info text-muted">
             Сторінка <?= $currentPage ?> з <?= $totalPages ?>
-            (<?= number_format($totalCount) ?> записів)
+            (<?= number_format($totalCount ?? 0) ?> записів)
         </div>
         <div class="col-sm-6 text-right">
             <ul class="pagination">

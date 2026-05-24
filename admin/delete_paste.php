@@ -57,6 +57,7 @@ if (!$stmt->fetch()) {
 // Якщо всі перевірки пройшли успішно — видаляємо пасту
 try {
     PasteService::delete($paste_id, null); // null = адміністратор
+    AuditLog::log($_SESSION['user_id'], 'delete_paste', $paste_id);
     $_SESSION['success'] = 'Пасту успішно видалено.';
 } catch (Exception $e) {
     $_SESSION['error'] = 'Помилка під час видалення пасти: ' . htmlspecialchars($e->getMessage());

@@ -64,6 +64,7 @@ if (!$stmt->fetch()) {
 // Якщо всі перевірки пройшли успішно — видаляємо користувача
 try {
     if (AuthService::deleteByAdmin($user_id)) {
+        AuditLog::log($_SESSION['user_id'], 'delete_user', $user_id);
         $_SESSION['success'] = 'Користувача успішно видалено.';
     } else {
         $_SESSION['error'] = 'Не вдалося видалити користувача.';

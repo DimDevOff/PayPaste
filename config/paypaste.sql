@@ -150,3 +150,18 @@ CREATE TABLE IF NOT EXISTS jobs (
     INDEX idx_type_status (type, status),
     INDEX idx_idempotency (idempotency_key)
 );
+
+-- 10. Журнал аудиту дій адміністратора (Audit logs) — TASK-145
+CREATE TABLE IF NOT EXISTS audit_logs (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    admin_id VARCHAR(50) NULL,
+    action_type VARCHAR(50) NOT NULL COMMENT 'Тип дії: delete_paste, delete_user, approve_moderation, reject_moderation, edit_settings',
+    target_id VARCHAR(255) NULL COMMENT 'ID цілі дії',
+    ip_address VARCHAR(45) NOT NULL COMMENT 'IP-адреса адміністратора',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (admin_id) REFERENCES users(id) ON DELETE SET NULL,
+    INDEX idx_action_type (action_type),
+    INDEX idx_admin_id (admin_id),
+    INDEX idx_created_at (created_at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
