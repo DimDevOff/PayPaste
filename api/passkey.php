@@ -24,11 +24,12 @@ if (!$action) {
     exit;
 }
 
-$config = getWebAuthnConfig();
-$rp_id = $config['rp_id'];
-$origin = $config['origin'];
+try {
+    $config = getWebAuthnConfig();
+    $rp_id = $config['rp_id'];
+    $origin = $config['origin'];
 
-switch ($action) {
+    switch ($action) {
     // Початок реєстрації: генерація челенджу для пристрою
     case 'register_start':
         $nickname = $_GET['nickname'] ?? 'PasskeyUser';
@@ -112,7 +113,7 @@ switch ($action) {
 
         if (!$result['success']) {
             error_log("Помилка реєстрації Passkey: " . $result['error']);
-            echo json_encode(['success' => false, 'error' => $result['error']]);
+            echo json_encode(['success' => false, 'error' => htmlspecialchars($result['error'], ENT_QUOTES, 'UTF-8')]);
             exit;
         }
 
@@ -182,7 +183,7 @@ switch ($action) {
         $result = verify_assertion_response($credential, $challenge, $rp_id, $passkey);
 
         if (!$result['success']) {
-            echo json_encode(['success' => false, 'error' => $result['error']]);
+            echo json_encode(['success' => false, 'error' => htmlspecialchars($result['error'], ENT_QUOTES, 'UTF-8')]);
             exit;
         }
 
@@ -243,7 +244,7 @@ switch ($action) {
         $result = verify_assertion_response($credential, $challenge, $rp_id, $passkey);
 
         if (!$result['success']) {
-            echo json_encode(['success' => false, 'error' => $result['error']]);
+            echo json_encode(['success' => false, 'error' => htmlspecialchars($result['error'], ENT_QUOTES, 'UTF-8')]);
             exit;
         }
 
@@ -305,6 +306,14 @@ switch ($action) {
         echo json_encode(['success' => true, 'redirect' => 'settings.php']);
         break;
 
-    default:
-        echo json_encode(['success' => false, 'error' => 'Невідома дія']);
+        default:
+            echo json_encode(['success' => false, 'error' => 'Невідома дія']);
+    }
+} catch (\Throwable $e) {
+    error_log("Passkey API помилка: " . $e->getMessage());
+    echo json_encode([
+        'success' => false,
+        'error' => htmlspecialchars($e->getMessage(), ENT_QUOTES, 'UTF-8')
+    ]);
+    exit;
 }
