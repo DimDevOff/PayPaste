@@ -1,5 +1,5 @@
 <?php
-include_once __DIR__ . "/check_admin.php";
+require_once __DIR__ . "/check_admin.php";
 include_once __DIR__ . "/../includes/models/Transaction.php";
 
 // Параметри фільтрації та пагінації

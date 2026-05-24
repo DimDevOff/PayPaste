@@ -13,7 +13,9 @@ $totalTx     = Transaction::count();    // Загальна кількість �
 $queueMetrics = Queue::getMetrics();
 
 // Кількість паст, що очікують ручної модерації
-$modPending = (int)DB::getInstance()->getPDO()->query("SELECT COUNT(*) FROM pastes WHERE moderation_status IN ('pending','moderation_failed')")->fetchColumn();
+$stmtPending = DB::getInstance()->getPDO()->prepare("SELECT COUNT(*) FROM pastes WHERE moderation_status IN ('pending','moderation_failed')");
+$stmtPending->execute();
+$modPending = (int)$stmtPending->fetchColumn();
 ?>
 <!DOCTYPE html>
 <html lang="uk">

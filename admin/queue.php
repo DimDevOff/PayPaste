@@ -2,7 +2,7 @@
 /**
  * Адмін-сторінка: моніторинг черги фонових задач.
  */
-include_once __DIR__ . "/check_admin.php";
+require_once __DIR__ . "/check_admin.php";
 include_once __DIR__ . "/../includes/Queue.php";
 
 $metrics = Queue::getMetrics();

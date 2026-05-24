@@ -78,8 +78,14 @@ $stmt->execute([$perPage, $offset]);
 $pastes = $stmt->fetchAll();
 
 // Лічильники для швидких фільтрів
-$pendingCount = (int)$pdo->query("SELECT COUNT(*) FROM pastes WHERE moderation_status = 'pending'")->fetchColumn();
-$failedCount = (int)$pdo->query("SELECT COUNT(*) FROM pastes WHERE moderation_status = 'moderation_failed'")->fetchColumn();
+$stmtPending = $pdo->prepare("SELECT COUNT(*) FROM pastes WHERE moderation_status = 'pending'");
+$stmtPending->execute();
+$pendingCount = (int)$stmtPending->fetchColumn();
+
+$stmtFailed = $pdo->prepare("SELECT COUNT(*) FROM pastes WHERE moderation_status = 'moderation_failed'");
+$stmtFailed->execute();
+$failedCount = (int)$stmtFailed->fetchColumn();
+
 $needsReview = $pendingCount + $failedCount;
 ?>
 <!DOCTYPE html>
