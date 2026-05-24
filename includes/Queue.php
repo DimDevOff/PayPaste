@@ -101,32 +101,46 @@ class Queue {
     }
 
     /**
-     * Отримання наступних задач для обробки.
-     * Використовує SELECT + UPDATE для блокування (claim).
+     * Отримання задач для обробки.
      *
-     * @param int $limit Максимальна кількість задач
-     * @param string|null $type Тип задачі для вибірки або null для всіх типів
-     * @return array Масив задач (з payload розпарсеним)
+     * @param int         $limit        Максимальна кількість задач
+     * @param string|null $type         Фільтр за конкретним типом (опціонально)
+     * @param array|null  $excludeTypes Масив типів задач для виключення (опціонально)
+     * @return array Масив знайдених задач
      */
-    public static function pop(int $limit = 5, ?string $type = null): array {
+    public static function pop(int $limit = 5, ?string $type = null, ?array $excludeTypes = null): array {
         $pdo = DB::getInstance()->getPDO();
 
         // Звільняємо завислі задачі (processing занадто довго)
         self::releaseStuck($pdo);
 
         $whereType = $type !== null ? " AND type = ?" : "";
-        $selectParams = $type !== null ? [$type, $limit] : [$limit];
+        $whereExclude = "";
+        
+        $selectParams = [];
+        if ($type !== null) {
+            $selectParams[] = $type;
+        }
+
+        if (!empty($excludeTypes)) {
+            $placeholders = implode(',', array_fill(0, count($excludeTypes), '?'));
+            $whereExclude = " AND type NOT IN ($placeholders)";
+            $selectParams = array_merge($selectParams, $excludeTypes);
+        }
+
+        $selectParams[] = $limit;
 
         try {
             $pdo->beginTransaction();
 
-            // Знаходимо доступні задачі потрібного типу.
+            // Знаходимо доступні задачі потрібного типу, виключаючи вказані.
             $stmt = $pdo->prepare("
                 SELECT * FROM jobs
                 WHERE status = 'queued'
                   AND scheduled_at <= NOW()
                   AND attempts < max_attempts
                   $whereType
+                  $whereExclude
                 ORDER BY scheduled_at ASC
                 LIMIT ?
                 FOR UPDATE

@@ -90,7 +90,7 @@ if (!defined('NO_SESSION')) {
 $inlineProbability = defined('QUEUE_INLINE_PROBABILITY') ? QUEUE_INLINE_PROBABILITY : 0;
 if (php_sapi_name() !== 'cli' && mt_rand(1, 100) <= $inlineProbability) {
     try {
-        $jobs = Queue::pop(1); // Взяти лише 1 задачу
+        $jobs = Queue::pop(1, null, [Queue::TYPE_MODERATION_CHECK, Queue::TYPE_MODERATION_REWRITE]); // Взяти лише 1 задачу, крім важких AI-задач (модерація та переписування)
         if (!empty($jobs)) {
             $job = $jobs[0];
             require_once __DIR__ . '/Moderation.php';
