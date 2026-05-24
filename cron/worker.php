@@ -47,7 +47,9 @@ $CURL_TIMEOUT = 30;       // Таймаут для зовнішніх API-вик
 // Лог-директорія
 $logDir = __DIR__ . '/../data/logs';
 if (!is_dir($logDir)) {
-    mkdir($logDir, 0755, true);
+    mkdir($logDir, 0700, true);
+} else {
+    chmod($logDir, 0700);
 }
 
 /**
@@ -57,7 +59,9 @@ function workerLog(string $msg): void {
     global $logDir;
     $ts = date('Y-m-d H:i:s');
     $line = "[$ts] $msg\n";
-    file_put_contents($logDir . '/worker.log', $line, FILE_APPEND | LOCK_EX);
+    $logFile = $logDir . '/worker.log';
+    file_put_contents($logFile, $line, FILE_APPEND | LOCK_EX);
+    chmod($logFile, 0600);
 }
 
 // Обробники задач
