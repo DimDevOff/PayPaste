@@ -11,6 +11,9 @@ $totalMoney  = Transaction::sumTopups(); // Сума всіх поповнень
 $totalTx     = Transaction::count();    // Загальна кількість транзакцій
 
 $queueMetrics = Queue::getMetrics();
+
+// Кількість паст, що очікують ручної модерації
+$modPending = (int)DB::getInstance()->getPDO()->query("SELECT COUNT(*) FROM pastes WHERE moderation_status IN ('pending','moderation_failed')")->fetchColumn();
 ?>
 <!DOCTYPE html>
 <html lang="uk">
@@ -35,6 +38,7 @@ $queueMetrics = Queue::getMetrics();
     <ul class="nav navbar-nav">
       <li class="active"><a href="index.php">Статистика</a></li>
       <li><a href="pastes.php">Управління Пастами</a></li>
+      <li><a href="moderation.php">🛡️ Модерація</a></li>
       <li><a href="users.php">Користувачі</a></li>
       <li><a href="transactions.php">Транзакції</a></li>
       <li><a href="queue.php">Черга задач</a></li>
@@ -49,16 +53,25 @@ $queueMetrics = Queue::getMetrics();
     <h2 class="page-header">Загальна Статистика</h2>
 
     <div class="row text-center">
-        <div class="col-md-3">
+        <div class="col-md-2">
             <div class="panel panel-info">
-                <div class="panel-heading"><h4 class="m-0">📝 Всього Паст</h4></div>
+                <div class="panel-heading"><h4 class="m-0">📝 Паст</h4></div>
                 <div class="panel-body">
                     <p class="stat-number"><?= number_format($totalPastes) ?></p>
                     <a href="pastes.php" class="btn btn-info btn-sm" style="margin-top:8px;">Управляти →</a>
                 </div>
             </div>
         </div>
-        <div class="col-md-3">
+        <div class="col-md-2">
+            <div class="panel <?= $modPending > 0 ? 'panel-danger' : 'panel-success' ?>">
+                <div class="panel-heading"><h4 class="m-0">🛡️ Модерація</h4></div>
+                <div class="panel-body">
+                    <p class="stat-number"><?= number_format($modPending) ?></p>
+                    <a href="moderation.php" class="btn btn-sm" style="margin-top:8px; <?= $modPending > 0 ? 'background:#e74c3c;color:#fff;' : '' ?>">Переглянути →</a>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-2">
             <div class="panel panel-success">
                 <div class="panel-heading"><h4 class="m-0">👥 Користувачів</h4></div>
                 <div class="panel-body">
@@ -67,21 +80,30 @@ $queueMetrics = Queue::getMetrics();
                 </div>
             </div>
         </div>
-        <div class="col-md-3">
+        <div class="col-md-2">
             <div class="panel panel-warning">
-                <div class="panel-heading"><h4 class="m-0">💵 Кредитів поповнено</h4></div>
+                <div class="panel-heading"><h4 class="m-0">💵 Кредитів</h4></div>
                 <div class="panel-body">
                     <p class="stat-number"><?= number_format($totalMoney) ?></p>
-                    <span class="stat-sub">кредитів</span>
+                    <span class="stat-sub">поповнено</span>
                 </div>
             </div>
         </div>
-        <div class="col-md-3">
+        <div class="col-md-2">
             <div class="panel panel-default">
                 <div class="panel-heading"><h4 class="m-0">📊 Транзакцій</h4></div>
                 <div class="panel-body">
                     <p class="stat-number"><?= number_format($totalTx) ?></p>
                     <a href="transactions.php" class="btn btn-default btn-sm" style="margin-top:8px;">Переглянути →</a>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-2">
+            <div class="panel panel-info">
+                <div class="panel-heading"><h4 class="m-0">💀 Мертві задачі</h4></div>
+                <div class="panel-body">
+                    <p class="stat-number"><?= number_format($queueMetrics['dead_count']) ?></p>
+                    <a href="queue.php" class="btn btn-info btn-sm" style="margin-top:8px;">Черга →</a>
                 </div>
             </div>
         </div>

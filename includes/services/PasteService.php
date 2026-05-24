@@ -20,7 +20,7 @@ class PasteService {
      * @return Paste Створена паста
      * @throws Exception При помилці валідації або БД
      */
-    public static function create(array $data, ?string $userId = null, bool $isPendingRewrite = false, string $moderationStatus = 'approved'): Paste {
+    public static function create(array $data, ?string $userId = null, bool $isPendingRewrite = false, string $moderationStatus = 'pending'): Paste {
         $title = trim($data['title'] ?? 'Без назви');
         if ($title === '') $title = 'Без назви';
 

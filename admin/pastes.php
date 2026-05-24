@@ -53,6 +53,7 @@ if (!function_exists('buildUrl')) {
     <ul class="nav navbar-nav">
       <li><a href="index.php">Статистика</a></li>
       <li class="active"><a href="pastes.php">Управління Пастами</a></li>
+      <li><a href="moderation.php">🛡️ Модерація</a></li>
       <li><a href="users.php">Користувачі</a></li>
       <li><a href="transactions.php">Транзакції</a></li>
     </ul>
@@ -124,6 +125,15 @@ if (!function_exists('buildUrl')) {
                             <?php if ($p['is_private']): ?>
                                 <span class="label label-default">🔒 Приватна</span>
                             <?php endif; ?>
+                            <?php if (isset($p['moderation_status'])): ?>
+                                <?php if ($p['moderation_status'] === 'moderation_failed'): ?>
+                                    <span class="label label-danger">⚠️ Мод. збій</span>
+                                <?php elseif ($p['moderation_status'] === 'pending'): ?>
+                                    <span class="label label-info">⏳ Перевірка</span>
+                                <?php elseif ($p['moderation_status'] === 'rejected'): ?>
+                                    <span class="label label-danger">❌ Відхилена</span>
+                                <?php endif; ?>
+                            <?php endif; ?>
                         </td>
                         <td>
                             <a href="../view.php?id=<?= htmlspecialchars($p['id']) ?>" target="_blank"
@@ -134,8 +144,7 @@ if (!function_exists('buildUrl')) {
                                class="btn btn-warning btn-xs">
                                 <span class="glyphicon glyphicon-pencil"></span>
                             </a>
-                            <form action="delete_paste.php" method="POST" style="display:inline;"
-                                  onsubmit="return confirm('Ви впевнені, що хочете видалити цю пасту?');">
+                            <form action="delete_paste.php" method="POST" style="display:inline;" class="form-confirm-delete">
                                 <?= csrf_field() ?>
                                 <input type="hidden" name="id" value="<?= htmlspecialchars($p['id']) ?>">
                                 <button type="submit" class="btn btn-danger btn-xs">
@@ -190,6 +199,16 @@ if (!function_exists('buildUrl')) {
     </div>
     <?php endif; ?>
 </div>
+
+<script nonce="<?= csp_nonce() ?>">
+document.addEventListener('submit', function(e) {
+    if (e.target.classList.contains('form-confirm-delete')) {
+        if (!confirm('Ви впевнені, що хочете видалити цю пасту?')) {
+            e.preventDefault();
+        }
+    }
+});
+</script>
 
 </body>
 </html>

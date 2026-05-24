@@ -141,7 +141,7 @@
                     <div class="text-center" style="margin: 15px 0;">
                         <code style="font-size: 22px; padding: 10px 20px; border: 2px dashed var(--accent); display: inline-block;" id="order-code-display"><?= $order_id ?></code>
                         <br>
-                        <button type="button" class="btn btn-xs btn-default" style="margin-top: 8px;" onclick="copyOrderCode()">📋 Скопіювати код</button>
+                        <button type="button" class="btn btn-xs btn-default" style="margin-top: 8px;" id="btn-copy-order-code">📋 Скопіювати код</button>
                     </div>
                     <p style="font-weight: bold;">❌ Якщо ви НЕ вкажете цей код — ми не зможемо ідентифікувати ваш платіж, і <span style="text-decoration: underline;">гроші будуть втрачені без можливості повернення!</span></p>
                 </div>
@@ -157,14 +157,14 @@
     </div>
 </div>
 
-<script>
+<script nonce="<?= csp_nonce() ?>">
 // Відкриття модального вікна при натисканні на Donatello
 document.getElementById('btn-donatello').addEventListener('click', function() {
     $('#donatelloModal').modal('show');
 });
 
 // Копіювання коду замовлення в буфер обміну
-function copyOrderCode() {
+document.getElementById('btn-copy-order-code').addEventListener('click', function() {
     var code = document.getElementById('order-code-display').innerText;
     if (navigator.clipboard) {
         navigator.clipboard.writeText(code).then(function() {
@@ -180,7 +180,7 @@ function copyOrderCode() {
         document.body.removeChild(tmp);
         alert('✅ Код скопійовано: ' + code);
     }
-}
+});
 
 // Polling для перевірки статусу оплати
 $(document).ready(function() {

@@ -22,7 +22,7 @@ class Paste {
     /**
      * Конструктор пасти.
      */
-    public function __construct($title, $content, $user_id = null, $is_paid = false, $view_cost = 0, $is_private = false, $id = null, $created_at = null, $expires_at = null, $is_pending_rewrite = false, $moderation_status = 'approved', $moderation_result = null, $language = 'plaintext') {
+    public function __construct($title, $content, $user_id = null, $is_paid = false, $view_cost = 0, $is_private = false, $id = null, $created_at = null, $expires_at = null, $is_pending_rewrite = false, $moderation_status = 'pending', $moderation_result = null, $language = 'plaintext') {
         $this->title = trim($title);
         $this->content = trim($content);
         $this->user_id = $user_id;
@@ -33,7 +33,7 @@ class Paste {
         $this->created_at = $created_at ?? date('Y-m-d H:i:s');
         $this->expires_at = $expires_at;
         $this->is_pending_rewrite = (bool)$is_pending_rewrite;
-        $this->moderation_status = $moderation_status ?: 'approved';
+        $this->moderation_status = $moderation_status ?: 'pending';
         $this->moderation_result = $moderation_result;
         $this->language = $language ?: 'plaintext';
     }
@@ -47,7 +47,7 @@ class Paste {
             $row['title'], $row['content'], $row['user_id'], $row['is_paid'],
             $row['view_cost'], $row['is_private'], $row['id'], $row['created_at'],
             $row['expires_at'], $row['is_pending_rewrite'],
-            $row['moderation_status'] ?? 'approved',
+            $row['moderation_status'] ?? 'pending',
             $row['moderation_result'] ?? null,
             $row['language'] ?? 'plaintext'
         );
@@ -106,7 +106,9 @@ class Paste {
         $pdo = DB::getInstance()->getPDO();
         $stmt = $pdo->prepare("
             UPDATE pastes 
-            SET title = ?, content = ?, is_paid = ?, is_private = ?, view_cost = ?, expires_at = ?, language = ?
+            SET title = ?, content = ?, is_paid = ?, is_private = ?, view_cost = ?, 
+                expires_at = ?, language = ?, is_pending_rewrite = ?, 
+                moderation_status = ?, moderation_result = ?
             WHERE id = ?
         ");
         $stmt->execute([
@@ -117,6 +119,9 @@ class Paste {
             $this->view_cost,
             $this->expires_at,
             $this->language,
+            $this->is_pending_rewrite ? 1 : 0,
+            $this->moderation_status,
+            $this->moderation_result,
             $this->id
         ]);
         

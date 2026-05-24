@@ -12,6 +12,12 @@
  *   * * * * * php /path/to/cron/worker.php >> /path/to/data/logs/worker.log 2>&1
  */
 
+// Блокуємо прямий веб-доступ — cron-скрипти не повинні виконуватись через браузер
+if (php_sapi_name() !== 'cli') {
+    http_response_code(403);
+    die('Доступ заборонено. Цей скрипт призначений лише для CLI.');
+}
+
 // Worker не потребує сесій, CSRF, кукі — працює в CLI
 define('NO_SESSION', true);
 
@@ -127,9 +133,51 @@ function handleModerationRewrite(array $payload): void {
     // Перефразування через Ollama (використовуємо контент з БД, актуальніший)
     $rewritten = Moderation::rewrite($paste['content']);
 
-    // Оновлюємо пасту
+    // Повторна модерація результату AI-переписування — не довіряємо автогенерованому
+    // контенту без перевірки, оскільки prompt injection може призвести до небажаного результату.
+    $localViolations = Moderation::localCheck($rewritten);
+    if ($localViolations) {
+        // Локальна перевірка знайшла порушення — відхиляємо переписаний текст
+        $updateStmt = $pdo->prepare("
+            UPDATE pastes
+            SET is_pending_rewrite = 0, moderation_status = 'rejected', moderation_result = ?
+            WHERE id = ?
+        ");
+        $updateStmt->execute([json_encode($localViolations, JSON_UNESCAPED_UNICODE), $pasteId]);
+        workerLog("moderation_rewrite: паста $pasteId REJECTED після переписування (локальна перевірка): " . implode(', ', $localViolations));
+        return;
+    }
+
+    // Зовнішня перевірка переписаного тексту через OpenAI
+    try {
+        $externalViolations = Moderation::checkExternal($rewritten);
+    } catch (\Throwable $e) {
+        // Якщо зовнішня перевірка недоступна — ставимо pending для повторної перевірки
+        $updateStmt = $pdo->prepare("
+            UPDATE pastes
+            SET content = ?, is_pending_rewrite = 0, moderation_status = 'pending'
+            WHERE id = ?
+        ");
+        $updateStmt->execute([$rewritten, $pasteId]);
+        workerLog("moderation_rewrite: паста $pasteId переписана, але зовнішня перевірка недоступна — статус pending");
+        return;
+    }
+
+    if ($externalViolations) {
+        // Зовнішня перевірка знайшла порушення — відхиляємо
+        $updateStmt = $pdo->prepare("
+            UPDATE pastes
+            SET is_pending_rewrite = 0, moderation_status = 'rejected', moderation_result = ?
+            WHERE id = ?
+        ");
+        $updateStmt->execute([json_encode($externalViolations, JSON_UNESCAPED_UNICODE), $pasteId]);
+        workerLog("moderation_rewrite: паста $pasteId REJECTED після переписування (OpenAI): " . implode(', ', $externalViolations));
+        return;
+    }
+
+    // Усі перевірки пройдені — схвалюємо переписаний контент
     $updateStmt = $pdo->prepare("
-        UPDATE pastes 
+        UPDATE pastes
         SET content = ?, is_pending_rewrite = 0, moderation_status = 'approved'
         WHERE id = ?
     ");
@@ -141,7 +189,7 @@ function handleModerationRewrite(array $payload): void {
         $pasteObj->syncTags();
     }
 
-    workerLog("moderation_rewrite: паста $pasteId перефразована та опублікована");
+    workerLog("moderation_rewrite: паста $pasteId перефразована, пройшла повторну модерацію — approved");
 }
 
 /**

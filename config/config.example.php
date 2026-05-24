@@ -12,6 +12,7 @@ define('APP_URL', 'https://yourdomain.com');
 // Telegram Bots
 define('TELEGRAM_BOT_TOKEN', 'YOUR_BOT_TOKEN'); // @YOURBOTNAME
 define('TELEGRAM_LOGIN_BOT_TOKEN', 'YOUR_LOGIN_BOT_TOKEN'); // @YOURBOTNAME
+define('TELEGRAM_WEBHOOK_SECRET', 'YOUR_TELEGRAM_WEBHOOK_SECRET'); // Секрет для верифікації webhook-запитів Telegram
 
 // Donatello
 define('DONATELLO_TOKEN', 'YOUR_DONATELLO_TOKEN');

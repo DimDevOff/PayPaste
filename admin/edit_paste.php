@@ -37,6 +37,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (empty($paste->content)) {
         $error_msg = 'Контент не може бути порожнім.';
     } else {
+        // Оновлення статусу модерації з валідацією
+        $newModStatus = $_POST['moderation_status'] ?? null;
+        $allowedStatuses = ['pending', 'approved', 'rejected', 'moderation_failed'];
+        if ($newModStatus && in_array($newModStatus, $allowedStatuses, true)) {
+            $paste->moderation_status = $newModStatus;
+        }
+
         $paste->update();
         $success_msg = 'Паста успішно оновлена!';
     }
@@ -62,6 +69,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <ul class="nav navbar-nav">
       <li><a href="index.php">Статистика</a></li>
       <li class="active"><a href="pastes.php">Управління Пастами</a></li>
+      <li><a href="moderation.php">🛡️ Модерація</a></li>
       <li><a href="users.php">Користувачі</a></li>
       <li><a href="transactions.php">Транзакції</a></li>
     </ul>
@@ -122,6 +130,28 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     <small class="text-muted">Залиште порожнім, щоб паста була вічною.</small>
                 </div>
 
+                <div class="form-group" style="background:#fff8e1; padding:10px; border:1px dashed #f0ad4e; margin-top:10px;">
+                    <label class="text-warning"><strong>🛡️ Статус модерації</strong></label>
+                    <select class="form-control" name="moderation_status">
+                        <?php
+                        $statuses = [
+                            'pending'           => '⏳ Очікує перевірки (pending)',
+                            'approved'          => '✅ Схвалено (approved)',
+                            'rejected'          => '❌ Відхилено (rejected)',
+                            'moderation_failed' => '⚠️ Модерація не завершена (moderation_failed)'
+                        ];
+                        $current = $paste->moderation_status ?? 'pending';
+                        foreach ($statuses as $val => $label): ?>
+                            <option value="<?= $val ?>" <?= $current === $val ? 'selected' : '' ?>>
+                                <?= $label ?>
+                            </option>
+                        <?php endforeach; ?>
+                    </select>
+                    <?php if (($paste->moderation_status ?? '') === 'moderation_failed'): ?>
+                        <small class="text-danger"><strong>Увага:</strong> Модерація цієї пасти не завершилася через збій сервісу. Перевірте контент вручну перед схваленням.</small>
+                    <?php endif; ?>
+                </div>
+
                 <button type="submit" class="btn btn-primary">Зберегти зміни</button>
                 <a href="pastes.php" class="btn btn-default">Повернутися до списку</a>
             </form>
@@ -129,7 +159,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     </div>
 </div>
 
-<script>
+<script nonce="<?= csp_nonce() ?>">
 document.addEventListener('DOMContentLoaded', function() {
     const isPaidCheck = document.getElementById('is_paid');
     const viewCostContainer = document.getElementById('view_cost_container');

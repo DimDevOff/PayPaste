@@ -13,13 +13,35 @@ class SettingsController {
     Потім визначає дію: оновлення профілю, видалення пасти, зміна приватності або видалення акаунту.
     Якщо дію розпізнано, викликає відповідний метод.
     */
+    /*
+    Дії, що вимагають підтвердженого email.
+    Неверіфікований користувач не може виконати їх навіть прямим POST-запитом.
+    */
+    private const SENSITIVE_ACTIONS = [
+        'update_profile',
+        'unlink_account',
+        'delete_account',
+        'generate_api_key',
+    ];
+
     public function handleRequest() {
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             verify_csrf();
             $action = $_POST['action'] ?? '';
 
+            // Блокування чутливих дій для неверифікованих користувачів
+            if (in_array($action, self::SENSITIVE_ACTIONS, true)) {
+                $user = User::findById($_SESSION['user_id'] ?? 0);
+                if (!$user || !$user->email_verified) {
+                    http_response_code(403);
+                    $_SESSION['error'] = "Підтвердіть email перед зміною налаштувань.";
+                    header("Location: settings.php");
+                    exit;
+                }
+            }
+
             if ($action === 'update_profile') {
-                $this->updateProfile($_POST['nickname'] ?? '', $_POST['password'] ?? '', $_POST['password_confirm'] ?? '', $_POST['email'] ?? '');
+                $this->updateProfile($_POST['nickname'] ?? '', $_POST['password'] ?? '', $_POST['password_confirm'] ?? '', $_POST['email'] ?? '', $_POST['current_password'] ?? '');
             } elseif ($action === 'delete_paste') {
                 $this->deletePaste($_POST['paste_id'] ?? '');
             } elseif ($action === 'toggle_visibility') {
@@ -95,7 +117,7 @@ class SettingsController {
     Потім хешує новий пароль та оновлює нікнейм у об'єкті користувача.
     Якщо всі дані валідні, зберігає оновлення в базі.
     */
-    private function updateProfile($nickname, $password, $confirm, $new_email = '') {
+    private function updateProfile($nickname, $password, $confirm, $new_email = '', $current_password = '') {
         $user = User::findById($_SESSION['user_id']);
         if (!$user) {
             $_SESSION['error'] = "Користувача не знайдено!";
@@ -103,7 +125,7 @@ class SettingsController {
         }
 
         try {
-            $result = AuthService::updateProfile($user, $nickname, $password, $confirm, $new_email);
+            $result = AuthService::updateProfile($user, $nickname, $password, $confirm, $new_email, $current_password);
 
             if ($result['email_changed']) {
                 require_once __DIR__ . '/../mailer.php';

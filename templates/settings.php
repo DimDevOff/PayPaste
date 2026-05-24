@@ -49,14 +49,25 @@ $myPasskeys = Passkey::findByUserId($_SESSION['user_id']);
 
                     <hr style="border-top: 1px dashed var(--border-color); margin-top: 30px; margin-bottom: 20px;">
                     <h4 style="text-transform: uppercase; font-weight: bold;">Зміна пароля</h4>
-                    <p class="text-muted" style="font-size: 0.9em; margin-bottom: 15px;">Залиште поля порожніми, якщо облом вигадувати новий пароль.</p>
+                    <p class="text-muted" style="font-size: 0.9em; margin-bottom: 15px;">Залиште поля порожніми, якщо не бажаєте змінювати пароль.</p>
+
+                    <div class="form-group">
+                        <label for="current_password">Поточний пароль:</label>
+                        <input type="password" 
+                               name="current_password" 
+                               id="current_password" 
+                               class="form-control"
+                               autocomplete="current-password">
+                        <small class="text-muted">Обов'язково при зміні пароля.</small>
+                    </div>
 
                     <div class="form-group">
                         <label for="password">Новий пароль:</label>
                         <input type="password" 
                                name="password" 
                                id="password" 
-                               class="form-control">
+                               class="form-control"
+                               autocomplete="new-password">
                     </div>
 
                     <div class="form-group" style="margin-bottom: 25px;">
@@ -64,7 +75,8 @@ $myPasskeys = Passkey::findByUserId($_SESSION['user_id']);
                         <input type="password" 
                                name="password_confirm" 
                                id="password_confirm" 
-                               class="form-control">
+                               class="form-control"
+                               autocomplete="new-password">
                     </div>
 
                     <button type="submit" class="btn btn-warning btn-block blink-text" style="font-family: 'Courier New', Courier, monospace; font-weight: bold; font-size: 1.1em; white-space: normal; height: auto;">✓ ЗБЕРЕГТИ ЗМІНИ ✓</button>
@@ -179,7 +191,7 @@ $myPasskeys = Passkey::findByUserId($_SESSION['user_id']);
             </div>
             <div class="panel-body">
                 <?php if (count($myPasskeys) < 5): ?>
-                    <button type="button" class="btn btn-warning btn-block passkey-btn" style="font-weight:bold; margin-bottom: 20px; white-space: normal; height: auto;" onclick="registerPasskey('<?= htmlspecialchars($user->nickname) ?>')">
+                    <button type="button" class="btn btn-warning btn-block passkey-btn" id="btn-add-passkey" data-nickname="<?= htmlspecialchars($user->nickname) ?>" style="font-weight:bold; margin-bottom: 20px; white-space: normal; height: auto;">
                         ➕ Додати новий Passkey
                     </button>
                 <?php else: ?>
@@ -213,7 +225,7 @@ $myPasskeys = Passkey::findByUserId($_SESSION['user_id']);
                                             <?= date('d.m.Y H:i', strtotime($pk->created_at)) ?>
                                         </td>
                                         <td style="text-align: center; vertical-align: middle;">
-                                            <button type="button" class="btn btn-xs btn-danger" title="Видалити passkey" style="font-family: monospace;" onclick="deletePasskey('<?= htmlspecialchars($pk->id) ?>')">
+                                            <button type="button" class="btn btn-xs btn-danger btn-delete-passkey" title="Видалити passkey" data-passkey-id="<?= htmlspecialchars($pk->id) ?>" style="font-family: monospace;">
                                                 🗑 Видалити
                                             </button>
                                         </td>
@@ -270,7 +282,7 @@ $myPasskeys = Passkey::findByUserId($_SESSION['user_id']);
                                 <button type="submit" class="btn btn-xs btn-danger">Від'єднати</button>
                             </form>
                         <?php else: ?>
-                            <script async src="https://telegram.org/js/telegram-widget.js?22" 
+                            <script nonce="<?= csp_nonce() ?>" async src="https://telegram.org/js/telegram-widget.js?22" 
                                     data-telegram-login="PayPasteBot" 
                                     data-size="small" 
                                     data-auth-url="<?= rtrim(APP_URL, '/') ?>/api/oauth.php?provider=telegram" 
@@ -368,7 +380,7 @@ $myPasskeys = Passkey::findByUserId($_SESSION['user_id']);
                                                     </button>
                                                 </form>
                                             <?php endif; ?>
-                                            <form action="settings.php" method="POST" style="display: block; margin: 2px;" onsubmit="return confirm('Точно видалити пасту &quot;<?= htmlspecialchars(addslashes($paste->title)) ?>&quot;? Це незворотна дія!');">
+                                            <form action="settings.php" method="POST" class="form-delete-paste" style="display: block; margin: 2px;">
                                                 <?= csrf_field() ?>
                                                 <input type="hidden" name="action" value="delete_paste">
                                                 <input type="hidden" name="paste_id" value="<?= htmlspecialchars($paste->id) ?>">
@@ -405,13 +417,13 @@ $myPasskeys = Passkey::findByUserId($_SESSION['user_id']);
                     <label>Ваш API Ключ:</label>
                     <div class="input-group-mobile">
                         <input type="text" class="form-control" id="apiKeyInput" value="<?= $user->api_key ? htmlspecialchars($user->api_key) : 'Ключ ще не згенеровано' ?>" readonly style="font-family: monospace; background: var(--bg-secondary); color: var(--text-primary); margin-bottom: 5px;">
-                        <button class="btn btn-default btn-block" type="button" onclick="copyApiKey()" title="Копіювати">
+                        <button class="btn btn-default btn-block" type="button" id="btn-copy-api-key" title="Копіювати">
                             <i class="glyphicon glyphicon-copy"></i> Скопіювати ключ
                         </button>
                     </div>
                 </div>
 
-                <form action="settings.php" method="POST" onsubmit="return confirm('Ви впевнені? Старий ключ перестане працювати!');">
+                <form action="settings.php" method="POST" id="form-regen-api-key">
                     <?= csrf_field() ?>
                     <input type="hidden" name="action" value="generate_api_key">
                     <button type="submit" class="btn btn-warning btn-block" style="font-weight: bold; white-space: normal; height: auto;">
@@ -433,15 +445,86 @@ $myPasskeys = Passkey::findByUserId($_SESSION['user_id']);
     </div>
 </div>
 
-<script>
-function copyApiKey() {
+<script nonce="<?= csp_nonce() ?>">
+// Копіювання API ключа
+document.getElementById('btn-copy-api-key').addEventListener('click', function() {
     var copyText = document.getElementById("apiKeyInput");
     if (copyText.value === 'Ключ ще не згенеровано') return;
     copyText.select();
     copyText.setSelectionRange(0, 99999);
     navigator.clipboard.writeText(copyText.value);
     alert("Ключ скопійовано!");
-}
+});
+
+// Регенерація API ключа — підтвердження
+document.getElementById('form-regen-api-key').addEventListener('submit', function(e) {
+    if (!confirm('Ви впевнені? Старий ключ перестане працювати!')) {
+        e.preventDefault();
+    }
+});
+
+// Додавання Passkey
+document.getElementById('btn-add-passkey').addEventListener('click', function() {
+    var nickname = this.dataset.nickname;
+    registerPasskey(nickname);
+});
+
+// Видалення Passkey (делегування для динамічних елементів)
+document.addEventListener('click', function(e) {
+    var btn = e.target.closest('.btn-delete-passkey');
+    if (btn) {
+        deletePasskey(btn.dataset.passkeyId);
+    }
+});
+
+// Підтвердження видалення пасти (делегування)
+document.addEventListener('submit', function(e) {
+    if (e.target.classList.contains('form-delete-paste')) {
+        var title = e.target.querySelector('[name="paste_id"]')?.value || 'цю пасту';
+        if (!confirm('Точно видалити пасту? Це незворотна дія!')) {
+            e.preventDefault();
+        }
+    }
+});
+
+// Валідація: поточний пароль обов'язковий при зміні пароля
+(function() {
+    var form = document.querySelector('form[action="settings.php"]');
+    if (!form) return;
+    var currentPw = document.getElementById('current_password');
+    var newPw = document.getElementById('password');
+    var confirmPw = document.getElementById('password_confirm');
+
+    form.addEventListener('submit', function(e) {
+        if (newPw && newPw.value.length > 0) {
+            if (!currentPw || currentPw.value.length === 0) {
+                e.preventDefault();
+                alert('Введіть поточний пароль для зміни пароля!');
+                if (currentPw) currentPw.focus();
+                return;
+            }
+        }
+    });
+})();
+
+// Підтвердження видалення акаунта
+document.getElementById('btn-confirm-delete-account').addEventListener('click', function(e) {
+    if (!confirm('ВИ ВПЕВНЕНІ? Ця дія НЕЗВОРОТНА!')) {
+        e.preventDefault();
+        var form = this.closest('form');
+        if (form) form.dataset.confirmed = '';
+    }
+});
+document.getElementById('btn-confirm-delete-account').closest('form').addEventListener('submit', function(e) {
+    if (!confirm('ВИ ВПЕВНЕНІ? Ця дія НЕЗВОРОТНА!')) {
+        e.preventDefault();
+    }
+});
+
+// Підтвердження видалення акаунта через Passkey
+document.getElementById('btn-confirm-delete-passkey').addEventListener('click', function() {
+    confirmDeleteAccountPasskey();
+});
 </script>
 
 <!-- Секція НЕБЕЗПЕЧНА ЗОНА (Видалення акаунта) -->
@@ -479,7 +562,7 @@ function copyApiKey() {
                                    placeholder="<?= $confirmed ? 'Можна залишити порожнім' : '*****' ?>">
                         </div>
                         
-                        <button type="submit" class="btn btn-lg btn-danger btn-block" style="white-space: normal; height: auto;" onclick="return confirm('ВИ ВПЕВНЕНІ? Ця дія НЕЗВОРОТНА!')">
+                        <button type="submit" class="btn btn-lg btn-danger btn-block" id="btn-confirm-delete-account" style="white-space: normal; height: auto;">
                             <?php if ($confirmed): ?>
                                 💀 ОСТАТОЧНО ВИДАЛИТИ АКАУНТ 💀
                             <?php else: ?>
@@ -501,7 +584,7 @@ function copyApiKey() {
                         <div class="row">
                             <?php if (count($myPasskeys) > 0): ?>
                                 <div class="col-xs-12" style="margin-bottom: 10px;">
-                                    <button type="button" class="btn btn-info btn-block passkey-btn" onclick="confirmDeleteAccountPasskey()" style="font-weight: bold; white-space: normal; height: auto;">
+                                    <button type="button" class="btn btn-info btn-block passkey-btn" id="btn-confirm-delete-passkey" style="font-weight: bold; white-space: normal; height: auto;">
                                         ПІДТВЕРДИТИ ЧЕРЕЗ PASSKEY 🔑
                                     </button>
                                 </div>
@@ -519,7 +602,7 @@ function copyApiKey() {
                                 <div class="col-xs-12" style="margin-bottom: 10px;">
                                     <div class="text-center" style="background: var(--bg-secondary); padding: 10px; border: 1px solid var(--border-color);">
                                         <p style="color: var(--text-muted); margin-bottom: 5px;"><small>ПІДТВЕРДИТИ ЧЕРЕЗ TELEGRAM:</small></p>
-                                        <script async src="https://telegram.org/js/telegram-widget.js?22" 
+                                        <script nonce="<?= csp_nonce() ?>" async src="https://telegram.org/js/telegram-widget.js?22" 
                                                 data-telegram-login="PayPasteBot" 
                                                 data-size="large" 
                                                 data-auth-url="<?= rtrim(APP_URL, '/') ?>/api/oauth.php?provider=telegram&confirm_delete_oauth=1" 

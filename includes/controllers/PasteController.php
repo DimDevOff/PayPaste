@@ -46,7 +46,7 @@ class PasteController { // Клас контролера паст
 
         // --- МОДЕРАЦІЯ: лише локальна перевірка синхронно ---
         $content = trim($data['content'] ?? '');
-        $skip_moderation = $data['skip_moderation'] ?? false;
+        $skip_moderation = $is_pending_rewrite;
         if (!$skip_moderation) {
             // Локальна перевірка (швидка, без зовнішніх API)
             $localViolations = Moderation::localCheck($content);
@@ -63,16 +63,15 @@ class PasteController { // Клас контролера паст
         unset($_SESSION['flagged_categories']);
 
         try {
-            // Якщо це NOT a rewrite і NOT skip_moderation — ставимо статус "pending"
-            // і enqueue-мо задачу модерації через OpenAI
-            $moderationStatus = 'approved'; // За замовчуванням
-            $needsAsyncModeration = false;
+            // Усі нові пасти починають як 'pending' — навіть rewrite-пасти,
+            // бо їхній контент ще не перевірений зовнішньою модерацією.
+            // Rewrite-пасти блокуються через is_pending_rewrite, а не moderation_status.
+            $moderationStatus = 'pending';
 
-            if (!$skip_moderation && !$is_pending_rewrite) {
-                // Локальна перевірка пройшла, але потрібна зовнішня через OpenAI
-                $moderationStatus = 'pending';
-                $needsAsyncModeration = true;
-            }
+            // Для rewrite-паст — окрема черга (moderation_rewrite виконує і переписування, і перевірку)
+            // Для звичайних паст — стандартна перевірка через OpenAI
+            $needsAsyncModeration = !$is_pending_rewrite;
+            $needsAsyncRewrite = $is_pending_rewrite;
 
             $paste = PasteService::create($data, $user_id, $is_pending_rewrite, $moderationStatus);
 
@@ -89,7 +88,7 @@ class PasteController { // Клас контролера паст
             }
 
             // Постановка задачі AI-переписування у чергу
-            if ($is_pending_rewrite) {
+            if ($needsAsyncRewrite) {
                 Queue::push(
                     Queue::TYPE_MODERATION_REWRITE,
                     [
@@ -102,7 +101,9 @@ class PasteController { // Клас контролера паст
 
             unset($_SESSION['old_input']); // Очищення введених даних при успіху
 
-            if ($needsAsyncModeration) {
+            if ($needsAsyncRewrite) {
+                $_SESSION['success'] = "Пасту створено! AI переписує текст, після чого вона пройде перевірку модерації.";
+            } elseif ($needsAsyncModeration) {
                 $_SESSION['success'] = "Пасту створено! Вона проходить перевірку модерації та незабаром стане доступною.";
             }
 
@@ -171,10 +172,8 @@ class PasteController { // Клас контролера паст
             header("Location: create.php");
             exit;
         }
-
         // Замість очікування, ми створюємо пасту зі статусом "в черзі"
-        $data['skip_moderation'] = true;
-        
+        // skip_moderation визначається автоматично через $is_pending_rewrite=true
         // Очищаємо помилки модерації
         unset($_SESSION['moderation_failed']);
         unset($_SESSION['flagged_categories']);

@@ -53,6 +53,7 @@ if (!function_exists('buildUrl')) {
     <ul class="nav navbar-nav">
       <li><a href="index.php">Статистика</a></li>
       <li><a href="pastes.php">Управління Пастами</a></li>
+      <li><a href="moderation.php">🛡️ Модерація</a></li>
       <li class="active"><a href="users.php">Користувачі</a></li>
       <li><a href="transactions.php">Транзакції</a></li>
     </ul>
@@ -137,8 +138,7 @@ if (!function_exists('buildUrl')) {
                         </td>
                         <td>
                             <?php if (($u['role'] ?? 'user') !== 'admin'): ?>
-                                <form action="delete_user.php" method="POST" style="display:inline;"
-                                      onsubmit="return confirm('Видалення є незворотнім. Видалити користувача?');">
+                                <form action="delete_user.php" method="POST" style="display:inline;" class="form-confirm-delete-user">
                                     <?= csrf_field() ?>
                                     <input type="hidden" name="id" value="<?= htmlspecialchars($u['id']) ?>">
                                     <button type="submit" class="btn btn-danger btn-xs">
@@ -196,6 +196,16 @@ if (!function_exists('buildUrl')) {
     </div>
     <?php endif; ?>
 </div>
+
+<script nonce="<?= csp_nonce() ?>">
+document.addEventListener('submit', function(e) {
+    if (e.target.classList.contains('form-confirm-delete-user')) {
+        if (!confirm('Видалення є незворотнім. Видалити користувача?')) {
+            e.preventDefault();
+        }
+    }
+});
+</script>
 
 </body>
 </html>
