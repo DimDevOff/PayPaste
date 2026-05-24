@@ -12,7 +12,15 @@ if (php_sapi_name() !== 'cli') {
     http_response_code(403);
     die('Доступ заборонено. Цей скрипт призначений лише для CLI.');
 }
-// Додаємо --type=moderation_rewrite до аргументів командного рядка
-$argv[] = '--type=moderation_rewrite';
+// Очищуємо аргументи командного рядка, щоб забезпечити детерміністичну поведінку.
+// Завжди встановлюємо тип задачі як moderation_rewrite та ігноруємо інші типи.
+$newArgv = [__DIR__ . '/worker.php', '--type=moderation_rewrite'];
+
+// Зберігаємо прапорець --daemon, якщо він був переданий
+if (in_array('--daemon', $argv ?? [])) {
+    $newArgv[] = '--daemon';
+}
+
+$argv = $newArgv;
 $argc = count($argv);
 require_once __DIR__ . '/worker.php';
