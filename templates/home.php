@@ -124,7 +124,7 @@
                         'params' : {}
                     };
                 </script>
-                <script nonce="<?= csp_nonce() ?>" src="<?= ADSTERRA_INVOKE_BASE_URL ?>/<?= ADSTERRA_160x300_KEY ?>/invoke.js"></script>
+                <script nonce="<?= csp_nonce() ?>" src="<?= ADSTERRA_INVOKE_BASE_URL ?>/<?= ADSTERRA_160x300_KEY ?>/invoke.js" integrity="sha384-OLBgp1GsljhM2TJ+sbHjaiH9txEUvgdDTAzHv2P24donTt6/529l+9Ua0vFImLlb" crossorigin="anonymous"></script>
             </div>
         </div>
     </div>

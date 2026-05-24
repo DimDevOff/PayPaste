@@ -30,14 +30,14 @@ if (!in_array($_theme, $_allowedThemes)) $_theme = 'retro';
     <meta property="og:url" content="<?= APP_URL ?: 'https://YOUR_DOMAIN' ?>/">
 
     <!-- Вінтажний Bootstrap 3 -->
-    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
     <link rel="stylesheet" href="assets/css/style.css?v=<?= filemtime(__DIR__ . '/../assets/css/style.css') ?>">
     <link rel="icon" href="assets/img/logo.png" type="image/png">
-    <script nonce="<?= csp_nonce() ?>" src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script nonce="<?= csp_nonce() ?>" src="https://code.jquery.com/jquery-3.6.0.min.js" integrity="sha384-vtXRMe3mGCbOeY7l30aIg8H9p3GdeSe4IFlP6G8JMa7o7lXvnz3GFKzPxzJdPfGK" crossorigin="anonymous"></script>
 
     <!-- Adsterra: Social Bar (глобально, всі сторінки) -->
     <?php if (!isset($hide_ads) || !$hide_ads): ?>
-    <script nonce="<?= csp_nonce() ?>" src="<?= ADSTERRA_SOCIAL_BAR_URL ?>"></script>
+    <script nonce="<?= csp_nonce() ?>" src="<?= ADSTERRA_SOCIAL_BAR_URL ?>" integrity="sha384-OLBgp1GsljhM2TJ+sbHjaiH9txEUvgdDTAzHv2P24donTt6/529l+9Ua0vFImLlb" crossorigin="anonymous"></script>
     <?php endif; ?>
 </head>
 <body>
@@ -102,7 +102,7 @@ if (!in_array($_theme, $_allowedThemes)) $_theme = 'retro';
                 'params' : {}
             };
         </script>
-        <script nonce="<?= csp_nonce() ?>" src="<?= ADSTERRA_INVOKE_BASE_URL ?>/<?= ADSTERRA_320x50_KEY ?>/invoke.js"></script>
+        <script nonce="<?= csp_nonce() ?>" src="<?= ADSTERRA_INVOKE_BASE_URL ?>/<?= ADSTERRA_320x50_KEY ?>/invoke.js" integrity="sha384-OLBgp1GsljhM2TJ+sbHjaiH9txEUvgdDTAzHv2P24donTt6/529l+9Ua0vFImLlb" crossorigin="anonymous"></script>
     </div>
     <?php endif; ?>
 

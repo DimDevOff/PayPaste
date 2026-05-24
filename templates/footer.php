@@ -31,18 +31,18 @@
                     'params' : {}
                 };
             </script>
-            <script nonce="<?= csp_nonce() ?>" src="<?= ADSTERRA_INVOKE_BASE_URL ?>/<?= ADSTERRA_300x250_KEY ?>/invoke.js"></script>
+            <script nonce="<?= csp_nonce() ?>" src="<?= ADSTERRA_INVOKE_BASE_URL ?>/<?= ADSTERRA_300x250_KEY ?>/invoke.js" integrity="sha384-OLBgp1GsljhM2TJ+sbHjaiH9txEUvgdDTAzHv2P24donTt6/529l+9Ua0vFImLlb" crossorigin="anonymous"></script>
         </div>
     </div>
     <?php endif; ?>
 
     <!-- Adsterra: Popunder (глобально) -->
     <?php if (!isset($hide_ads) || !$hide_ads): ?>
-    <script nonce="<?= csp_nonce() ?>" src="<?= ADSTERRA_POPUNDER_URL ?>"></script>
+    <script nonce="<?= csp_nonce() ?>" src="<?= ADSTERRA_POPUNDER_URL ?>" integrity="sha384-OLBgp1GsljhM2TJ+sbHjaiH9txEUvgdDTAzHv2P24donTt6/529l+9Ua0vFImLlb" crossorigin="anonymous"></script>
     <?php endif; ?>
 </footer>
 
-<script nonce="<?= csp_nonce() ?>" src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+<script nonce="<?= csp_nonce() ?>" src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
 <script nonce="<?= csp_nonce() ?>" src="assets/js/app.js"></script>
 <script nonce="<?= csp_nonce() ?>" src="assets/js/passkey.js?v=1.4"></script>
 <script nonce="<?= csp_nonce() ?>" src="assets/js/theme-switch.js?v=1.0"></script>
