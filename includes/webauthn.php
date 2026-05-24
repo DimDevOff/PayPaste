@@ -259,8 +259,8 @@ function verify_attestation_response($attestation_response, $challenge, $user_id
         return ['success' => false, 'error' => 'Невідповідність челенджу'];
     }
 
-    if (!isset($client_data['origin']) || strpos($client_data['origin'], $origin) === false) {
-        error_log("WebAuthn: Невідповідність origin: " . ($client_data['origin'] ?? 'немає'));
+    if (!isset($client_data['origin']) || rtrim($client_data['origin'], '/') !== rtrim($origin, '/')) {
+        error_log("WebAuthn: Невідповідність origin: " . ($client_data['origin'] ?? 'немає') . " (очікувалось: $origin)");
         return ['success' => false, 'error' => 'Невідповідність origin'];
     }
 
@@ -373,8 +373,8 @@ function verify_assertion_response($assertion_response, $challenge, $rp_id, $pas
         return ['success' => false, 'error' => 'Невідповідність челенджу'];
     }
 
-    if (!isset($client_data['origin']) || strpos($client_data['origin'], $origin) === false) {
-        error_log("WebAuthn: Невідповідність origin assertion");
+    if (!isset($client_data['origin']) || rtrim($client_data['origin'], '/') !== rtrim($origin, '/')) {
+        error_log("WebAuthn: Невідповідність origin assertion: " . ($client_data['origin'] ?? 'немає') . " (очікувалось: $origin)");
         return ['success' => false, 'error' => 'Невідповідність origin'];
     }
 
