@@ -343,7 +343,9 @@ class Paste {
         }
         
         if (empty($params)) {
-            return $pdo->query($sql)->fetchColumn();
+            $stmt = $pdo->prepare($sql);
+            $stmt->execute();
+            return $stmt->fetchColumn();
         }
         
         $stmt = $pdo->prepare($sql);

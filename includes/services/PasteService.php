@@ -295,7 +295,8 @@ class PasteService {
      */
     public static function cleanupExpired(): int {
         $pdo = DB::getInstance()->getPDO();
-        $stmt = $pdo->query("SELECT id FROM pastes WHERE expires_at IS NOT NULL AND expires_at <= NOW()");
+        $stmt = $pdo->prepare("SELECT id FROM pastes WHERE expires_at IS NOT NULL AND expires_at <= NOW()");
+        $stmt->execute();
         $ids = $stmt->fetchAll(PDO::FETCH_COLUMN);
 
         $count = 0;
