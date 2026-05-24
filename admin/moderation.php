@@ -4,7 +4,7 @@
  * Показує пасти зі статусами pending та moderation_failed,
  * дозволяє схвалити або відхилити одним кліком.
  */
-include_once __DIR__ . "/check_admin.php";
+require_once __DIR__ . "/check_admin.php";
 include_once __DIR__ . "/../includes/models/Paste.php";
 include_once __DIR__ . "/../includes/models/User.php";
 require_once __DIR__ . "/../includes/csrf.php";
