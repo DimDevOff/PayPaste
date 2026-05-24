@@ -33,11 +33,11 @@ if (!in_array($_theme, $_allowedThemes)) $_theme = 'retro';
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
     <link rel="stylesheet" href="assets/css/style.css?v=<?= filemtime(__DIR__ . '/../assets/css/style.css') ?>">
     <link rel="icon" href="assets/img/logo.png" type="image/png">
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script nonce="<?= csp_nonce() ?>" src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 
     <!-- Adsterra: Social Bar (глобально, всі сторінки) -->
     <?php if (!isset($hide_ads) || !$hide_ads): ?>
-    <script src="<?= ADSTERRA_SOCIAL_BAR_URL ?>"></script>
+    <script nonce="<?= csp_nonce() ?>" src="<?= ADSTERRA_SOCIAL_BAR_URL ?>"></script>
     <?php endif; ?>
 </head>
 <body>
@@ -93,7 +93,7 @@ if (!in_array($_theme, $_allowedThemes)) $_theme = 'retro';
     <!-- Adsterra: Banner 320×50 (мобільний лідерборд) -->
     <?php if (!isset($hide_ads) || !$hide_ads): ?>
     <div class="text-center" style="margin-bottom: 20px; overflow: hidden;">
-        <script>
+        <script nonce="<?= csp_nonce() ?>">
             atOptions = {
                 'key' : '<?= ADSTERRA_320x50_KEY ?>',
                 'format' : 'iframe',
@@ -102,7 +102,7 @@ if (!in_array($_theme, $_allowedThemes)) $_theme = 'retro';
                 'params' : {}
             };
         </script>
-        <script src="<?= ADSTERRA_INVOKE_BASE_URL ?>/<?= ADSTERRA_320x50_KEY ?>/invoke.js"></script>
+        <script nonce="<?= csp_nonce() ?>" src="<?= ADSTERRA_INVOKE_BASE_URL ?>/<?= ADSTERRA_320x50_KEY ?>/invoke.js"></script>
     </div>
     <?php endif; ?>
 

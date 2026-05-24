@@ -22,7 +22,7 @@
     <div style="margin-top: 20px; display: flex; justify-content: center; gap: 10px; flex-wrap: wrap; align-items: center;">
         <!-- Banner 300×250 -->
         <div style="overflow: hidden;">
-            <script>
+            <script nonce="<?= csp_nonce() ?>">
                 atOptions = {
                     'key' : '<?= ADSTERRA_300x250_KEY ?>',
                     'format' : 'iframe',
@@ -31,21 +31,21 @@
                     'params' : {}
                 };
             </script>
-            <script src="<?= ADSTERRA_INVOKE_BASE_URL ?>/<?= ADSTERRA_300x250_KEY ?>/invoke.js"></script>
+            <script nonce="<?= csp_nonce() ?>" src="<?= ADSTERRA_INVOKE_BASE_URL ?>/<?= ADSTERRA_300x250_KEY ?>/invoke.js"></script>
         </div>
     </div>
     <?php endif; ?>
 
     <!-- Adsterra: Popunder (глобально) -->
     <?php if (!isset($hide_ads) || !$hide_ads): ?>
-    <script src="<?= ADSTERRA_POPUNDER_URL ?>"></script>
+    <script nonce="<?= csp_nonce() ?>" src="<?= ADSTERRA_POPUNDER_URL ?>"></script>
     <?php endif; ?>
 </footer>
 
-<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
-<script src="assets/js/app.js"></script>
-<script src="assets/js/passkey.js?v=1.4"></script>
-<script src="assets/js/theme-switch.js?v=1.0"></script>
+<script nonce="<?= csp_nonce() ?>" src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+<script nonce="<?= csp_nonce() ?>" src="assets/js/app.js"></script>
+<script nonce="<?= csp_nonce() ?>" src="assets/js/passkey.js?v=1.4"></script>
+<script nonce="<?= csp_nonce() ?>" src="assets/js/theme-switch.js?v=1.0"></script>
 </body>
 </html>
 

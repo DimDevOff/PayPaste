@@ -393,6 +393,26 @@ function verify_assertion_response($assertion_response, $challenge, $rp_id, $pas
 
     $sign_count = unpack('V', substr($authenticator_data, 1, 4))[1];
 
+    // 3.1. Перевірка лічильника підписів (sign counter)
+    // Порівнюємо з раніше збереженим значенням для виявлення аномалій.
+    // Лічильник 0 означає, що автентифікатор не підтримує його — це допустимо.
+    // Якщо нове значення менше або дорівнює збереженому (і збережений > 0) —
+    // це сигнал про можливе клонування ключа.
+    $stored_counter = (int)$passkey->counter;
+    $counter_anomaly = false;
+
+    if ($sign_count !== 0 || $stored_counter !== 0) {
+        if ($sign_count <= $stored_counter && $stored_counter > 0) {
+            // Аномалія: лічильник не зріс або відкотився — можливо клонований ключ
+            $counter_anomaly = true;
+            error_log(
+                "WebAuthn: АНОМАЛІЯ ЛІЧИЛЬНИКА — credential_id=" . $passkey->credential_id
+                . " stored_counter={$stored_counter} new_counter={$sign_count}"
+                . " user_id={$passkey->user_id}"
+            );
+        }
+    }
+
     // 4. Перевірка підпису (Signature)
     $signature = base64url_decode($assertion_response['signature']);
     $client_data_hash = hash('sha256', $client_data_json_bytes, true);
@@ -417,7 +437,8 @@ function verify_assertion_response($assertion_response, $challenge, $rp_id, $pas
 
     return [
         'success' => true,
-        'new_counter' => $sign_count
+        'new_counter' => $sign_count,
+        'counter_anomaly' => $counter_anomaly
     ];
 }
 

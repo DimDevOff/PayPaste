@@ -1,4 +1,11 @@
 <?php
+
+// Захист від прямого веб-доступу до цього файлу
+if (basename($_SERVER['SCRIPT_NAME'] ?? '') === basename(__FILE__)) {
+    http_response_code(403);
+    die('Direct access denied');
+}
+
 require_once __DIR__ . '/config.php';
 
 class DB {

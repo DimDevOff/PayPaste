@@ -59,6 +59,7 @@ function buildUrl(array $params): string {
     <ul class="nav navbar-nav">
       <li><a href="index.php">Статистика</a></li>
       <li><a href="pastes.php">Управління Пастами</a></li>
+      <li><a href="moderation.php">🛡️ Модерація</a></li>
       <li><a href="users.php">Користувачі</a></li>
       <li class="active"><a href="transactions.php">💳 Транзакції</a></li>
     </ul>

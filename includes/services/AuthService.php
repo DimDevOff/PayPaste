@@ -105,6 +105,9 @@ class AuthService {
      * @param User $user Користувач
      */
     public static function setSession(User $user): void {
+        // Регенерація session_id для захисту від session fixation
+        session_regenerate_id(true);
+
         $_SESSION['user_id'] = $user->id;
         $_SESSION['role'] = $user->role;
         unset($_SESSION['old_input']);
@@ -369,10 +372,11 @@ class AuthService {
      * @param string|null $password Новий пароль (null = не змінювати)
      * @param string|null $confirm Підтвердження пароля
      * @param string|null $newEmail Новий email (null = не змінювати)
+     * @param string|null $currentPassword Поточний пароль (обов'язковий при зміні пароля)
      * @return array Результат ['email_changed' => bool]
      * @throws Exception При помилці валідації
      */
-    public static function updateProfile(User $user, string $nickname, ?string $password = null, ?string $confirm = null, ?string $newEmail = null): array {
+    public static function updateProfile(User $user, string $nickname, ?string $password = null, ?string $confirm = null, ?string $newEmail = null, ?string $currentPassword = null): array {
         $nickname = htmlspecialchars(trim($nickname));
 
         if (empty($nickname)) {
@@ -385,8 +389,14 @@ class AuthService {
 
         $user->nickname = $nickname;
 
-        // Зміна пароля
+        // Зміна пароля — вимагає підтвердження поточного пароля
         if (!empty($password)) {
+            if (empty($currentPassword)) {
+                throw new Exception("Введіть поточний пароль для зміни пароля!");
+            }
+            if (!password_verify($currentPassword, $user->password_hash)) {
+                throw new Exception("Невірний поточний пароль!");
+            }
             if (mb_strlen($password) < 6) {
                 throw new Exception("Пароль має містити мінімум 6 символів!");
             }
@@ -394,6 +404,14 @@ class AuthService {
                 throw new Exception("Паролі не співпадають!");
             }
             $user->password_hash = password_hash($password, PASSWORD_DEFAULT);
+
+            // Регенерація сесії після зміни пароля — інвалідує інші сесії,
+            // що спираються на той самий session_id
+            session_regenerate_id(true);
+
+            // Анулювання remember_me cookie — користувач має повторно увійти
+            // на інших пристроях зі старим паролем
+            self::clearRememberCookie();
         }
 
         $emailChanged = false;
