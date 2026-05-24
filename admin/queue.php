@@ -95,7 +95,7 @@ $jobTypes = Queue::getTypes();
         <div class="col-md-2">
             <div class="panel panel-info">
                 <div class="panel-body">
-                    <h3><?= number_format($metrics['queue_length']) ?></h3>
+                    <h3><?= number_format($metrics['queue_length'] ?? 0) ?></h3>
                     <small>В черзі</small>
                 </div>
             </div>
@@ -127,7 +127,7 @@ $jobTypes = Queue::getTypes();
         <div class="col-md-2">
             <div class="panel panel-default">
                 <div class="panel-body">
-                    <h3><?= number_format($metrics['dead_count']) ?></h3>
+                    <h3><?= number_format($metrics['dead_count'] ?? 0) ?></h3>
                     <small>Мертві</small>
                 </div>
             </div>

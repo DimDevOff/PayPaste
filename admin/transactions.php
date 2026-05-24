@@ -72,7 +72,7 @@ function buildUrl(array $params): string {
 <div class="container" style="padding-bottom:40px;">
     <h2 class="page-header">
         💳 Історія Транзакцій
-        <small><?= number_format($totalCount) ?> записів</small>
+        <small><?= number_format($totalCount ?? 0) ?> записів</small>
     </h2>
 
     <!-- Фільтри за типом -->
@@ -178,7 +178,7 @@ function buildUrl(array $params): string {
     <div class="row">
         <div class="col-sm-6 page-info text-muted">
             Сторінка <?= $currentPage ?> з <?= $totalPages ?>
-            (<?= number_format($totalCount) ?> записів)
+            (<?= number_format($totalCount ?? 0) ?> записів)
         </div>
         <div class="col-sm-6 text-right">
             <ul class="pagination">

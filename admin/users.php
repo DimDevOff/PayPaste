@@ -68,7 +68,7 @@ if (!function_exists('buildUrl')) {
         <div class="col-md-6">
             <h2 class="page-header" style="margin-top:0; border:none;">
                 👥 Управління Користувачами
-                <small><?= number_format($totalCount) ?> записів</small>
+                <small><?= number_format($totalCount ?? 0) ?> записів</small>
             </h2>
         </div>
         <div class="col-md-6 text-right">
@@ -168,7 +168,7 @@ if (!function_exists('buildUrl')) {
     <div class="row">
         <div class="col-sm-6 page-info text-muted">
             Сторінка <?= $currentPage ?> з <?= $totalPages ?>
-            (<?= number_format($totalCount) ?> записів)
+            (<?= number_format($totalCount ?? 0) ?> записів)
         </div>
         <div class="col-sm-6 text-right">
             <ul class="pagination">

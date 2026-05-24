@@ -59,7 +59,7 @@ $modPending = (int)$stmtPending->fetchColumn();
             <div class="panel panel-info">
                 <div class="panel-heading"><h4 class="m-0">📝 Паст</h4></div>
                 <div class="panel-body">
-                    <p class="stat-number"><?= number_format($totalPastes) ?></p>
+                    <p class="stat-number"><?= number_format($totalPastes ?? 0) ?></p>
                     <a href="pastes.php" class="btn btn-info btn-sm" style="margin-top:8px;">Управляти →</a>
                 </div>
             </div>
@@ -68,7 +68,7 @@ $modPending = (int)$stmtPending->fetchColumn();
             <div class="panel <?= $modPending > 0 ? 'panel-danger' : 'panel-success' ?>">
                 <div class="panel-heading"><h4 class="m-0">🛡️ Модерація</h4></div>
                 <div class="panel-body">
-                    <p class="stat-number"><?= number_format($modPending) ?></p>
+                    <p class="stat-number"><?= number_format($modPending ?? 0) ?></p>
                     <a href="moderation.php" class="btn btn-sm" style="margin-top:8px; <?= $modPending > 0 ? 'background:#e74c3c;color:#fff;' : '' ?>">Переглянути →</a>
                 </div>
             </div>
@@ -77,7 +77,7 @@ $modPending = (int)$stmtPending->fetchColumn();
             <div class="panel panel-success">
                 <div class="panel-heading"><h4 class="m-0">👥 Користувачів</h4></div>
                 <div class="panel-body">
-                    <p class="stat-number"><?= number_format($totalUsers) ?></p>
+                    <p class="stat-number"><?= number_format($totalUsers ?? 0) ?></p>
                     <a href="users.php" class="btn btn-success btn-sm" style="margin-top:8px;">Управляти →</a>
                 </div>
             </div>
@@ -86,7 +86,7 @@ $modPending = (int)$stmtPending->fetchColumn();
             <div class="panel panel-warning">
                 <div class="panel-heading"><h4 class="m-0">💵 Кредитів</h4></div>
                 <div class="panel-body">
-                    <p class="stat-number"><?= number_format($totalMoney) ?></p>
+                    <p class="stat-number"><?= number_format($totalMoney ?? 0) ?></p>
                     <span class="stat-sub">поповнено</span>
                 </div>
             </div>
@@ -95,7 +95,7 @@ $modPending = (int)$stmtPending->fetchColumn();
             <div class="panel panel-default">
                 <div class="panel-heading"><h4 class="m-0">📊 Транзакцій</h4></div>
                 <div class="panel-body">
-                    <p class="stat-number"><?= number_format($totalTx) ?></p>
+                    <p class="stat-number"><?= number_format($totalTx ?? 0) ?></p>
                     <a href="transactions.php" class="btn btn-default btn-sm" style="margin-top:8px;">Переглянути →</a>
                 </div>
             </div>
@@ -104,7 +104,7 @@ $modPending = (int)$stmtPending->fetchColumn();
             <div class="panel panel-info">
                 <div class="panel-heading"><h4 class="m-0">💀 Мертві задачі</h4></div>
                 <div class="panel-body">
-                    <p class="stat-number"><?= number_format($queueMetrics['dead_count']) ?></p>
+                    <p class="stat-number"><?= number_format($queueMetrics['dead_count'] ?? 0) ?></p>
                     <a href="queue.php" class="btn btn-info btn-sm" style="margin-top:8px;">Черга →</a>
                 </div>
             </div>
@@ -118,7 +118,7 @@ $modPending = (int)$stmtPending->fetchColumn();
             <div class="panel panel-info">
                 <div class="panel-heading"><h4 class="m-0">📬 У черзі</h4></div>
                 <div class="panel-body">
-                    <p class="stat-number"><?= number_format($queueMetrics['queue_length']) ?></p>
+                    <p class="stat-number"><?= number_format($queueMetrics['queue_length'] ?? 0) ?></p>
                     <span class="stat-sub">задач очікують</span>
                 </div>
             </div>
@@ -127,7 +127,7 @@ $modPending = (int)$stmtPending->fetchColumn();
             <div class="panel panel-danger">
                 <div class="panel-heading"><h4 class="m-0">💀 Мертві</h4></div>
                 <div class="panel-body">
-                    <p class="stat-number"><?= number_format($queueMetrics['dead_count']) ?></p>
+                    <p class="stat-number"><?= number_format($queueMetrics['dead_count'] ?? 0) ?></p>
                     <span class="stat-sub">не вдалося обробити</span>
                 </div>
             </div>
@@ -136,7 +136,7 @@ $modPending = (int)$stmtPending->fetchColumn();
             <div class="panel panel-warning">
                 <div class="panel-heading"><h4 class="m-0">🔄 Ретраї</h4></div>
                 <div class="panel-body">
-                    <p class="stat-number"><?= number_format($queueMetrics['total_retries']) ?></p>
+                    <p class="stat-number"><?= number_format($queueMetrics['total_retries'] ?? 0) ?></p>
                     <span class="stat-sub">повторних спроб</span>
                 </div>
             </div>
