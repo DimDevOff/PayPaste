@@ -93,8 +93,8 @@ if (!defined('SECURITY_HEADERS_SENT')) {
             . " https://www.w3.org",
         // Шрифти: self + CDN
         "font-src 'self' https://maxcdn.bootstrapcdn.com",
-        // З'єднання (fetch, XMLHttpRequest): self + зовнішні API
-        "connect-src 'self'",
+        // З'єднання (fetch, XMLHttpRequest): self + рекламна мережа (Adsterra)
+        "connect-src 'self' https:",
         // Frame: self (для Adsterra iframe-реклами)
         "frame-src 'self'"
             . " https://www.profitablecpmratenetwork.com"
