@@ -69,10 +69,40 @@ class RateLimiter {
     }
 
     /**
-     * Перевіряє дію за основним ключем і м'яким NAT/IP velocity-фактором.
-     * IP-фактор має більший ліміт і сам по собі не блокує нормальних авторизованих користувачів.
+     * Повертає налаштування лімітів для вказаної дії.
+     * Якщо конфігурація в config.php не знайдена, використовує дефолтні значення.
      */
-    public static function checkAction(string $action, int $limit = 10, int $window = 60, array $context = []): bool {
+    public static function getLimitConfig(string $action): array {
+        if (defined('RATE_LIMITS') && isset(RATE_LIMITS[$action])) {
+            return RATE_LIMITS[$action];
+        }
+
+        // Резервні значення за замовчуванням
+        $defaults = [
+            'login'          => ['limit' => 5,   'window' => 60,    'ip_limit' => 150],
+            'register'       => ['limit' => 5,   'window' => 60,    'ip_limit' => 150],
+            'create_paste'   => ['limit' => 5,   'window' => 60,    'ip_limit' => 120],
+            'unlock_paste'   => ['limit' => 10,  'window' => 60,    'ip_limit' => 200],
+            'api_auth'       => ['limit' => 5,   'window' => 60,    'ip_limit' => 150],
+            'ad_verify'      => ['limit' => 12,  'window' => 60,    'ip_limit' => 300],
+            'email_cooldown' => ['limit' => 1,   'window' => 180],
+            'email_daily'    => ['limit' => 3,   'window' => 86400],
+            'api_default'    => ['limit' => 60,  'window' => 60]
+        ];
+
+        return $defaults[$action] ?? ['limit' => 10, 'window' => 60, 'ip_limit' => 100];
+    }
+
+    /**
+     * Перевіряє дію за основним ключем і точним по-IP лімітом.
+     */
+    public static function checkAction(string $action, ?int $limit = null, ?int $window = null, array $context = []): bool {
+        $config = self::getLimitConfig($action);
+
+        $limit = $limit ?? $config['limit'];
+        $window = $window ?? $config['window'];
+        $ipLimit = $context['ip_limit'] ?? $config['ip_limit'] ?? (int)max($limit * 20, $limit + 50);
+
         $primaryKey = self::buildActionKey($action, $context);
 
         if (!self::check($primaryKey, $limit, $window)) {
@@ -80,10 +110,12 @@ class RateLimiter {
             return false;
         }
 
-        $ipLimit = (int)($context['ip_limit'] ?? max($limit * 20, $limit + 50));
-        $ipKey = 'risk-ip:' . $action . ':' . self::normalizeIpFactor($context['ip'] ?? null);
+        // По-IP обмеження частоти: використовуємо точний IP клієнта без нормалізації до підмережі /24
+        $ip = $context['ip'] ?? ($_SERVER['REMOTE_ADDR'] ?? 'unknown');
+        $ipKey = 'risk-ip:' . $action . ':' . $ip;
+
         if (!self::check($ipKey, $ipLimit, $window)) {
-            error_log("RateLimiter deny ip_velocity action={$action}");
+            error_log("RateLimiter deny ip_velocity action={$action} ip={$ip}");
             return false;
         }
 
@@ -91,32 +123,56 @@ class RateLimiter {
     }
     
     /**
-     * Перевірка ліміту запитів
+     * Перевірка ліміту запитів (алгоритм Sliding Window Log з усуненням стану гонки)
      * 
-     * @param string $key Унікальний ключ дії (наприклад, 'login:127.0.0.1')
-     * @param int $limit Максимальна кількість спроб у вікні
-     * @param int $window Вікно часу в секундах
-     * @return bool Повертає true, якщо ліміт НЕ перевищено (можна виконувати дію), інакше false
+     * @param string $key Унікальний ключ дії
+     * @param int|null $limit Максимальна кількість спроб у вікні
+     * @param int|null $window Вікно часу в секундах
+     * @return bool Повертає true, якщо ліміт НЕ перевищено, інакше false
      */
-    public static function check(string $key, int $limit = 10, int $window = 60): bool {
+    public static function check(string $key, ?int $limit = null, ?int $window = null): bool {
+        if ($limit === null || $window === null) {
+            // Парсимо назву дії з префікса ключа для пошуку в конфігурації
+            $parts = explode(':', $key);
+            $action = $parts[0] ?? '';
+            if ($action === 'api') {
+                $action = 'api_default';
+            }
+            $config = self::getLimitConfig($action);
+            $limit = $limit ?? $config['limit'];
+            $window = $window ?? $config['window'];
+        }
+
         $pdo = DB::getInstance()->getPDO();
         
-        // 1. Очищення старих записів для цього ключа
-        $cleanStmt = $pdo->prepare("DELETE FROM rate_limits WHERE action_key = ? AND created_at < NOW() - INTERVAL ? SECOND");
-        $cleanStmt->execute([$key, $window]);
-        
-        // 2. Підрахунок поточних спроб у вікні
-        $countStmt = $pdo->prepare("SELECT COUNT(*) FROM rate_limits WHERE action_key = ?");
-        $countStmt->execute([$key]);
-        $count = (int) $countStmt->fetchColumn();
-        
-        // 3. Якщо ліміт не перевищено, записуємо нову спробу
-        if ($count < $limit) {
+        // Wrap DELETE + INSERT + COUNT in a transaction to make them atomic
+        // and prevent race conditions between concurrent requests
+        $pdo->beginTransaction();
+        try {
+            // 1. Очищення старих записів для цього ключа
+            $cleanStmt = $pdo->prepare("DELETE FROM rate_limits WHERE action_key = ? AND created_at < NOW() - INTERVAL ? SECOND");
+            $cleanStmt->execute([$key, $window]);
+            
+            // 2. Вставляємо нову спробу
             $insertStmt = $pdo->prepare("INSERT INTO rate_limits (action_key) VALUES (?)");
             $insertStmt->execute([$key]);
-            return true; // Дозволяємо
+            
+            // 3. Підрахунок поточних спроб у вікні
+            $countStmt = $pdo->prepare("SELECT COUNT(*) FROM rate_limits WHERE action_key = ?");
+            $countStmt->execute([$key]);
+            $count = (int) $countStmt->fetchColumn();
+            
+            // 4. Якщо ліміт перевищено, відкочуємо транзакцію
+            if ($count > $limit) {
+                $pdo->rollBack();
+                return false;
+            }
+            
+            $pdo->commit();
+            return true;
+        } catch (\Exception $e) {
+            $pdo->rollBack();
+            throw $e;
         }
-        
-        return false; // Блокуємо
     }
 }

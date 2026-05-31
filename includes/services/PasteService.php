@@ -228,20 +228,22 @@ class PasteService {
      * Видаляє пасту та прикріплені файли.
      *
      * @param string $pasteId ID пасти
-     * @param string|null $userId ID користувача (для перевірки прав, null = адмін)
+     * @param User|null $user Користувач, що виконує видалення (null лише для системних викликів, напр. cleanupExpired)
      * @return bool Успішність операції
      * @throws Exception При помилці або відсутності прав
      */
-    public static function delete(string $pasteId, ?string $userId = null): bool {
+    public static function delete(string $pasteId, ?User $user = null): bool {
         $paste = Paste::findById($pasteId);
         if (!$paste) {
             throw new Exception("Пасту не знайдено!");
         }
 
         // Перевірка прав (власник або адмін)
-        if ($userId !== null && $paste->user_id !== $userId) {
-            $user = User::findById($userId);
-            if (!$user || $user->role !== 'admin') {
+        // null $user дозволено лише для внутрішніх системних викликів (cleanupExpired)
+        if ($user !== null) {
+            $isOwner = $user->id === $paste->user_id;
+            $isAdmin = $user->role === 'admin';
+            if (!$isOwner && !$isAdmin) {
                 throw new Exception("У вас немає прав для видалення цієї пасти!");
             }
         }

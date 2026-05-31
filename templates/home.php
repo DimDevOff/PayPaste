@@ -28,16 +28,12 @@
                require_once __DIR__ . '/../includes/models/Paste.php';
                $pastes = Paste::findAllPublic(20, $cat, $tag);
                foreach($pastes as $p):
-                   $p_tags = $p->getTags();
-                   $has_more = count($p_tags) > 3;
-                   $visible_tags = array_slice($p_tags, 0, 3);
-                   $hidden_tags = array_slice($p_tags, 3);
             ?>
             <div class="list-group-item">
                 <a href="view.php?id=<?= $p->id ?>" style="text-decoration:none; color: var(--text-primary); display:block;">
                     <h4 class="list-group-item-heading" style="word-wrap:break-word; margin-bottom: 2px;"><?= htmlspecialchars($p->title ?: 'Без назви') ?></h4>
                     <p class="list-group-item-text text-muted" style="font-size:11px; margin-bottom: 5px;">
-                        <?= $p->created_at ?>
+                        <?= htmlspecialchars($p->created_at) ?>
                         <?php if($p->is_paid): ?>
                             <span class="label label-warning" style="font-size:9px;">
                                 <?= (int)($p->view_cost ?? 0) ?> КР
@@ -55,7 +51,7 @@
 
                         foreach($visible_tags as $vt): 
                     ?>
-                        <a href="index.php?tag=<?= urlencode($vt) ?>" class="btn btn-xs" style="background: <?= Paste::getTagColor($vt) ?>; color: #fff; padding: 0 4px; font-size: 10px; margin-bottom: 2px;">#<?= htmlspecialchars($vt) ?></a>
+                        <a href="index.php?tag=<?= urlencode($vt) ?>" class="btn btn-xs" style="background: <?= htmlspecialchars(Paste::getTagColor($vt)) ?>; color: #fff; padding: 0 4px; font-size: 10px; margin-bottom: 2px;">#<?= htmlspecialchars($vt) ?></a>
                     <?php endforeach; ?>
 
                     <?php if($has_more): ?>
@@ -64,7 +60,7 @@
                         </button>
                         <div class="hidden-tags-<?= htmlspecialchars($p->id, ENT_QUOTES, 'UTF-8') ?>" style="display:none; margin-top: 5px;">
                             <?php foreach($hidden_tags as $ht): ?>
-                                <a href="index.php?tag=<?= urlencode($ht) ?>" class="btn btn-xs" style="background: <?= Paste::getTagColor($ht) ?>; color: #fff; padding: 0 4px; font-size: 10px; margin-bottom: 2px;">#<?= htmlspecialchars($ht) ?></a>
+                                <a href="index.php?tag=<?= urlencode($ht) ?>" class="btn btn-xs" style="background: <?= htmlspecialchars(Paste::getTagColor($ht)) ?>; color: #fff; padding: 0 4px; font-size: 10px; margin-bottom: 2px;">#<?= htmlspecialchars($ht) ?></a>
                             <?php endforeach; ?>
                         </div>
                     <?php endif; ?>
@@ -98,7 +94,7 @@
                         foreach ($popularTags as $t):
                 ?>
                     <a href="index.php?tag=<?= urlencode($t['tag']) ?>" style="text-decoration: none;">
-                        <span class="badge" style="background: <?= Paste::getTagColor($t['tag']) ?>; margin-bottom: 5px;">#<?= htmlspecialchars($t['tag']) ?> (<?= $t['count'] ?>)</span>
+                        <span class="badge" style="background: <?= htmlspecialchars(Paste::getTagColor($t['tag'])) ?>; margin-bottom: 5px;">#<?= htmlspecialchars($t['tag']) ?> (<?= $t['count'] ?>)</span>
                     </a>
                 <?php 
                         endforeach;
@@ -124,7 +120,7 @@
                         'params' : {}
                     };
                 </script>
-                <script nonce="<?= csp_nonce() ?>" src="<?= ADSTERRA_INVOKE_BASE_URL ?>/<?= ADSTERRA_160x300_KEY ?>/invoke.js" integrity="sha384-OLBgp1GsljhM2TJ+sbHjaiH9txEUvgdDTAzHv2P24donTt6/529l+9Ua0vFImLlb" crossorigin="anonymous"></script>
+                <script nonce="<?= csp_nonce() ?>" src="<?= ADSTERRA_INVOKE_BASE_URL ?>/<?= ADSTERRA_160x300_KEY ?>/invoke.js" crossorigin="anonymous"></script>
             </div>
         </div>
     </div>

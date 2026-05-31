@@ -16,54 +16,13 @@ $currentPage = min($currentPage, $totalPages);
 
 $pastes = Paste::getAllPastes($perPage, $offset, $search);
 
-// Побудова URL для пагінації
-if (!function_exists('buildUrl')) {
-    function buildUrl(array $params): string {
-        $base = [
-            'page' => $_GET['page'] ?? '',
-            'search' => $_GET['search'] ?? ''
-        ];
-        $merged = array_merge($base, $params);
-        $merged = array_filter($merged, fn($v) => $v !== '' && $v !== null);
-        return '?' . http_build_query($merged);
-    }
-}
+// Побудова URL для пагінації (спільний хелпер)
+require_once __DIR__ . '/helpers.php';
+
+$pageTitle   = 'Управління пастами — Admin Dashboard';
+$currentPage = 'pastes';
+require_once __DIR__ . '/layout/header.php';
 ?>
-<!DOCTYPE html>
-<html lang="uk">
-<head>
-    <meta charset="UTF-8">
-    <title>Управління пастами — Admin Dashboard</title>
-    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
-    <style>
-        body { background: #f4f6f9; }
-        .table > tbody > tr > td { vertical-align: middle; }
-        .pagination { margin: 0; }
-        .page-info { line-height: 34px; }
-    </style>
-</head>
-<body>
-
-<!-- Навігація -->
-<nav class="navbar navbar-inverse" style="border-radius:0;">
-  <div class="container">
-    <div class="navbar-header">
-      <a class="navbar-brand" href="index.php">🛡️ Admin Dashboard</a>
-    </div>
-    <ul class="nav navbar-nav">
-      <li><a href="index.php">Статистика</a></li>
-      <li class="active"><a href="pastes.php">Управління Пастами</a></li>
-      <li><a href="moderation.php">🛡️ Модерація</a></li>
-      <li><a href="users.php">Користувачі</a></li>
-      <li><a href="transactions.php">Транзакції</a></li>
-    </ul>
-    <ul class="nav navbar-nav navbar-right">
-      <li><a href="../index.php">На головний сайт</a></li>
-    </ul>
-  </div>
-</nav>
-
-<div class="container" style="padding-bottom:40px;">
     <div class="row">
         <div class="col-md-6">
             <h2 class="page-header" style="margin-top:0; border:none;">
@@ -210,6 +169,5 @@ document.addEventListener('submit', function(e) {
 });
 </script>
 
-</body>
-</html>
+<?php require_once __DIR__ . '/layout/footer.php';
 

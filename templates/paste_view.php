@@ -6,7 +6,7 @@
 <?php elseif($paste->isExpired()): ?>
     <div class="alert alert-warning text-center" style="border: 3px dashed var(--accent); padding: 30px; background: var(--bg-secondary);">
         <h2>⏰ Ця паста протермінована!</h2>
-        <p>Час життя цієї пасти закінчився <strong><?= $paste->expires_at ?></strong>.</p>
+        <p>Час життя цієї пасти закінчився <strong><?= htmlspecialchars($paste->expires_at) ?></strong>.</p>
         <p class="text-muted">Вона більше недоступна для перегляду.</p>
         <a href="index.php" class="btn btn-default">← На головну</a>
     </div>
@@ -20,9 +20,9 @@
             <h3 class="panel-title">
                 <?= htmlspecialchars($paste->title ?: 'Без назви') ?>
                 <span class="pull-right text-muted" style="font-size:12px;">
-                    Створено: <?= $paste->created_at ?>
+                    Створено: <?= htmlspecialchars($paste->created_at) ?>
                     <?php if($paste->expires_at): ?>
-                        <br><span style="color: var(--accent);">⏰ Зникне: <?= $paste->expires_at ?></span>
+                        <br><span style="color: var(--accent);">⏰ Зникне: <?= htmlspecialchars($paste->expires_at) ?></span>
                     <?php endif; ?>
                 </span>
             </h3>
@@ -166,7 +166,7 @@
                                 'params' : {}
                             };
                         </script>
-                        <script nonce="<?= csp_nonce() ?>" src="<?= ADSTERRA_INVOKE_BASE_URL ?>/<?= ADSTERRA_300x250_KEY ?>/invoke.js" integrity="sha384-OLBgp1GsljhM2TJ+sbHjaiH9txEUvgdDTAzHv2P24donTt6/529l+9Ua0vFImLlb" crossorigin="anonymous"></script>
+                        <script nonce="<?= csp_nonce() ?>" src="<?= ADSTERRA_INVOKE_BASE_URL ?>/<?= ADSTERRA_300x250_KEY ?>/invoke.js" crossorigin="anonymous"></script>
                     </div>
                     <?php endif; ?>
                     
@@ -177,7 +177,7 @@
                             if ($tags):
                                 foreach ($tags as $t):
                         ?>
-                            <a href="index.php?tag=<?= urlencode($t) ?>" class="btn btn-xs btn-default" style="margin-right: 5px; background: <?= Paste::getTagColor($t) ?>; color: #fff; border: 1px solid #000; font-family: 'Comic Sans MS', cursive;">#<?= htmlspecialchars($t) ?></a>
+                            <a href="index.php?tag=<?= urlencode($t) ?>" class="btn btn-xs btn-default" style="margin-right: 5px; background: <?= htmlspecialchars(Paste::getTagColor($t)) ?>; color: #fff; border: 1px solid #000; font-family: 'Comic Sans MS', cursive;">#<?= htmlspecialchars($t) ?></a>
                         <?php 
                                 endforeach;
                             else:
@@ -198,9 +198,9 @@
                         <div style="margin-top: 15px; padding: 15px; border: 2px dashed var(--border-color); background: var(--bg-primary);">
                             <h4>📎 Прикріплений файл:</h4>
                             <?php if(in_array($ext, ['jpg', 'jpeg', 'png', 'gif'])): ?>
-                                <img src="<?= $fileUrl ?>" style="max-width: 100%; height: auto; border: 1px solid var(--border-color);">
+                                <img src="<?= htmlspecialchars($fileUrl) ?>" style="max-width: 100%; height: auto; border: 1px solid var(--border-color);">
                             <?php else: ?>
-                                <a href="<?= $fileUrl ?>" class="btn btn-info" download>⬇️ Завантажити <?= htmlspecialchars($ext) ?> файл</a>
+                                <a href="<?= htmlspecialchars($fileUrl) ?>" class="btn btn-info" download>⬇️ Завантажити <?= htmlspecialchars($ext) ?> файл</a>
                             <?php endif; ?>
                         </div>
                     <?php endif; ?>

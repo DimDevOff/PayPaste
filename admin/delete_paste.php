@@ -17,15 +17,8 @@ if (!isset($_SESSION['role']) || $_SESSION['role'] !== 'admin') {
     exit("Доступ заборонено.");
 }
 
-// 2. Перевірка валідності CSRF-токена
-if (!isset($_POST['csrf_token']) || empty($_SESSION['csrf_token']) || !hash_equals($_SESSION['csrf_token'], $_POST['csrf_token'])) {
-    $_SESSION['error'] = 'Помилка безпеки (CSRF). Спробуйте ще раз.';
-    header('Location: pastes.php');
-    exit();
-}
-
-// Регенеруємо токен після перевірки для запобігання replay-атакам
-$_SESSION['csrf_token'] = bin2hex(random_bytes(32));
+// 2. CSRF перевірка (стандартизована)
+verify_csrf();
 
 $paste_id = $_POST['id'] ?? ''; // Отримуємо ID пасти з POST
 
@@ -56,7 +49,7 @@ if (!$stmt->fetch()) {
 
 // Якщо всі перевірки пройшли успішно — видаляємо пасту
 try {
-    PasteService::delete($paste_id, null); // null = адміністратор
+    PasteService::delete($paste_id, $user); // $user завантажено в check_admin.php, це адмін
     AuditLog::log($_SESSION['user_id'], 'delete_paste', $paste_id);
     $_SESSION['success'] = 'Пасту успішно видалено.';
 } catch (Exception $e) {

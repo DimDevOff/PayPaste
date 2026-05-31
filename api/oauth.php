@@ -30,10 +30,15 @@ if ($provider === 'github') {
             die('GITHUB_CLIENT_ID не налаштований у .env');
         }
         
+        // CSRF protection: generate and store random state parameter
+        $state = bin2hex(random_bytes(16));
+        $_SESSION['oauth_state'] = $state;
+        
         $url = "https://github.com/login/oauth/authorize?" . http_build_query([
             'client_id' => $client_id,
             'redirect_uri' => $redirect_uri,
-            'scope' => 'read:user user:email'
+            'scope' => 'read:user user:email',
+            'state' => $state
         ]);
         
         header("Location: $url");
@@ -41,6 +46,14 @@ if ($provider === 'github') {
     }
 
     $code = $_GET['code'];
+
+    // Verify OAuth state to prevent CSRF attacks
+    $returned_state = $_GET['state'] ?? '';
+    $stored_state = $_SESSION['oauth_state'] ?? '';
+    unset($_SESSION['oauth_state']); // consume the state (one-time use)
+    if (empty($returned_state) || empty($stored_state) || !hash_equals($stored_state, $returned_state)) {
+        die('Помилка безпеки: недійсний OAuth state параметр (можлива CSRF-атака).');
+    }
 
     // Крок 2: Обмін коду на Access Token
     $ch = curl_init();
@@ -67,7 +80,7 @@ if ($provider === 'github') {
     $ch = curl_init();
     curl_setopt($ch, CURLOPT_URL, "https://api.github.com/user");
     curl_setopt($ch, CURLOPT_HTTPHEADER, [
-        "Authorization: Bearer $access_token",
+        "Authorization: Bearer " . $access_token,
         "User-Agent: PayPaste-App",
         "Accept: application/json"
     ]);
@@ -89,7 +102,7 @@ if ($provider === 'github') {
         $ch = curl_init();
         curl_setopt($ch, CURLOPT_URL, "https://api.github.com/user/emails");
         curl_setopt($ch, CURLOPT_HTTPHEADER, [
-            "Authorization: Bearer $access_token",
+            "Authorization: Bearer " . $access_token,
             "User-Agent: PayPaste-App",
             "Accept: application/json"
         ]);
@@ -221,4 +234,3 @@ if ($provider === 'telegram') {
     header("Location: ../index.php");
     exit;
 }
-

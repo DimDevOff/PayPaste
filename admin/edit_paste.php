@@ -20,23 +20,39 @@ $error_msg = '';
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     verify_csrf();
     
-    $paste->title = trim($_POST['title'] ?? '');
-    $paste->content = trim($_POST['content'] ?? '');
-    $paste->is_paid = isset($_POST['is_paid']) ? 1 : 0;
-    $paste->is_private = isset($_POST['is_private']) ? 1 : 0;
-    $paste->view_cost = isset($_POST['is_paid']) ? (int)($_POST['view_cost'] ?? 0) : 0;
-    
-    $expires_at = $_POST['expires_at'] ?? '';
-    if (!empty($expires_at)) {
-        // перетворення формату 'Y-m-d\TH:i' у 'Y-m-d H:i:s'
-        $paste->expires_at = date('Y-m-d H:i:s', strtotime($expires_at));
-    } else {
-        $paste->expires_at = null;
+    // --- Input validation (mirrors PasteService::create() rules) ---
+    $title = trim($_POST['title'] ?? '');
+    if ($title === '') {
+        $title = 'Без назви';
     }
 
-    if (empty($paste->content)) {
+    $content = trim($_POST['content'] ?? '');
+
+    // Validate title length
+    if (mb_strlen($title) > 255) {
+        $error_msg = 'Назва пасти занадто довга! (максимум 255 символів)';
+    } elseif (empty($content)) {
         $error_msg = 'Контент не може бути порожнім.';
-    } else {
+    } elseif (mb_strlen($content) > 100000) {
+        $error_msg = 'Контент пасти занадто великий! (максимум 100 000 символів)';
+    }
+
+    if (!$error_msg) {
+        // Apply validated values
+        $paste->title = $title;
+        $paste->content = $content;
+        $paste->is_paid = isset($_POST['is_paid']) ? 1 : 0;
+        $paste->is_private = isset($_POST['is_private']) ? 1 : 0;
+        $paste->view_cost = isset($_POST['is_paid']) ? (int)($_POST['view_cost'] ?? 0) : 0;
+
+        $expires_at = $_POST['expires_at'] ?? '';
+        if (!empty($expires_at)) {
+            // перетворення формату 'Y-m-d\TH:i' у 'Y-m-d H:i:s'
+            $paste->expires_at = date('Y-m-d H:i:s', strtotime($expires_at));
+        } else {
+            $paste->expires_at = null;
+        }
+
         // Оновлення статусу модерації з валідацією
         $newModStatus = $_POST['moderation_status'] ?? null;
         $allowedStatuses = ['pending', 'approved', 'rejected', 'moderation_failed'];
@@ -49,38 +65,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $success_msg = 'Паста успішно оновлена!';
     }
 }
+
+$pageTitle   = 'Редагування пасти — Admin Dashboard';
+$currentPage = 'pastes';
+require_once __DIR__ . '/layout/header.php';
 ?>
-<!DOCTYPE html>
-<html lang="uk">
-<head>
-    <meta charset="UTF-8">
-    <title>Редагування пасти — Admin Dashboard</title>
-    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
-    <style>
-        body { background: #f4f6f9; }
-    </style>
-</head>
-<body>
-
-<nav class="navbar navbar-inverse" style="border-radius:0;">
-  <div class="container">
-    <div class="navbar-header">
-      <a class="navbar-brand" href="index.php">🛡️ Admin Dashboard</a>
-    </div>
-    <ul class="nav navbar-nav">
-      <li><a href="index.php">Статистика</a></li>
-      <li class="active"><a href="pastes.php">Управління Пастами</a></li>
-      <li><a href="moderation.php">🛡️ Модерація</a></li>
-      <li><a href="users.php">Користувачі</a></li>
-      <li><a href="transactions.php">Транзакції</a></li>
-    </ul>
-    <ul class="nav navbar-nav navbar-right">
-      <li><a href="../index.php">На головний сайт</a></li>
-    </ul>
-  </div>
-</nav>
-
-<div class="container" style="padding-bottom:40px;">
     <h2 class="page-header" style="margin-top:0;">📝 Редагування пасти <?= htmlspecialchars($paste->id) ?></h2>
     
     <?php if ($success_msg): ?>
@@ -177,6 +166,6 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 });
 </script>
-</body>
-</html>
+
+<?php require_once __DIR__ . '/layout/footer.php';
 

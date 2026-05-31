@@ -10,8 +10,11 @@ if (php_sapi_name() !== 'cli') {
     die('Доступ заборонено. Цей скрипт призначений лише для CLI.');
 }
 
+// Worker не потребує сесій, CSRF, кукі — працює в CLI
+define('NO_SESSION', true);
+
+require_once __DIR__ . '/../includes/bootstrap.php';
 require_once __DIR__ . '/../includes/services/PasteService.php';
-require_once __DIR__ . '/../includes/Queue.php';
 
 echo "[" . date('Y-m-d H:i:s') . "] Початок очищення протермінованих паст...\n";
 

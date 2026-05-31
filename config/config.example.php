@@ -27,7 +27,13 @@ define('WEBAUTHN_RP_ID', 'yourdomain.com');
 define('WEBAUTHN_ORIGIN', 'https://yourdomain.com');
 
 // Cookie Secret
-define('COOKIE_SECRET', 'YOUR_SECRET_KEY');
+define('COOKIE_SECRET', 'YOUR_LONG_RANDOM_SECRET_HERE');
+
+// JWT RS256 keys (асиметричні: приватний — підпис, публічний — верифікація)
+// Згенерувати: openssl genpkey -algorithm RSA -out config/keys/jwt-private.pem -pkeyopt rsa_keygen_bits:2048
+//              openssl rsa -pubout -in config/keys/jwt-private.pem -out config/keys/jwt-public.pem
+define('JWT_PRIVATE_KEY', 'file://' . __DIR__ . '/keys/jwt-private.pem');
+define('JWT_PUBLIC_KEY',  'file://' . __DIR__ . '/keys/jwt-public.pem');
 
 // Adsterra — рекламна мережа
 define('ADSTERRA_SOCIAL_BAR_URL',  'https://YOUR_SOCIALBAR_SCRIPT_URL.js');
@@ -54,6 +60,20 @@ define('MAIL_FROM', 'PayPaste <noreply@yourdomain.com>');
 // 3 = легкий тимчасовий fallback, якщо worker недоступний.
 // 10 = агресивний fallback для середовищ без постійного worker-а.
 define('QUEUE_INLINE_PROBABILITY', 0);
+
+// Налаштування лімітів запитів (Rate Limiting)
+define('RATE_LIMITS', [
+    'login'          => ['limit' => 5,   'window' => 60,    'ip_limit' => 150],
+    'register'       => ['limit' => 5,   'window' => 60,    'ip_limit' => 150],
+    'create_paste'   => ['limit' => 5,   'window' => 60,    'ip_limit' => 120],
+    'unlock_paste'   => ['limit' => 10,  'window' => 60,    'ip_limit' => 200],
+    'api_auth'       => ['limit' => 5,   'window' => 60,    'ip_limit' => 150],
+    'ad_verify'      => ['limit' => 12,  'window' => 60,    'ip_limit' => 300],
+    'email_cooldown' => ['limit' => 1,   'window' => 180],
+    'email_daily'    => ['limit' => 3,   'window' => 86400],
+    'api_default'    => ['limit' => 60,  'window' => 60]
+]);
+
 //
 // Запуск worker-а:
 //   sudo systemctl start paypaste-worker     (daemon)

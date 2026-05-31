@@ -76,7 +76,7 @@
                     </div>
                     <div class="panel-body">
                         <p>Миттєва оплата зірками Telegram через бота</p>
-                        <a href="https://t.me/PayPastePayBot?start=<?= $order_id ?>" target="_blank" class="btn btn-info btn-lg btn-block" id="tg-stars-link" style="font-weight: bold;">
+                        <a href="https://t.me/PayPastePayBot?start=<?= urlencode($order_id) ?>" target="_blank" class="btn btn-info btn-lg btn-block" id="tg-stars-link" style="font-weight: bold;">
                             ⭐ Оплатити через Telegram Stars
                         </a>
                         <small class="text-muted" style="display:block; margin-top:8px;">Відкриється в новій вкладці</small>
@@ -90,11 +90,11 @@
             <h4>📋 Як це працює?</h4>
             <ol>
                 <li>Оберіть спосіб оплати та тариф</li>
-                <li>При оплаті через <strong>Donatello</strong> — обов'язково вкажіть ваш код замовлення <code><?= $order_id ?></code> у повідомленні</li>
+                <li>При оплаті через <strong>Donatello</strong> — обов'язково вкажіть ваш код замовлення <code><?= htmlspecialchars($order_id) ?></code> у повідомленні</li>
                 <li>При оплаті через <strong>Telegram Stars</strong> — бот автоматично прив'яже замовлення</li>
                 <li>Кредити зараховуються протягом 5 хвилин після підтвердження оплати</li>
             </ol>
-            <p class="text-muted"><small>Ваш код замовлення: <strong><?= $order_id ?></strong></small></p>
+            <p class="text-muted"><small>Ваш код замовлення: <strong><?= htmlspecialchars($order_id) ?></strong></small></p>
         </div>
 
         <!-- Статус перевірки оплати -->
@@ -139,7 +139,7 @@
                 <div class="alert alert-danger" style="font-size: 15px;">
                     <p><strong>🚨 Увага!</strong> При оплаті через Donatello ви <u>ОБОВ'ЯЗКОВО</u> повинні вказати у полі "Повідомлення" ваш код замовлення:</p>
                     <div class="text-center" style="margin: 15px 0;">
-                        <code style="font-size: 22px; padding: 10px 20px; border: 2px dashed var(--accent); display: inline-block;" id="order-code-display"><?= $order_id ?></code>
+                        <code style="font-size: 22px; padding: 10px 20px; border: 2px dashed var(--accent); display: inline-block;" id="order-code-display"><?= htmlspecialchars($order_id) ?></code>
                         <br>
                         <button type="button" class="btn btn-xs btn-default" style="margin-top: 8px;" id="btn-copy-order-code">📋 Скопіювати код</button>
                     </div>
@@ -174,24 +174,34 @@ document.getElementById('btn-copy-order-code').addEventListener('click', functio
         // Фолбек для старих браузерів
         var tmp = document.createElement('textarea');
         tmp.value = code;
+        tmp.style.position = 'fixed';
+        tmp.style.opacity = '0';
         document.body.appendChild(tmp);
+        tmp.focus();
         tmp.select();
-        document.execCommand('copy');
+        try {
+            document.execCommand('copy');
+            alert('✅ Код скопійовано: ' + code);
+        } catch (e) {
+            console.error('Помилка копіювання (execCommand):', e);
+        }
         document.body.removeChild(tmp);
-        alert('✅ Код скопійовано: ' + code);
     }
 });
 
 // Polling для перевірки статусу оплати
 $(document).ready(function() {
-    var orderId = '<?= $order_id ?>';
+    var orderId = <?= json_encode($order_id) ?>;
     var pollingInterval = null;
     var secondsLeft = 5;
     var isPolling = false;
+    var maxAttempts = 60; // 60 спроб × 3 сек = 3 хвилини
+    var attemptCount = 0;
 
     function startPolling() {
         if (isPolling) return;
         isPolling = true;
+        attemptCount = 0; // скидаємо лічильник при новому запуску
         $('#payment-status').show();
         pollingInterval = setInterval(checkOrderStatus, 3000);
         // Перевірка одразу
@@ -199,6 +209,20 @@ $(document).ready(function() {
     }
 
     function checkOrderStatus() {
+        attemptCount++;
+        if (attemptCount > maxAttempts) {
+            clearInterval(pollingInterval);
+            isPolling = false;
+            $('#payment-status').html(
+                '<div class="alert alert-warning" style="margin-bottom:0;">' +
+                '<span class="glyphicon glyphicon-time"></span> ' +
+                'Час очікування вичерпано. Якщо ви здійснили оплату, ' +
+                'вона буде зарахована автоматично. Оновіть сторінку ' +
+                'або зверніться до підтримки.</div>'
+            );
+            return;
+        }
+
         $.getJSON('api/check_order_status.php', { order_id: orderId }, function(data) {
             if (!data || !data.exists) {
                 return;

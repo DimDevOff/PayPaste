@@ -7,21 +7,48 @@
 require_once __DIR__ . '/../../includes/models/Order.php';
 require_once __DIR__ . '/../../includes/models/User.php';
 require_once __DIR__ . '/../../includes/services/CreditService.php';
+require_once __DIR__ . '/../../includes/RateLimiter.php';
 
-// Очікуваний токен для верифікації запитів від Donatello
-$expected_token = DONATELLO_TOKEN ?: 'PASTE_YOUR_TOKEN';
-$headers = getallheaders();
-$header_token = $headers['X-Donatello-Token'] ?? $headers['X-Token'] ?? $headers['X-Key'] ?? '';
-
-if ($header_token !== $expected_token) {
-    http_response_code(401);
-    echo json_encode(['success' => false, 'message' => 'Не авторизовано']);
+// IP-based rate limiting: не більше 30 запитів на хвилину з однієї IP
+$client_ip = $_SERVER['REMOTE_ADDR'] ?? '0.0.0.0';
+if (!RateLimiter::check('webhook:donatello:' . $client_ip, 30, 60)) {
+    http_response_code(429);
+    echo json_encode(['success' => false, 'message' => 'Забагато запитів. Спробуйте пізніше.']);
     exit;
 }
 
-// Отримання сирих даних запиту
-$input = file_get_contents('php://input');
-$data = json_decode($input, true);
+// Очікуваний токен для верифікації запитів від Donatello
+if (!defined('DONATELLO_TOKEN') || empty(DONATELLO_TOKEN)) {
+    http_response_code(500);
+    echo json_encode(['success' => false, 'message' => 'Сервер не налаштовано: відсутній DONATELLO_TOKEN']);
+    exit;
+}
+
+// Отримання сирих даних запиту (читаємо ОДИН раз — php://input не можна читати повторно)
+$raw_body = file_get_contents('php://input');
+
+// Верифікація заголовка X-Donatello-Token
+$headers = getallheaders();
+$header_token = $headers['X-Donatello-Token'] ?? $headers['X-Token'] ?? $headers['X-Key'] ?? '';
+
+if (!hash_equals(DONATELLO_TOKEN, $header_token)) {
+    http_response_code(401);
+    echo json_encode(['success' => false, 'message' => 'Невірний токен авторизації']);
+    exit;
+}
+
+// HMAC-SHA256 верифікація підпису тіла запиту
+$header_signature = $headers['X-Donatello-Signature'] ?? '';
+$expected_signature = hash_hmac('sha256', $raw_body, DONATELLO_TOKEN);
+
+if (!hash_equals($expected_signature, $header_signature)) {
+    http_response_code(401);
+    echo json_encode(['success' => false, 'message' => 'Невірний підпис запиту']);
+    exit;
+}
+
+// Парсинг JSON з раніше збереженого сирого тіла
+$data = json_decode($raw_body, true);
 
 // Donatello може відправляти дані як JSON або як POST-форми, тому тре це провірити.
 if (!$data && isset($_POST['message'])) {
@@ -49,7 +76,6 @@ echo json_encode(['success' => true]);
  * @param array $donate Дані про донат від Donatello
  */
 function process_donate($donate) {
-    global $expected_token;
     $message = $donate['message'] ?? '';
     $amount = (float)($donate['amount'] ?? 0);
     $pubId = $donate['pubId'] ?? uniqid('don_');

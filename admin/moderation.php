@@ -42,6 +42,29 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     // Після дії — повертаємо на ту ж сторінку
     $redirect = $_POST['redirect'] ?? 'moderation.php';
+
+    // Захист від open redirect: дозволяємо тільки відносні шляхи без scheme/host
+    $parsed = parse_url($redirect);
+    if (isset($parsed['scheme']) || isset($parsed['host'])) {
+        // Абсолютний URL або має схему/хост — заборонено, повертаємо на дефолт
+        $redirect = 'moderation.php';
+    } else {
+        // Видаляємо path traversal (../) з відносного шляху
+        do {
+            $redirect = str_replace('../', '', $redirect, $count);
+        } while ($count > 0);
+        // Також видаляємо спроби обходу через ..\
+        do {
+            $redirect = str_replace('..\\', '', $redirect, $count);
+        } while ($count > 0);
+        // Прибираємо символи переводу рядка (header injection prevention)
+        $redirect = str_replace(["\r", "\n"], '', $redirect);
+        // Якщо після очищення нічого не лишилось — дефолт
+        if ($redirect === '' || $redirect === '/') {
+            $redirect = 'moderation.php';
+        }
+    }
+
     header("Location: $redirect");
     exit;
 }
@@ -89,15 +112,11 @@ $stmtFailed->execute();
 $failedCount = (int)$stmtFailed->fetchColumn();
 
 $needsReview = $pendingCount + $failedCount;
-?>
-<!DOCTYPE html>
-<html lang="uk">
-<head>
-    <meta charset="UTF-8">
-    <title>Модерація — Адмінпанель</title>
-    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
-    <style>
-        body { background: #f4f6f9; }
+
+$pageTitle   = 'Модерація — Адмінпанель';
+$currentPage = 'moderation';
+$navModBadge = $needsReview;
+$pageStyles  = '
         .table > tbody > tr > td { vertical-align: middle; }
         .pagination { margin: 0; }
         .page-info { line-height: 34px; }
@@ -108,7 +127,7 @@ $needsReview = $pendingCount + $failedCount;
             color: #d4d4d4;
             padding: 8px 12px;
             border-radius: 3px;
-            font-family: 'Consolas', 'Monaco', monospace;
+            font-family: \'Consolas\', \'Monaco\', monospace;
             font-size: 12px;
             white-space: pre-wrap;
             word-break: break-all;
@@ -125,32 +144,9 @@ $needsReview = $pendingCount + $failedCount;
         .btn-approve:hover { background-color: #2ecc71; border-color: #2ecc71; color: #fff; }
         .btn-reject { background-color: #c0392b; border-color: #c0392b; color: #fff; }
         .btn-reject:hover { background-color: #e74c3c; border-color: #e74c3c; color: #fff; }
-        .reject-reason { display: none; margin-top: 5px; }
-    </style>
-</head>
-<body>
-
-<!-- Навігація -->
-<nav class="navbar navbar-inverse" style="border-radius:0;">
-  <div class="container">
-    <div class="navbar-header">
-      <a class="navbar-brand" href="index.php">🛡️ Admin Dashboard</a>
-    </div>
-    <ul class="nav navbar-nav">
-      <li><a href="index.php">Статистика</a></li>
-      <li><a href="pastes.php">Управління Пастами</a></li>
-      <li class="active"><a href="moderation.php">🛡️ Модерация <span class="badge" style="background:#e74c3c;"><?= $needsReview ?></span></a></li>
-      <li><a href="users.php">Користувачі</a></li>
-      <li><a href="transactions.php">Транзакції</a></li>
-      <li><a href="queue.php">Черга задач</a></li>
-    </ul>
-    <ul class="nav navbar-nav navbar-right">
-      <li><a href="../index.php">На головний сайт</a></li>
-    </ul>
-  </div>
-</nav>
-
-<div class="container" style="padding-bottom:40px;">
+        .reject-reason { display: none; margin-top: 5px; }';
+require_once __DIR__ . '/layout/header.php';
+?>
     <h2 class="page-header" style="margin-top:0;">
         🛡️ Ручна модерація
         <small><?= number_format($totalCount ?? 0) ?> паст на розгляді</small>
@@ -229,7 +225,7 @@ $needsReview = $pendingCount + $failedCount;
                         <span class="label label-info">⏳ Очікує</span>
                     <?php endif; ?>
                 </td>
-                <td><small><?= date('d.m H:i', strtotime($p['created_at'])) ?></small></td>
+                <td><small><?= date('d.m.Y H:i', strtotime($p['created_at'])) ?></small></td>
                 <td>
                     <!-- Схвалити -->
                     <form method="POST" style="display:inline;" class="form-approve">
@@ -326,5 +322,4 @@ document.addEventListener('submit', function(e) {
 });
 </script>
 
-</body>
-</html>
+<?php require_once __DIR__ . '/layout/footer.php';

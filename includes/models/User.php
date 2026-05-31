@@ -31,7 +31,7 @@ class User {
         $this->credits = $credits;
         $this->unlocked_pastes = $unlocked_pastes;
         $this->role = $role;
-        $this->id = $id ?? uniqid('u_');
+        $this->id = $id ?? 'u_' . bin2hex(random_bytes(8));
         $this->telegram_id = $telegram_id;
         $this->github_id = $github_id;
         $this->theme = $theme;

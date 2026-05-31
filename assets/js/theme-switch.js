@@ -8,7 +8,12 @@
     // Миттєвий перегляд теми при зміні radio-кнопки
     document.querySelectorAll('input[name="theme"]').forEach(function(radio) {
         radio.addEventListener('change', function() {
-            document.documentElement.setAttribute('data-theme', this.value);
+            const allowed = ['retro', 'dark', 'terminal', 'light', 'github-orange', 'retro-green'];
+            if (allowed.indexOf(this.value) !== -1) {
+                document.documentElement.setAttribute('data-theme', this.value);
+            } else {
+                console.warn('Невідома тема:', this.value);
+            }
         });
     });
 

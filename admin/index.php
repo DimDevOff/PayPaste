@@ -1,9 +1,9 @@
 <?php
 require_once __DIR__ . "/check_admin.php";
-include_once __DIR__ . "/../includes/models/User.php";
-include_once __DIR__ . "/../includes/models/Paste.php";
-include_once __DIR__ . "/../includes/models/Transaction.php";
-include_once __DIR__ . "/../includes/Queue.php";
+require_once __DIR__ . "/../includes/models/User.php";
+require_once __DIR__ . "/../includes/models/Paste.php";
+require_once __DIR__ . "/../includes/models/Transaction.php";
+require_once __DIR__ . "/../includes/Queue.php";
 
 $totalPastes = Paste::countAll();
 $totalUsers  = User::countAll();
@@ -16,42 +16,13 @@ $queueMetrics = Queue::getMetrics();
 $stmtPending = DB::getInstance()->getPDO()->prepare("SELECT COUNT(*) FROM pastes WHERE moderation_status IN ('pending','moderation_failed')");
 $stmtPending->execute();
 $modPending = (int)$stmtPending->fetchColumn();
+
+$pageTitle   = 'Панель Адміністратора';
+$currentPage = 'index';
+$pageStyles  = '.stat-number { font-size: 3.5rem; margin: 0; font-weight: 700; }
+        .stat-sub    { font-size: 1.2rem; color: #888; }';
+require_once __DIR__ . '/layout/header.php';
 ?>
-<!DOCTYPE html>
-<html lang="uk">
-<head>
-    <meta charset="UTF-8">
-    <title>Панель Адміністратора</title>
-    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
-    <style>
-        body { background: #f4f6f9; }
-        .stat-number { font-size: 3.5rem; margin: 0; font-weight: 700; }
-        .stat-sub    { font-size: 1.2rem; color: #888; }
-    </style>
-</head>
-<body>
-
-<!-- Навігація -->
-<nav class="navbar navbar-inverse" style="border-radius:0;">
-  <div class="container">
-    <div class="navbar-header">
-      <a class="navbar-brand" href="index.php">🛡️ Admin Dashboard</a>
-    </div>
-    <ul class="nav navbar-nav">
-      <li class="active"><a href="index.php">Статистика</a></li>
-      <li><a href="pastes.php">Управління Пастами</a></li>
-      <li><a href="moderation.php">🛡️ Модерація</a></li>
-      <li><a href="users.php">Користувачі</a></li>
-      <li><a href="transactions.php">Транзакції</a></li>
-      <li><a href="queue.php">Черга задач</a></li>
-    </ul>
-    <ul class="nav navbar-nav navbar-right">
-      <li><a href="../index.php">На головний сайт</a></li>
-    </ul>
-  </div>
-</nav>
-
-<div class="container" style="padding-bottom:40px;">
     <h2 class="page-header">Загальна Статистика</h2>
 
     <div class="row text-center">
@@ -171,6 +142,5 @@ $modPending = (int)$stmtPending->fetchColumn();
     <?php endif; ?>
 </div>
 
-</body>
-</html>
+<?php require_once __DIR__ . '/layout/footer.php';
 

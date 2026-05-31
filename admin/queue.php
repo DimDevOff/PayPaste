@@ -50,44 +50,17 @@ $totalPages = max(1, ceil($totalJobs / $perPage));
 
 // Типи задач для фільтра
 $jobTypes = Queue::getTypes();
-?>
-<!DOCTYPE html>
-<html lang="uk">
-<head>
-    <meta charset="UTF-8">
-    <title>Черга задач — Адмінпанель</title>
-    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
-    <style>
-        body { background: #f4f6f9; }
+
+$pageTitle   = 'Черга задач — Адмінпанель';
+$currentPage = 'queue';
+$pageStyles  = '
         .status-queued { color: #31708f; font-weight: bold; }
         .status-processing { color: #8a6d3b; font-weight: bold; }
         .status-completed { color: #3c763d; font-weight: bold; }
         .status-failed { color: #a94442; font-weight: bold; }
-        .status-dead { color: #777; font-weight: bold; text-decoration: line-through; }
-    </style>
-</head>
-<body>
-
-<nav class="navbar navbar-inverse" style="border-radius:0;">
-  <div class="container">
-    <div class="navbar-header">
-      <a class="navbar-brand" href="index.php">🛡️ Admin Dashboard</a>
-    </div>
-    <ul class="nav navbar-nav">
-      <li><a href="index.php">Статистика</a></li>
-      <li><a href="pastes.php">Управління Пастами</a></li>
-      <li><a href="moderation.php">🛡️ Модерація</a></li>
-      <li><a href="users.php">Користувачі</a></li>
-      <li><a href="transactions.php">Транзакції</a></li>
-      <li class="active"><a href="queue.php">Черга задач</a></li>
-    </ul>
-    <ul class="nav navbar-nav navbar-right">
-      <li><a href="../index.php">На головний сайт</a></li>
-    </ul>
-  </div>
-</nav>
-
-<div class="container" style="padding-bottom:40px;">
+        .status-dead { color: #777; font-weight: bold; text-decoration: line-through; }';
+require_once __DIR__ . '/layout/header.php';
+?>
     <h2 class="page-header">🔄 Черга фонових задач</h2>
 
     <!-- Метрики -->
@@ -214,5 +187,4 @@ $jobTypes = Queue::getTypes();
     <?php endif; ?>
 </div>
 
-</body>
-</html>
+<?php require_once __DIR__ . '/layout/footer.php';

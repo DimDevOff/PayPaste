@@ -152,6 +152,13 @@ try {
 
     // Завершення входу: верифікація підпису пристрою та авторизація сесії
     case 'login_finish':
+        $csrf_token = $_SERVER['HTTP_X_CSRF_TOKEN'] ?? '';
+
+        if (!verify_csrf_api($csrf_token)) {
+            echo json_encode(['success' => false, 'error' => 'Помилка перевірки CSRF']);
+            exit;
+        }
+
         $input = file_get_contents('php://input');
         $data = json_decode($input, true);
 
@@ -214,6 +221,13 @@ try {
 
     // Підтвердження видалення акаунта: перевірка володіння ключем перед деструктивною дією
     case 'confirm_delete_finish':
+        $csrf_token = $_SERVER['HTTP_X_CSRF_TOKEN'] ?? '';
+
+        if (!verify_csrf_api($csrf_token)) {
+            echo json_encode(['success' => false, 'error' => 'Помилка перевірки CSRF']);
+            exit;
+        }
+
         if (!isset($_SESSION['user_id'])) {
             echo json_encode(['success' => false, 'error' => 'Не авторизовано']);
             exit;

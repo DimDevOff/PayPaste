@@ -8,6 +8,7 @@ session_start();
 require_once __DIR__ . '/../config/db.php';
 require_once __DIR__ . '/../includes/models/Paste.php';
 require_once __DIR__ . '/../includes/models/User.php';
+require_once __DIR__ . '/../includes/security_headers.php';
 
 $paste_id = $_GET['id'] ?? null;
 
@@ -58,20 +59,27 @@ if (empty($files)) {
 
 $filePath = $files[0];
 $fileName = basename($filePath);
+$safeFileName = preg_replace('/[\r\n]+/', '', $fileName);
 $fileExt = strtolower(pathinfo($fileName, PATHINFO_EXTENSION));
 
-// Визначення MIME-типу
-$mimeTypes = [
-    'jpg'  => 'image/jpeg',
-    'jpeg' => 'image/jpeg',
-    'png'  => 'image/png',
-    'gif'  => 'image/gif',
-    'pdf'  => 'application/pdf',
-    'zip'  => 'application/zip',
-    'txt'  => 'text/plain'
-];
+// Визначення MIME-типу через finfo (надійніше за mime_content_type)
+$finfo = finfo_open(FILEINFO_MIME_TYPE);
+$contentType = finfo_file($finfo, $filePath);
+finfo_close($finfo);
 
-$contentType = $mimeTypes[$fileExt] ?? 'application/octet-stream';
+// Фолбек на статичну мапу, якщо finfo повернув загальний тип
+if (!$contentType || $contentType === 'application/octet-stream') {
+    $mimeFallback = [
+        'jpg'  => 'image/jpeg',
+        'jpeg' => 'image/jpeg',
+        'png'  => 'image/png',
+        'gif'  => 'image/gif',
+        'pdf'  => 'application/pdf',
+        'zip'  => 'application/zip',
+        'txt'  => 'text/plain'
+    ];
+    $contentType = $mimeFallback[$fileExt] ?? 'application/octet-stream';
+}
 
 // Відправка заголовків
 header('Content-Type: ' . $contentType);
@@ -79,9 +87,9 @@ header('Content-Length: ' . filesize($filePath));
 
 // Якщо це не зображення, змушуємо завантажувати
 if (!in_array($fileExt, ['jpg', 'jpeg', 'png', 'gif'])) {
-    header('Content-Disposition: attachment; filename="' . $fileName . '"');
+    header('Content-Disposition: attachment; filename="' . $safeFileName . '"');
 } else {
-    header('Content-Disposition: inline; filename="' . $fileName . '"');
+    header('Content-Disposition: inline; filename="' . $safeFileName . '"');
 }
 
 // Віддача контенту файлу

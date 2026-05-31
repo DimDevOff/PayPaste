@@ -8,12 +8,18 @@ $secret = $_SERVER['HTTP_X_TELEGRAM_BOT_API_SECRET_TOKEN'] ?? '';
 if (!defined('TELEGRAM_WEBHOOK_SECRET') || empty(TELEGRAM_WEBHOOK_SECRET) || !hash_equals(TELEGRAM_WEBHOOK_SECRET, $secret)) {
     http_response_code(401);
     header('Content-Type: application/json');
-    echo json_encode(['error' => 'unauthorized']);
+    echo json_encode(['error' => 'несанкціонований доступ']);
     exit;
 }
 
-// Токен бота. Отримуємо з .env файлу або залишаємо дефолт
-$bot_token = TELEGRAM_BOT_TOKEN ?: 'YOUR_BOT_TOKEN_HERE'; 
+// Токен бота. Обов'язково повинен бути налаштований у .env
+if (!defined('TELEGRAM_BOT_TOKEN') || empty(TELEGRAM_BOT_TOKEN)) {
+    http_response_code(500);
+    header('Content-Type: application/json');
+    echo json_encode(['error' => 'TELEGRAM_BOT_TOKEN не налаштований']);
+    exit;
+}
+$bot_token = TELEGRAM_BOT_TOKEN;
 
 $input = file_get_contents('php://input');
 $update = json_decode($input, true);
@@ -153,7 +159,7 @@ if (isset($update['message']['successful_payment'])) {
             $order->status = 'completed';
             $order->amount_credits = $credits;
             $order->service = 'tg_stars';
-            $order->external_provider_id = $payment['telegram_payment_charge_id'] ?? 'tg_'.time();
+            $order->external_provider_id = $payment['telegram_payment_charge_id'] ?? bin2hex(random_bytes(16));
             $order->save();
 
             tgRequest('sendMessage', [

@@ -1,7 +1,7 @@
 </div> <!-- Кінець контейнера -->
 
 <footer class="text-center" style="margin-top: 50px; padding: 20px;">
-    <p>PayPaste &copy; 1776613860-<?= time() ?> (Unix)</p>
+    <p>PayPaste &copy; 1776613860-<?= (int) time() ?> (Unix)</p>
     <p>Зроблено за вимогами курсу "Вебтехнології". Всі права можливо захищені</p>
     <div class="old-school-badges" style="margin-top: 15px; margin-bottom: 15px; opacity: 0.9; image-rendering: pixelated;">
         <a title="Valid HTML 4.01" href="https://www.w3.org/TR/html401/"><img src="https://www.w3.org/Icons/valid-html401" alt="Valid HTML 4.01!" height="31" width="88" style="border:0; margin: 2px;"></a>
@@ -31,18 +31,18 @@
                     'params' : {}
                 };
             </script>
-            <script nonce="<?= csp_nonce() ?>" src="<?= ADSTERRA_INVOKE_BASE_URL ?>/<?= ADSTERRA_300x250_KEY ?>/invoke.js" integrity="sha384-OLBgp1GsljhM2TJ+sbHjaiH9txEUvgdDTAzHv2P24donTt6/529l+9Ua0vFImLlb" crossorigin="anonymous"></script>
+            <script nonce="<?= csp_nonce() ?>" src="<?= ADSTERRA_INVOKE_BASE_URL ?>/<?= ADSTERRA_300x250_KEY ?>/invoke.js" crossorigin="anonymous"></script>
         </div>
     </div>
     <?php endif; ?>
 
     <!-- Adsterra: Popunder (глобально) -->
     <?php if (!isset($hide_ads) || !$hide_ads): ?>
-    <script nonce="<?= csp_nonce() ?>" src="<?= ADSTERRA_POPUNDER_URL ?>" integrity="sha384-OLBgp1GsljhM2TJ+sbHjaiH9txEUvgdDTAzHv2P24donTt6/529l+9Ua0vFImLlb" crossorigin="anonymous"></script>
+    <script nonce="<?= csp_nonce() ?>" src="<?= ADSTERRA_POPUNDER_URL ?>" crossorigin="anonymous"></script>
     <?php endif; ?>
 </footer>
 
-<script nonce="<?= csp_nonce() ?>" src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
+<script nonce="<?= csp_nonce() ?>" src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js" integrity="sha384-aJ21OjlMXNL5UyIl/XNwTMqvzeRMZH2w8c5cRVpzpU8Y5bApTppSuUkhZXN0VxHd" crossorigin="anonymous"></script>
 <script nonce="<?= csp_nonce() ?>" src="assets/js/app.js"></script>
 <script nonce="<?= csp_nonce() ?>" src="assets/js/passkey.js?v=1.4"></script>
 <script nonce="<?= csp_nonce() ?>" src="assets/js/theme-switch.js?v=1.0"></script>

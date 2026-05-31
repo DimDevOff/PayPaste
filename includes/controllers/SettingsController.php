@@ -72,7 +72,8 @@ class SettingsController {
         }
 
         try {
-            PasteService::delete($paste_id, $_SESSION['user_id']);
+            $user = User::findById($_SESSION['user_id']);
+            PasteService::delete($paste_id, $user);
             $_SESSION['success'] = "Пасту видалено!";
             header("Location: settings.php");
             exit;

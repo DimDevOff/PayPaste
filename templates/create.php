@@ -137,7 +137,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const isPaidCheck = document.getElementById('is_paid');
     if (!isPaidCheck) return;
     
-    const maxCredits = <?= isset($_SESSION['user_id']) ? User::findById($_SESSION['user_id'])->credits : 0 ?>;
+    const maxCredits = <?= isset($_SESSION['user_id']) ? json_encode((int)(User::findById($_SESSION['user_id'])->credits ?? 0)) : '0' ?>;
     const contentArea = document.querySelector('textarea[name="content"]');
     const viewCostContainer = document.getElementById('view_cost_container');
     const viewCostInput = document.getElementById('view_cost');

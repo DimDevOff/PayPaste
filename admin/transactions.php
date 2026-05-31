@@ -23,53 +23,20 @@ $typeLabels = [
     'creation_fee' => ['label' => 'warning', 'icon' => '✍️', 'text' => 'Комісія за створення'],
 ];
 
-// Побудова URL для пагінації/фільтрів
-function buildUrl(array $params): string {
-    $base = array_filter(['type' => $_GET['type'] ?? '', 'page' => $_GET['page'] ?? '']);
-    $merged = array_merge($base, $params);
-    $merged = array_filter($merged, fn($v) => $v !== '' && $v !== null);
-    return '?' . http_build_query($merged);
-}
-?>
-<!DOCTYPE html>
-<html lang="uk">
-<head>
-    <meta charset="UTF-8">
-    <title>Транзакції — Admin Dashboard</title>
-    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
-    <style>
-        body { background: #f4f6f9; }
-        .amount-positive { color: #27ae60; font-weight: bold; }
+// Побудова URL для пагінації/фільтрів (спільний хелпер)
+require_once __DIR__ . '/helpers.php';
+
+$pageTitle   = 'Транзакції — Admin Dashboard';
+$currentPage = 'transactions';
+$pageStyles  = '.amount-positive { color: #27ae60; font-weight: bold; }
         .amount-negative { color: #c0392b; font-weight: bold; }
         .filter-bar { margin-bottom: 20px; }
         .table > tbody > tr > td { vertical-align: middle; }
         .user-cell small { color: #888; display: block; }
         .pagination { margin: 0; }
-        .page-info { line-height: 34px; }
-    </style>
-</head>
-<body>
-
-<!-- Навігація -->
-<nav class="navbar navbar-inverse" style="border-radius:0;">
-  <div class="container">
-    <div class="navbar-header">
-      <a class="navbar-brand" href="index.php">🛡️ Admin Dashboard</a>
-    </div>
-    <ul class="nav navbar-nav">
-      <li><a href="index.php">Статистика</a></li>
-      <li><a href="pastes.php">Управління Пастами</a></li>
-      <li><a href="moderation.php">🛡️ Модерація</a></li>
-      <li><a href="users.php">Користувачі</a></li>
-      <li class="active"><a href="transactions.php">💳 Транзакції</a></li>
-    </ul>
-    <ul class="nav navbar-nav navbar-right">
-      <li><a href="../index.php">На головний сайт</a></li>
-    </ul>
-  </div>
-</nav>
-
-<div class="container" style="padding-bottom:40px;">
+        .page-info { line-height: 34px; }';
+require_once __DIR__ . '/layout/header.php';
+?>
     <h2 class="page-header">
         💳 Історія Транзакцій
         <small><?= number_format($totalCount ?? 0) ?> записів</small>
@@ -207,6 +174,5 @@ function buildUrl(array $params): string {
     <?php endif; ?>
 
 </div>
-</body>
-</html>
+<?php require_once __DIR__ . '/layout/footer.php';
 

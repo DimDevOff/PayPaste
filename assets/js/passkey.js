@@ -214,7 +214,11 @@ async function registerPasskey(initialNickname) {
         };
 
         // Зчитуємо CSRF-токен зі схованого поля форми для захисту від CSRF-атак
-        const csrfToken = document.querySelector('input[name="csrf_token"]')?.value || '';
+        const csrfInput = document.querySelector('input[name="csrf_token"]');
+        const csrfToken = csrfInput?.value || '';
+        if (!csrfToken) {
+            console.warn('CSRF token not found in DOM, request may be rejected');
+        }
 
         // КРОК 5: Відправляємо дані на сервер для верифікації attestation
         const finishResp = await fetch('api/passkey.php?action=register_finish', {
@@ -393,7 +397,11 @@ async function deletePasskey(passkeyId) {
 
     try {
         // Зчитуємо CSRF-токен для захисту POST-запиту
-        const csrfToken = document.querySelector('input[name="csrf_token"]')?.value || '';
+        const csrfInput = document.querySelector('input[name="csrf_token"]');
+        const csrfToken = csrfInput?.value || '';
+        if (!csrfToken) {
+            console.warn('CSRF token not found in DOM, request may be rejected');
+        }
 
         // Відправляємо запит на видалення (form-encoded, не JSON)
         const resp = await fetch('api/passkey.php?action=delete', {
@@ -510,6 +518,9 @@ async function confirmDeleteAccountPasskey() {
             csrfInput.type = 'hidden';
             csrfInput.name = 'csrf_token';
             csrfInput.value = document.querySelector('input[name="csrf_token"]')?.value || '';
+            if (!csrfInput.value) {
+                console.warn('CSRF token not found in DOM, account deletion request may be rejected');
+            }
 
             // Поле action — вказує серверу що потрібно видалити акаунт
             const actionInput = document.createElement('input');

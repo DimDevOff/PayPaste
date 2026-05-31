@@ -31,7 +31,6 @@ if (!$paste) {
         $is_author = ($paste->user_id === $user->id);
     }
     if (!$is_author && !$is_admin) {
-        header("HTTP/1.0 403 Forbidden");
         $paste = null;
         $_SESSION['error'] = "Ця паста тимчасово недоступна, вона проходить AI-переписування.";
         header("Location: index.php");
@@ -43,7 +42,6 @@ if (!$paste) {
         $is_author = ($paste->user_id === $user->id);
     }
     if (!$is_author && !$is_admin) {
-        header("HTTP/1.0 403 Forbidden");
         $paste = null;
         $_SESSION['error'] = "Ця паста проходить перевірку модерації та незабаром стане доступною.";
         header("Location: index.php");
@@ -55,7 +53,6 @@ if (!$paste) {
         $is_author = ($paste->user_id === $user->id);
     }
     if (!$is_author && !$is_admin) {
-        header("HTTP/1.0 403 Forbidden");
         $paste = null;
         $_SESSION['error'] = "Ця паста була відхилена модерацією та недоступна.";
         header("Location: index.php");
@@ -67,7 +64,6 @@ if (!$paste) {
         $is_author = ($paste->user_id === $user->id);
     }
     if (!$is_author && !$is_admin) {
-        header("HTTP/1.0 403 Forbidden");
         $paste = null;
         $_SESSION['error'] = "Модерація цієї пасти не завершилася через технічний збій. Вона недоступна до ручної перевірки.";
         header("Location: index.php");
@@ -79,7 +75,6 @@ if (!$paste) {
     }
     // Серверна перевірка доступу до приватної пасти
     if (!$is_author && !$is_admin) {
-        header("HTTP/1.0 403 Forbidden");
         $paste = null; // Ховаємо контент
         $_SESSION['error'] = "У вас немає доступу до цієї приватної пасти.";
         header("Location: index.php");

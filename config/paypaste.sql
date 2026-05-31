@@ -36,7 +36,9 @@ CREATE TABLE IF NOT EXISTS pastes (
     language VARCHAR(50) DEFAULT 'plaintext',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE SET NULL,
-    INDEX idx_moderation_status (moderation_status)
+    INDEX idx_moderation_status (moderation_status),
+    INDEX idx_user_id (user_id),
+    INDEX idx_created_at (created_at)
 );
 
 -- Таблиця для куплених підписок/доступів до платних паст

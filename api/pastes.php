@@ -54,6 +54,9 @@ function handleGet($id, $user) {
         }
     }
     
+    // Стягуємо плату за API запит ТІЛЬКИ після успішного виконання операції
+    charge_api_request($user);
+    
     json_response([
         'id' => $paste->id,
         'title' => $paste->title,
@@ -106,6 +109,9 @@ function handlePost($user) {
             'mod_check:' . $paste->id
         );
         
+        // Стягуємо плату за API запит ТІЛЬКИ після успішного створення
+        charge_api_request($user);
+
         json_response([
             'id' => $paste->id,
             'url' => APP_URL . "/view.php?id=" . $paste->id,
@@ -134,7 +140,9 @@ function handleDelete($id, $user) {
     if (!$id) json_response(['error' => 'ID пасти обов\'язковий.'], 400);
     
     try {
-        PasteService::delete($id, $user->id);
+        PasteService::delete($id, $user);
+        // Стягуємо плату за API запит ТІЛЬКИ після успішного видалення
+        charge_api_request($user);
         json_response(['success' => true, 'message' => 'Пасту видалено.']);
     } catch (Exception $e) {
         $msg = $e->getMessage();

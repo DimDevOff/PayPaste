@@ -54,7 +54,6 @@ $CURL_TIMEOUT = 30;       // Таймаут для зовнішніх API-вик
 $logDir = __DIR__ . '/../data/logs';
 if (!is_dir($logDir)) {
     mkdir($logDir, 0700, true);
-} else {
     chmod($logDir, 0700);
 }
 
@@ -66,8 +65,11 @@ function workerLog(string $msg): void {
     $ts = date('Y-m-d H:i:s');
     $line = "[$ts] $msg\n";
     $logFile = $logDir . '/worker.log';
+    $isNewLog = !file_exists($logFile);
     file_put_contents($logFile, $line, FILE_APPEND | LOCK_EX);
-    chmod($logFile, 0600);
+    if ($isNewLog) {
+        chmod($logFile, 0600);
+    }
 }
 
 // Обробники задач

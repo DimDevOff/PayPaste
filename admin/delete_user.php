@@ -17,15 +17,8 @@ if (!isset($_SESSION['role']) || $_SESSION['role'] !== 'admin') {
     exit("Доступ заборонено.");
 }
 
-// 2. Перевірка валідності CSRF-токена
-if (!isset($_POST['csrf_token']) || empty($_SESSION['csrf_token']) || !hash_equals($_SESSION['csrf_token'], $_POST['csrf_token'])) {
-    $_SESSION['error'] = 'Помилка безпеки (CSRF). Спробуйте ще раз.';
-    header('Location: users.php');
-    exit();
-}
-
-// Регенеруємо токен після перевірки для запобігання replay-атакам
-$_SESSION['csrf_token'] = bin2hex(random_bytes(32));
+// 2. CSRF перевірка (стандартизована)
+verify_csrf();
 
 $user_id = $_POST['id'] ?? ''; // Отримуємо ID користувача з POST
 

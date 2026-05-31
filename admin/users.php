@@ -15,55 +15,14 @@ $currentPage = min($currentPage, $totalPages);
 
 $users = User::getAll($perPage, $offset, $search);
 
-// Побудова URL для пагінації
-if (!function_exists('buildUrl')) {
-    function buildUrl(array $params): string {
-        $base = [
-            'page' => $_GET['page'] ?? '',
-            'search' => $_GET['search'] ?? ''
-        ];
-        $merged = array_merge($base, $params);
-        $merged = array_filter($merged, fn($v) => $v !== '' && $v !== null);
-        return '?' . http_build_query($merged);
-    }
-}
+// Побудова URL для пагінації (спільний хелпер)
+require_once __DIR__ . '/helpers.php';
+
+$pageTitle   = 'Користувачі — Admin Dashboard';
+$currentPage = 'users';
+$pageStyles  = '.user-cell small { color: #888; display: block; }';
+require_once __DIR__ . '/layout/header.php';
 ?>
-<!DOCTYPE html>
-<html lang="uk">
-<head>
-    <meta charset="UTF-8">
-    <title>Користувачі — Admin Dashboard</title>
-    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
-    <style>
-        body { background: #f4f6f9; }
-        .table > tbody > tr > td { vertical-align: middle; }
-        .user-cell small { color: #888; display: block; }
-        .pagination { margin: 0; }
-        .page-info { line-height: 34px; }
-    </style>
-</head>
-<body>
-
-<!-- Навігація -->
-<nav class="navbar navbar-inverse" style="border-radius:0;">
-  <div class="container">
-    <div class="navbar-header">
-      <a class="navbar-brand" href="index.php">🛡️ Admin Dashboard</a>
-    </div>
-    <ul class="nav navbar-nav">
-      <li><a href="index.php">Статистика</a></li>
-      <li><a href="pastes.php">Управління Пастами</a></li>
-      <li><a href="moderation.php">🛡️ Модерація</a></li>
-      <li class="active"><a href="users.php">Користувачі</a></li>
-      <li><a href="transactions.php">Транзакції</a></li>
-    </ul>
-    <ul class="nav navbar-nav navbar-right">
-      <li><a href="../index.php">На головний сайт</a></li>
-    </ul>
-  </div>
-</nav>
-
-<div class="container" style="padding-bottom:40px;">
     <div class="row">
         <div class="col-md-6">
             <h2 class="page-header" style="margin-top:0; border:none;">
@@ -197,16 +156,5 @@ if (!function_exists('buildUrl')) {
     <?php endif; ?>
 </div>
 
-<script nonce="<?= csp_nonce() ?>">
-document.addEventListener('submit', function(e) {
-    if (e.target.classList.contains('form-confirm-delete-user')) {
-        if (!confirm('Видалення є незворотнім. Видалити користувача?')) {
-            e.preventDefault();
-        }
-    }
-});
-</script>
-
-</body>
-</html>
+<?php require_once __DIR__ . '/layout/footer.php';
 

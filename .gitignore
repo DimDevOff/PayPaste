@@ -2,6 +2,7 @@
 .env
 config/config.php
 config/bad_words.json
+config/keys/
 
 # Завантажені файли
 uploads/

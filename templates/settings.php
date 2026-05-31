@@ -507,14 +507,7 @@ document.addEventListener('submit', function(e) {
     });
 })();
 
-// Підтвердження видалення акаунта
-document.getElementById('btn-confirm-delete-account').addEventListener('click', function(e) {
-    if (!confirm('ВИ ВПЕВНЕНІ? Ця дія НЕЗВОРОТНА!')) {
-        e.preventDefault();
-        var form = this.closest('form');
-        if (form) form.dataset.confirmed = '';
-    }
-});
+// Підтвердження видалення акаунта (тільки на submit форми, без дублювання)
 document.getElementById('btn-confirm-delete-account').closest('form').addEventListener('submit', function(e) {
     if (!confirm('ВИ ВПЕВНЕНІ? Ця дія НЕЗВОРОТНА!')) {
         e.preventDefault();

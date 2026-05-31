@@ -43,7 +43,7 @@ class Mailer {
             CURLOPT_POSTFIELDS     => $payload,
             CURLOPT_TIMEOUT        => 30, // Таймаут 30 секунд
             CURLOPT_HTTPHEADER     => [
-                'Authorization: Bearer ' . $apiKey,
+                'Authorization: Bearer ' . RESEND_API_KEY,
                 'Content-Type: application/json'
             ]
         ]);

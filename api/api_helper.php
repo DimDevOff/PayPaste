@@ -33,7 +33,15 @@ function authenticate_api() {
         json_response(['error' => 'Занадто багато запитів (Rate Limit).'], 429);
     }
     
-    // ПЛАТНИЙ ЗАПИТ: За ідеєю сервісу, кожен запит знімає 1 кредит
+    return $user;
+}
+
+/**
+ * Знімає плату за API запит (1 кредит).
+ * Викликається ТІЛЬКИ після успішного виконання операції,
+ * щоб уникнути втрати кредитів при помилках після автентифікації.
+ */
+function charge_api_request($user) {
     $api_fee = 1;
     if (!CreditService::hasEnoughCredits($user, $api_fee)) {
         json_response([
@@ -42,11 +50,7 @@ function authenticate_api() {
             'balance' => $user->credits
         ], 402);
     }
-
-    // Списуємо кредит та записуємо транзакцію через CreditService
     CreditService::deduct($user, $api_fee, 'api_usage', 'Плата за API запит');
-
-    return $user;
 }
 
 /**

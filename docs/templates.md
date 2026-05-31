@@ -213,7 +213,7 @@ Entry Point (кореневий .php)
 
 #### CSS/JS залежності
 
-- `bootstrap/3.3.7/css/bootstrap.min.css` (CDN)
+- `bootstrap/3.4.1/css/bootstrap.min.css` (CDN)
 - `assets/css/style.css` (локальний, з cache-bust `?v=filemtime`)
 - `jquery/3.6.0.min.js` (CDN)
 - Adsterra Social Bar (умовно)
@@ -242,7 +242,7 @@ Entry Point (кореневий .php)
 
 #### CSS/JS залежності
 
-- `bootstrap/3.3.7/js/bootstrap.min.js` (CDN)
+- `bootstrap/3.4.1/js/bootstrap.min.js` (CDN)
 - `assets/js/app.js` (локальний)
 - `assets/js/passkey.js` (локальний, cache-bust `?v=1.4`)
 - `assets/js/theme-switch.js` (локальний, cache-bust `?v=1.0`)

@@ -26,7 +26,7 @@ assets/
 | Ресурс             | Де підключається   | Примітка                          |
 | ------------------ | ------------------ | --------------------------------- |
 | jQuery 3.6.0       | `header.php` (CDN) | Залежність для `app.js`           |
-| Bootstrap 3.3.7 JS | `footer.php` (CDN) | Підключається після jQuery        |
+| Bootstrap 3.4.1 JS | `footer.php` (CDN) | Підключається після jQuery        |
 | `style.css`        | `header.php`       | З кеш-бастингом `?v=filemtime`    |
 | `app.js`           | `footer.php`       | Після Bootstrap JS                |
 | `passkey.js`       | `footer.php`       | Версія `?v=1.4`                   |
@@ -373,7 +373,7 @@ WebAuthn API працює з `ArrayBuffer`, а JSON-передача — з ря
 | `theme-switch.js` | `style.css`                       | Зміна `data-theme` → активація CSS-змінних        |
 | `logo.png`        | `templates/header.php`            | favicon + navbar + og:image                       |
 | jQuery 3.6.0      | `app.js`                          | Обов'язкова залежність                            |
-| Bootstrap 3.3.7   | `style.css`                       | Базові класи, які перевизначаються                |
+| Bootstrap 3.4.1   | `style.css`                       | Базові класи, які перевизначаються                |
 
 ---
 

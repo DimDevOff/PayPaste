@@ -8,18 +8,20 @@ if (!$user) {
     exit;
 }
 
-// Генерація ID замовлення
-$order_id = 'order_' . substr(md5($user->id . time()), 0, 8);
+// Генерація ID замовлення та створення замовлення лише при натисканні кнопки оплати
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $order_id = 'order_' . bin2hex(random_bytes(8));
 
-require_once __DIR__ . '/includes/models/Order.php';
-$order = new Order([ // Створення нового замовлення
-    'id' => $order_id,
-    'user_id' => $user->id,
-    'service' => 'unknown',
-    'amount_credits' => 0,
-    'status' => 'pending'
-]);
-$order->save();
+    require_once __DIR__ . '/includes/models/Order.php';
+    $order = new Order([
+        'id' => $order_id,
+        'user_id' => $user->id,
+        'service' => 'unknown',
+        'amount_credits' => 0,
+        'status' => 'pending'
+    ]);
+    $order->save();
+}
 
 // Завантаження всіх View і головного шаблону сторінки поповнення балансу
 require_once __DIR__ . '/templates/header.php';
