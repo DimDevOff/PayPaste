@@ -52,13 +52,8 @@ if (!defined('SECURITY_HEADERS_SENT')) {
         // https: дозволяє будь-які зовнішні скрипти через HTTPS
         "script-src 'strict-dynamic' 'nonce-{$nonce}' 'unsafe-inline' 'unsafe-eval' https: http:",
 
-        // script-src-elem для CSP2-fallback браузерів
-        "script-src-elem 'strict-dynamic' 'nonce-{$nonce}' 'unsafe-inline' 'unsafe-eval'"
-            . " https://code.jquery.com"
-            . " https://maxcdn.bootstrapcdn.com"
-            . " https://cdnjs.cloudflare.com"
-            . " https://telegram.org"
-            . " https://static.cloudflareinsights.com",
+        // script-src-elem: https: дозволяє будь-які зовнішні скрипти (Adsterra, CDN тощо)
+        "script-src-elem 'strict-dynamic' 'nonce-{$nonce}' 'unsafe-inline' 'unsafe-eval' https:",
 
         // Стилі
         "style-src 'self' 'unsafe-inline'"
