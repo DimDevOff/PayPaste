@@ -25,3 +25,9 @@ Thumbs.db
 .agents/
 .pi-lens
 AGENTS.md
+
+# Saved web pages
+*.htm
+*.html
+!templates/*.html
+!templates/*.htm
