@@ -171,44 +171,44 @@
     --danger: #d32f2f;
 }
 
-/* GitHub Orange Dark — темна тема з помаранчевим акцентом */
-[data-theme="github-orange"] {
-    --bg-primary: #0d0d0d;
-    --bg-secondary: #1b1b1b;
-    --text-primary: #e0e0e0;
-    --text-secondary: #c6c6c6;
-    --text-muted: #777777;
-    --accent: #FF9000;
-    --accent-hover: #e68200;
-    --accent-text: #000000;
-    --border-color: #333333;
-    --panel-header-bg: #000000;
-    --panel-header-text: #FF9000;
-    --panel-body-bg: #1b1b1b;
-    --navbar-bg: #000000;
-    --navbar-text: #999999;
-    --navbar-link: #e0e0e0;
-    --footer-bg: #000000;
-    --footer-text: #999999;
-    --link-color: #FF9000;
-    --ad-bg: #1a0d00;
-    --ad-border: #FF9000;
-    --ad-text: #FF9000;
-    --btn-accent-bg: #FF9000;
-    --btn-accent-text: #000000;
-    --btn-accent-border: #e68200;
-    --table-header-bg: #1a1a1a;
-    --table-header-text: #c6c6c6;
-    --input-bg: #2a2a2a;
-    --input-text: #e0e0e0;
-    --input-border: #444444;
-    --code-bg: #1b1b1b;
-    --panel-info-bg: #1a0d00;
-    --panel-info-border: #FF9000;
-    --panel-danger-bg: #1a0000;
-    --panel-danger-border: #ff4444;
-    --success: #2ea44f;
-    --danger: #f85149;
+/* GitHub — темна тема в стилі GitHub Dark (збережена сторінка pewdiepie-archdaemon/odysseus) */
+[data-theme="github"] {
+    --bg-primary: #0d1117;
+    --bg-secondary: #161b22;
+    --text-primary: #c9d1d9;
+    --text-secondary: #b0b8c4;
+    --text-muted: #8b949e;
+    --accent: #58a6ff;
+    --accent-hover: #1f6feb;
+    --accent-text: #ffffff;
+    --border-color: #30363d;
+    --panel-header-bg: #010409;
+    --panel-header-text: #f0f6fc;
+    --panel-body-bg: #161b22;
+    --navbar-bg: #010409;
+    --navbar-text: #8b949e;
+    --navbar-link: #c9d1d9;
+    --footer-bg: #010409;
+    --footer-text: #8b949e;
+    --link-color: #58a6ff;
+    --ad-bg: #0d1117;
+    --ad-border: #30363d;
+    --ad-text: #8b949e;
+    --btn-accent-bg: #238636;
+    --btn-accent-text: #ffffff;
+    --btn-accent-border: #2ea043;
+    --table-header-bg: #161b22;
+    --table-header-text: #c9d1d9;
+    --input-bg: #0d1117;
+    --input-text: #c9d1d9;
+    --input-border: #30363d;
+    --code-bg: #0d1117;
+    --panel-info-bg: #0d1117;
+    --panel-info-border: #58a6ff;
+    --panel-danger-bg: #0d1117;
+    --panel-danger-border: #da3633;
+    --success: #238636;
+    --danger: #da3633;
 }
 
 /* Retro Green — зелена ретро-тема */

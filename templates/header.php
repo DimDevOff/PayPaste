@@ -8,7 +8,7 @@ if (function_exists('getCurrentUser')) {
         $_theme = $_themeUser->theme;
     }
 }
-$_allowedThemes = ['retro', 'dark', 'terminal', 'light', 'github-orange', 'retro-green'];
+$_allowedThemes = ['retro', 'dark', 'terminal', 'light', 'github', 'retro-green'];
 if (!in_array($_theme, $_allowedThemes)) $_theme = 'retro';
 ?>
 <!DOCTYPE html>

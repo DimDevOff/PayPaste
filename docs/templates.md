@@ -192,7 +192,7 @@ Entry Point (кореневий .php)
 | `$page_title`              | Entry point               | SEO-заголовок сторінки (fallback: "PayPaste - Швидкий обмін кодом та текстом")   |
 | `$page_description`        | Entry point               | SEO-опис сторінки (fallback: стандартний опис)                                   |
 | `$hide_ads`                | Entry point (`view.php`)  | Якщо `true` — приховує усі Adsterra-блоки (для публічних паст)                   |
-| `$_theme`                  | `getCurrentUser()->theme` | Кольорова тема користувача (retro/dark/terminal/light/github-orange/retro-green) |
+| `$_theme`                  | `getCurrentUser()->theme` | Кольорова тема користувача (retro/dark/terminal/light/github/retro-green) |
 | `$_SESSION['error']`       | Контролер                 | Flash-повідомлення про помилку (виводиться і одразу `unset`)                     |
 | `$_SESSION['success']`     | Контролер                 | Flash-повідомлення про успіх (виводиться і одразу `unset`)                       |
 | `APP_URL`                  | `config.php`              | Базова URL-адреса для OpenGraph                                                  |
@@ -692,7 +692,7 @@ Entry Point (кореневий .php)
 | 🌑 Dark          | `dark`            | Фіолетовий акцент, темний фон                           |
 | 💻 Terminal      | `terminal`        | Зелений акцент на чорному, монохромний                  |
 | ☀️ Light         | `light`           | Класичний світлий, синій акцент                         |
-| 🧑🏿‍💻 GitHub Orange | `github-orange`   | Темний фон, помаранчевий акцент                         |
+| 🐙 GitHub Dark    | `github`          | Темний фон, синій акцент                           |
 | 💚 Retro Green   | `retro-green`     | Зелений акцент, світло-зелений фон                      |
 
 Тема зберігається в `users.theme` та читається в `header.php` при кожному запиті.

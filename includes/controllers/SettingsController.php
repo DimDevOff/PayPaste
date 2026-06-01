@@ -164,7 +164,7 @@ class SettingsController {
             exit;
         }
 
-        $allowed = ['retro', 'dark', 'terminal', 'light', 'github-orange', 'retro-green'];
+        $allowed = ['retro', 'dark', 'terminal', 'light', 'github', 'retro-green'];
         if (!in_array($theme, $allowed)) {
             $theme = 'retro';
         }

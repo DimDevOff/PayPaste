@@ -8,7 +8,7 @@
     // Миттєвий перегляд теми при зміні radio-кнопки
     document.querySelectorAll('input[name="theme"]').forEach(function(radio) {
         radio.addEventListener('change', function() {
-            const allowed = ['retro', 'dark', 'terminal', 'light', 'github-orange', 'retro-green'];
+            const allowed = ['retro', 'dark', 'terminal', 'light', 'github', 'retro-green'];
             if (allowed.indexOf(this.value) !== -1) {
                 document.documentElement.setAttribute('data-theme', this.value);
             } else {

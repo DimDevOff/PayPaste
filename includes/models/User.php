@@ -59,7 +59,7 @@ class User {
         $unlocked = self::loadUnlockedPastes($row['id']);
         
         $theme = $row['theme'] ?? 'retro';
-        $allowed = ['retro', 'dark', 'terminal', 'light', 'github-orange', 'retro-green'];
+        $allowed = ['retro', 'dark', 'terminal', 'light', 'github', 'retro-green'];
         if (!in_array($theme, $allowed)) {
             $theme = 'retro';
         }

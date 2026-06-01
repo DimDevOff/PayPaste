@@ -386,7 +386,7 @@ includes/
 | `deleteAccount`    | `deleteAccount(): void`                                                                   | `delete_account`    | Повне видалення акаунту (підтвердження: пароль/Passkey/OAuth) |
 | `generateApiKey`   | `generateApiKey(): void`                                                                  | `generate_api_key`  | Генерація нового API-ключу                                    |
 
-**Дозволені теми:** `retro`, `dark`, `terminal`, `light`, `github-orange`, `retro-green`
+**Дозволені теми:** `retro`, `dark`, `terminal`, `light`, `github`, `retro-green`
 
 **Залежності:** `User.php`, `Paste.php`, `AuthService.php`, `PasteService.php`, `csrf.php`, `mailer.php`
 

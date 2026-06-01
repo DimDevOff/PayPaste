@@ -150,15 +150,15 @@ $myPasskeys = Passkey::findByUserId($_SESSION['user_id']);
                             </label>
                         </div>
 
-                        <!-- GitHub Orange Dark -->
+                        <!-- GitHub Dark -->
                         <div class="col-xs-6 col-sm-4" style="margin-bottom: 15px;">
-                            <label class="theme-card <?= ($user->theme ?? 'retro') === 'github-orange' ? 'theme-card-active' : '' ?>" style="display: block; cursor: pointer; border: 2px solid var(--border-color); padding: 8px; text-align: center; border-radius: 4px;">
-                                <input type="radio" name="theme" value="github-orange" <?= ($user->theme ?? 'retro') === 'github-orange' ? 'checked' : '' ?> style="display: none;">
-                                <div style="background: #0d0d0d; height: 40px; border-radius: 2px; margin-bottom: 5px; position: relative;">
-                                    <div style="background: #000; height: 8px; border-radius: 2px 2px 0 0;"></div>
-                                    <div style="background: #FF9000; width: 30%; height: 6px; margin: 4px auto; border-radius: 2px;"></div>
+                            <label class="theme-card <?= ($user->theme ?? 'retro') === 'github' ? 'theme-card-active' : '' ?>" style="display: block; cursor: pointer; border: 2px solid var(--border-color); padding: 8px; text-align: center; border-radius: 4px;">
+                                <input type="radio" name="theme" value="github" <?= ($user->theme ?? 'retro') === 'github' ? 'checked' : '' ?> style="display: none;">
+                                <div style="background: #0d1117; height: 40px; border-radius: 2px; margin-bottom: 5px; position: relative;">
+                                    <div style="background: #010409; height: 8px; border-radius: 2px 2px 0 0;"></div>
+                                    <div style="background: #58a6ff; width: 30%; height: 6px; margin: 4px auto; border-radius: 2px;"></div>
                                 </div>
-                                <small style="font-weight: bold; color: var(--text-primary); display: block; word-wrap: break-word; white-space: normal;">🧑🏿‍💻 GitHub Orange</small>
+                                <small style="font-weight: bold; color: var(--text-primary); display: block; word-wrap: break-word; white-space: normal;">🐙 GitHub Dark</small>
                             </label>
                         </div>
 
