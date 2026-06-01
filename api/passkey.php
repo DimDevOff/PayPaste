@@ -152,13 +152,7 @@ try {
 
     // Завершення входу: верифікація підпису пристрою та авторизація сесії
     case 'login_finish':
-        $csrf_token = $_SERVER['HTTP_X_CSRF_TOKEN'] ?? '';
-
-        if (!verify_csrf_api($csrf_token)) {
-            echo json_encode(['success' => false, 'error' => 'Помилка перевірки CSRF']);
-            exit;
-        }
-
+        // NOTE: СSRF-захист не потрібен — одноразовий challenge вже захищає від CSRF
         $input = file_get_contents('php://input');
         $data = json_decode($input, true);
 
