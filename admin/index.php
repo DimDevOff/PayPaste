@@ -40,7 +40,7 @@ require_once __DIR__ . '/layout/header.php';
                 <div class="panel-heading"><h4 class="m-0">🛡️ Модерація</h4></div>
                 <div class="panel-body">
                     <p class="stat-number"><?= number_format($modPending ?? 0) ?></p>
-                    <a href="moderation.php" class="btn btn-sm <?= $modPending > 0 ? 'btn-danger' : 'btn-default' ?>" style="margin-top:8px;">Переглянути →</a>
+                    <a href="moderation.php" class="btn btn-sm <?= $modPending > 0 ? 'btn-danger' : 'btn-primary' ?>" style="margin-top:8px;">Переглянути →</a>
                 </div>
             </div>
         </div>
@@ -67,7 +67,7 @@ require_once __DIR__ . '/layout/header.php';
                 <div class="panel-heading"><h4 class="m-0">📊 Транзакцій</h4></div>
                 <div class="panel-body">
                     <p class="stat-number"><?= number_format($totalTx ?? 0) ?></p>
-                    <a href="transactions.php" class="btn btn-default btn-sm" style="margin-top:8px;">Переглянути →</a>
+                    <a href="transactions.php" class="btn btn-primary btn-sm" style="margin-top:8px;">Переглянути →</a>
                 </div>
             </div>
         </div>
