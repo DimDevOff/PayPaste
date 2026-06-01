@@ -42,7 +42,7 @@ $myPasskeys = Passkey::findByUserId($_SESSION['user_id']);
                                name="email" 
                                id="email" 
                                class="form-control" 
-                               value="<!--email_off--><?= htmlspecialchars($user->email) ?><!--/email_off-->" 
+                               value="<?= htmlspecialchars($user->email) ?>" 
                                required>
                         <small class="text-muted">Увага! При зміні пошти потрібно буде її заново підтвердити.</small>
                     </div>
