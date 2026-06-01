@@ -164,14 +164,28 @@ function handleModerationRewrite(array $payload): void {
     try {
         $externalViolations = Moderation::checkExternal($rewritten);
     } catch (\Throwable $e) {
-        // Якщо зовнішня перевірка недоступна — ставимо pending для повторної перевірки
+        // Якщо зовнішня перевірка недоступна — зберігаємо переписаний текст
+        // і ставимо у чергу на стандартну модерацію (moderation_check)
         $updateStmt = $pdo->prepare("
             UPDATE pastes
             SET content = ?, is_pending_rewrite = 0, moderation_status = 'pending'
             WHERE id = ?
         ");
         $updateStmt->execute([$rewritten, $pasteId]);
-        workerLog("moderation_rewrite: паста $pasteId переписана, але зовнішня перевірка недоступна — статус pending");
+
+        try {
+            Queue::push(
+                Queue::TYPE_MODERATION_CHECK,
+                [
+                    'paste_id' => $pasteId,
+                    'content'  => $rewritten
+                ],
+                'mod_check:' . $pasteId
+            );
+            workerLog("moderation_rewrite: паста $pasteId переписана, зовнішня перевірка недоступна — поставлено у чергу moderation_check");
+        } catch (\Throwable $pushErr) {
+            workerLog("moderation_rewrite: паста $pasteId переписана, але не вдалося поставити moderation_check у чергу: " . $pushErr->getMessage());
+        }
         return;
     }
 
