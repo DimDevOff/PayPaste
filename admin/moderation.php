@@ -197,7 +197,10 @@ require_once __DIR__ . '/layout/header.php';
         <tbody>
         <?php foreach ($pastes as $p):
             $author = $p['user_id'] ? User::findById($p['user_id']) : null;
-            $authorLabel = $author ? htmlspecialchars($author->nickname ?? $author->email) : '<i class="text-muted">Анонім</i>';
+            $authorEmail = $author ? htmlspecialchars($author->email) : '';
+            $authorLabel = $author
+                ? ($author->nickname ? htmlspecialchars($author->nickname) : '<!--email_off-->' . $authorEmail . '<!--/email_off-->')
+                : '<i class="text-muted">Анонім</i>';
 
             $modResult = json_decode($p['moderation_result'] ?? '[]', true);
             $modDetail = '';

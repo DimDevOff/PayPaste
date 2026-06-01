@@ -20,7 +20,7 @@
             <?php endif; ?>
 
             <div style="margin-bottom: 20px; text-align: center; border: 1px dashed #555; padding: 15px; background: #111;">
-                <p>На вашу адресу <strong><?= htmlspecialchars($user->email) ?></strong> було надіслано код підтвердження.</p>
+                <p>На вашу адресу <strong><!--email_off--><?= htmlspecialchars($user->email) ?><!--/email_off--></strong> було надіслано код підтвердження.</p>
                 <p style="color: #ffcc00; font-size: 0.9em;">Будь ласка, введіть його нижче, щоб розблокувати доступ до акаунту.</p>
             </div>
 

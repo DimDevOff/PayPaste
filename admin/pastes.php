@@ -68,7 +68,7 @@ require_once __DIR__ . '/layout/header.php';
                 <?php foreach ($pastes as $p): ?>
                 <?php
                     $u = $p['user_id'] ? User::findById($p['user_id']) : null;
-                    $authorLabel = $u ? htmlspecialchars($u->email) : '<i class="text-muted">Anon/Guest</i>';
+                    $authorLabel = $u ? '<!--email_off-->' . htmlspecialchars($u->email) . '<!--/email_off-->' : '<i class="text-muted">Anon/Guest</i>';
                 ?>
                     <tr>
                         <td><code><?= htmlspecialchars(substr($p['id'], 0, 10)) ?>…</code></td>

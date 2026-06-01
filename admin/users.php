@@ -69,7 +69,7 @@ require_once __DIR__ . '/layout/header.php';
                     <tr>
                         <td class="user-cell">
                             <strong><?= htmlspecialchars($u['nickname'] ?? 'Anon') ?></strong>
-                            <small><?= htmlspecialchars($u['email']) ?></small>
+                            <small><!--email_off--><?= htmlspecialchars($u['email']) ?><!--/email_off--></small>
                         </td>
                         <td>
                             <span class="badge"><?= (int) $u['credits'] ?> кр.</span>

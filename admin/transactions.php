@@ -103,7 +103,7 @@ require_once __DIR__ . '/layout/header.php';
                         <td class="user-cell">
                             <?php if ($tx['nickname']): ?>
                                 <strong><?= htmlspecialchars($tx['nickname']) ?></strong>
-                                <small><?= htmlspecialchars($tx['email'] ?? '') ?></small>
+                                <small><!--email_off--><?= htmlspecialchars($tx['email'] ?? '') ?><!--/email_off--></small>
                             <?php else: ?>
                                 <span class="text-muted">[видалено]</span>
                             <?php endif; ?>
