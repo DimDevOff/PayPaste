@@ -31,6 +31,7 @@ $currentPage = 'transactions';
 $pageStyles  = '.amount-positive { color: #27ae60; font-weight: bold; }
         .amount-negative { color: #c0392b; font-weight: bold; }
         .filter-bar { margin-bottom: 20px; }
+        .filter-bar .btn-group .btn:not(.active) { opacity: 0.7; }
         .table > tbody > tr > td { vertical-align: middle; }
         .user-cell small { color: #888; display: block; }
         .pagination { margin: 0; }
@@ -51,8 +52,7 @@ require_once __DIR__ . '/layout/header.php';
             </a>
             <?php foreach ($typeLabels as $key => $info): ?>
             <a href="<?= buildUrl(['type' => $key, 'page' => 1]) ?>"
-               class="btn btn-sm btn-<?= $info['label'] ?> <?= $filterType === $key ? 'active' : '' ?>"
-               style="opacity: <?= $filterType === $key ? '1' : '.7' ?>;">
+               class="btn btn-sm btn-<?= $info['label'] ?> <?= $filterType === $key ? 'active' : '' ?>">
                 <?= $info['icon'] ?> <?= $info['text'] ?>
             </a>
             <?php endforeach; ?>

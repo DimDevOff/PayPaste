@@ -140,8 +140,8 @@ $pageStyles  = '
     .content-preview {
         max-height: 120px;
         overflow-y: auto;
-        background: #1e1e1e;
-        color: #d4d4d4;
+        background: var(--code-bg);
+        color: var(--text-primary);
         padding: 8px 12px;
         border-radius: 3px;
         font-family: \'Consolas\', \'Monaco\', monospace;
@@ -152,23 +152,21 @@ $pageStyles  = '
     }
     .mod-result {
         font-size: 12px;
-        background: #fff3cd;
+        background: var(--panel-info-bg);
+        border: 1px dashed var(--panel-info-border);
         padding: 4px 8px;
         border-radius: 3px;
         margin-top: 4px;
     }
-    .btn-approve { background-color: #27ae60; border-color: #27ae60; color: #fff; }
-    .btn-approve:hover { background-color: #2ecc71; border-color: #2ecc71; color: #fff; }
-    .btn-reject { background-color: #c0392b; border-color: #c0392b; color: #fff; }
-    .btn-reject:hover { background-color: #e74c3c; border-color: #e74c3c; color: #fff; }
     .reject-reason { display: none; margin-top: 5px; }
     .moderation-mode-panel {
         padding: 15px;
         border-radius: 4px;
         margin-bottom: 20px;
     }
-    .moderation-mode-strict { background: #f8d7da; border: 1px solid #f5c6cb; color: #721c24; }
-    .moderation-mode-lax    { background: #d4edda; border: 1px solid #c3e6cb; color: #155724; }';
+    .moderation-mode-strict { background: var(--panel-danger-bg); border: 1px solid var(--panel-danger-border); color: var(--danger); }
+    .moderation-mode-lax    { background: var(--panel-info-bg); border: 1px solid var(--panel-info-border); color: var(--success); }
+    .table > thead > tr { background: var(--accent); color: var(--accent-text); }
 require_once __DIR__ . '/layout/header.php';
 ?>
 <h2 class="page-header" style="margin-top:0;">
@@ -242,7 +240,7 @@ require_once __DIR__ . '/layout/header.php';
     <?php else: ?>
     <table class="table table-condensed table-striped table-bordered">
         <thead>
-            <tr style="background: #337ab7; color: #fff;">
+            <tr>
                 <th style="width:50px;">ID</th>
                 <th style="width:150px;">Назва</th>
                 <th>Контент</th>
@@ -294,7 +292,7 @@ require_once __DIR__ . '/layout/header.php';
                         <input type="hidden" name="action" value="approve">
                         <input type="hidden" name="paste_id" value="<?= htmlspecialchars($p['id']) ?>">
                         <input type="hidden" name="redirect" value="<?= htmlspecialchars($_SERVER['REQUEST_URI']) ?>">
-                        <button type="submit" class="btn btn-approve btn-xs" title="Схвалити">
+                        <button type="submit" class="btn btn-success btn-xs" title="Схвалити">
                             ✅ Схвалити
                         </button>
                     </form>
@@ -305,7 +303,7 @@ require_once __DIR__ . '/layout/header.php';
                         <input type="hidden" name="action" value="reject">
                         <input type="hidden" name="paste_id" value="<?= htmlspecialchars($p['id']) ?>">
                         <input type="hidden" name="redirect" value="<?= htmlspecialchars($_SERVER['REQUEST_URI']) ?>">
-                        <button type="button" class="btn btn-reject btn-xs" title="Відхилити" data-toggle-reason>
+                        <button type="button" class="btn btn-danger btn-xs" title="Відхилити" data-toggle-reason>
                             ❌ Відхилити
                         </button>
                         <div class="reject-reason">

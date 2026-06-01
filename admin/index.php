@@ -40,7 +40,7 @@ require_once __DIR__ . '/layout/header.php';
                 <div class="panel-heading"><h4 class="m-0">🛡️ Модерація</h4></div>
                 <div class="panel-body">
                     <p class="stat-number"><?= number_format($modPending ?? 0) ?></p>
-                    <a href="moderation.php" class="btn btn-sm" style="margin-top:8px; <?= $modPending > 0 ? 'background:#e74c3c;color:#fff;' : '' ?>">Переглянути →</a>
+                    <a href="moderation.php" class="btn btn-sm <?= $modPending > 0 ? 'btn-danger' : 'btn-default' ?>" style="margin-top:8px;">Переглянути →</a>
                 </div>
             </div>
         </div>
