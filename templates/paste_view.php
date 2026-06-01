@@ -66,7 +66,7 @@
                     <hr>
                     <p>Ви можете <a href="create.php" style="color: var(--link-color); font-weight: bold;">створити нову пасту</a> з відредагованим текстом або попросити AI перефразувати її.</p>
                 </div>
-            <?php elseif(isset($paste->moderation_status) && $paste->moderation_status === 'moderation_failed'): ?>
+            <?php elseif(isset($paste->moderation_status) && $paste->moderation_status === 'moderation_failed' && empty($is_admin) && empty($is_author)): ?>
                 <div class="alert alert-warning text-center" style="border: 3px dashed #c0392b; padding: 30px; background: var(--bg-secondary);">
                     <h3 style="color: #e74c3c;">⚠️ МОДЕРАЦІЯ НЕ ЗАВЕРШЕНА</h3>
                     <p style="font-size: 1.1em;">Зовнішній сервіс модерації був недоступний, тому перевірка не завершилася.</p>
