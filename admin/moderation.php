@@ -5,17 +5,32 @@
  * дозволяє схвалити або відхилити одним кліком.
  */
 require_once __DIR__ . "/check_admin.php";
-include_once __DIR__ . "/../includes/models/Paste.php";
+require_once __DIR__ . "/../includes/models/Paste.php";
 include_once __DIR__ . "/../includes/models/User.php";
 require_once __DIR__ . "/../includes/csrf.php";
+require_once __DIR__ . "/../includes/models/Setting.php";
 
 $pdo = DB::getInstance()->getPDO();
 
-// Обробка POST-дій (схвалити / відхилити)
+// Обробка POST-дій (схвалити / відхилити / змінити режим модерації)
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     verify_csrf();
 
     $action = $_POST['action'] ?? '';
+
+    // Перемикання режиму модерації
+    if ($action === 'toggle_moderation_mode') {
+        $currentMode = Setting::isModerationStrict();
+        $newMode = !$currentMode;
+        Setting::set('moderation_strict_mode', $newMode ? '1' : '0');
+        AuditLog::log($_SESSION['user_id'] ?? null, 'edit_settings', 'moderation_strict_mode=' . ($newMode ? '1' : '0'));
+        $_SESSION['success'] = $newMode
+            ? "Увімкнено строгий режим модерації. Пасти без OpenAI будуть на ручной перевірці."
+            : "Увімкнено легкий режим модерації. Пасти з успішною локальною перевіркою будуть публікуватись автоматично, якщо OpenAI недоступний.";
+        header("Location: moderation.php");
+        exit;
+    }
+
     $pasteId = $_POST['paste_id'] ?? '';
 
     if ($pasteId && in_array($action, ['approve', 'reject'], true)) {
@@ -113,49 +128,92 @@ $failedCount = (int)$stmtFailed->fetchColumn();
 
 $needsReview = $pendingCount + $failedCount;
 
+$strictMode = Setting::isModerationStrict();
+
 $pageTitle   = 'Модерація — Адмінпанель';
 $currentPage = 'moderation';
 $navModBadge = $needsReview;
 $pageStyles  = '
-        .table > tbody > tr > td { vertical-align: middle; }
-        .pagination { margin: 0; }
-        .page-info { line-height: 34px; }
-        .content-preview {
-            max-height: 120px;
-            overflow-y: auto;
-            background: #1e1e1e;
-            color: #d4d4d4;
-            padding: 8px 12px;
-            border-radius: 3px;
-            font-family: \'Consolas\', \'Monaco\', monospace;
-            font-size: 12px;
-            white-space: pre-wrap;
-            word-break: break-all;
-            margin: 0;
-        }
-        .mod-result {
-            font-size: 12px;
-            background: #fff3cd;
-            padding: 4px 8px;
-            border-radius: 3px;
-            margin-top: 4px;
-        }
-        .btn-approve { background-color: #27ae60; border-color: #27ae60; color: #fff; }
-        .btn-approve:hover { background-color: #2ecc71; border-color: #2ecc71; color: #fff; }
-        .btn-reject { background-color: #c0392b; border-color: #c0392b; color: #fff; }
-        .btn-reject:hover { background-color: #e74c3c; border-color: #e74c3c; color: #fff; }
-        .reject-reason { display: none; margin-top: 5px; }';
+    .table > tbody > tr > td { vertical-align: middle; }
+    .pagination { margin: 0; }
+    .page-info { line-height: 34px; }
+    .content-preview {
+        max-height: 120px;
+        overflow-y: auto;
+        background: #1e1e1e;
+        color: #d4d4d4;
+        padding: 8px 12px;
+        border-radius: 3px;
+        font-family: \'Consolas\', \'Monaco\', monospace;
+        font-size: 12px;
+        white-space: pre-wrap;
+        word-break: break-all;
+        margin: 0;
+    }
+    .mod-result {
+        font-size: 12px;
+        background: #fff3cd;
+        padding: 4px 8px;
+        border-radius: 3px;
+        margin-top: 4px;
+    }
+    .btn-approve { background-color: #27ae60; border-color: #27ae60; color: #fff; }
+    .btn-approve:hover { background-color: #2ecc71; border-color: #2ecc71; color: #fff; }
+    .btn-reject { background-color: #c0392b; border-color: #c0392b; color: #fff; }
+    .btn-reject:hover { background-color: #e74c3c; border-color: #e74c3c; color: #fff; }
+    .reject-reason { display: none; margin-top: 5px; }
+    .moderation-mode-panel {
+        padding: 15px;
+        border-radius: 4px;
+        margin-bottom: 20px;
+    }
+    .moderation-mode-strict { background: #f8d7da; border: 1px solid #f5c6cb; color: #721c24; }
+    .moderation-mode-lax    { background: #d4edda; border: 1px solid #c3e6cb; color: #155724; }';
 require_once __DIR__ . '/layout/header.php';
 ?>
-    <h2 class="page-header" style="margin-top:0;">
-        🛡️ Ручна модерація
-        <small><?= number_format($totalCount ?? 0) ?> паст на розгляді</small>
-    </h2>
+<h2 class="page-header" style="margin-top:0;">
+    🛡️ Ручна модерація
+    <small><?= number_format($totalCount ?? 0) ?> паст на розгляді</small>
+</h2>
 
-    <?php if (isset($_SESSION['success'])): ?>
-        <div class="alert alert-success"><?= htmlspecialchars($_SESSION['success']) ?></div>
-        <?php unset($_SESSION['success']); ?>
-    <?php endif; ?>
+<!-- Панель режиму модерації -->
+<div class="moderation-mode-panel <?= $strictMode ? 'moderation-mode-strict' : 'moderation-mode-lax' ?>">
+    <div class="row">
+        <div class="col-md-8">
+            <h4 style="margin-top:0;">
+                <?php if ($strictMode): ?>
+                    🚨 <strong>Строгий режим модерації</strong>
+                    <p class="text-muted" style="margin:5px 0 0;">
+                        OpenAI необхідний. Якщо зовнішній сервіс недоступний — пасти йдуть на ручну перевірку (статус <em>moderation_failed</em>).
+                    </p>
+                <?php else: ?>
+                    ✅ <strong>Легкий режим модерації</strong>
+                    <p class="text-muted" style="margin:5px 0 0;">
+                        Достатньо локальної перевірки. Якщо OpenAI недоступний — пасти публікуються автоматично після локальної перевірки.
+                    </p>
+                <?php endif; ?>
+            </h4>
+        </div>
+        <div class="col-md-4 text-right">
+            <form method="POST" style="display:inline;">
+                <?= csrf_field() ?>
+                <input type="hidden" name="action" value="toggle_moderation_mode">
+                <button type="submit" class="btn <?= $strictMode ? 'btn-success' : 'btn-danger' ?> btn-lg">
+                    <?php if ($strictMode): ?>
+                        🔓 Перейти у легкий режим
+                    <?php else: ?>
+                        🔒 Перейти у строгий режим
+                    <?php endif; ?>
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<?php if (isset($_SESSION['success'])): ?>
+    <div class="alert alert-success"><?= htmlspecialchars($_SESSION['success']) ?></div>
+    <?php unset($_SESSION['success']); ?>
+<?php endif; ?>
 
     <!-- Швидкі фільтри -->
     <div class="row" style="margin-bottom: 20px;">

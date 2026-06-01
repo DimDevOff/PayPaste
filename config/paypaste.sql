@@ -72,7 +72,7 @@ CREATE TABLE IF NOT EXISTS transactions (
     type ENUM('topup', 'purchase', 'sale', 'creation_fee', 'api_usage', 'ad_reward') NOT NULL,
       -- topup: поповнення балансу
       -- purchase: купівля платної пасти
-      -- sale: продаж своєї платної пасти (хтось купив)
+      -- sale: продаж своїї платної пасти (хтось купив)
       -- creation_fee: зняття комісії за створення платної пасти
       -- ad_reward: нагорода за перегляд реклами (квест)
     service VARCHAR(50) NULL, -- Деталі джерела (наприклад, donatello, tg_stars)
@@ -167,3 +167,12 @@ CREATE TABLE IF NOT EXISTS audit_logs (
     INDEX idx_created_at (created_at)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
+-- 11. Глобальні налаштування системи
+CREATE TABLE IF NOT EXISTS settings (
+    `key` VARCHAR(100) PRIMARY KEY,
+    `value` TEXT NOT NULL,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+INSERT INTO settings (`key`, `value`) VALUES ('moderation_strict_mode', '1')
+ON DUPLICATE KEY UPDATE `value` = `value`;

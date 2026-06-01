@@ -105,7 +105,20 @@ function handleModerationCheck(array $payload): void {
     }
 
     // Перевіряємо через OpenAI (без локальної перевірки — вона вже пройшла синхронно)
-    $violations = Moderation::checkExternal($content);
+    try {
+        $violations = Moderation::checkExternal($content);
+    } catch (\Throwable $e) {
+        // OpenAI недоступний (не відхилення, а сервісна помилка)
+        if (!Moderation::isStrictMode()) {
+            // Легкий режим: локальна перевірка достатня — публікуємо автоматично
+            $stmt = $pdo->prepare("UPDATE pastes SET moderation_status = 'approved' WHERE id = ?");
+            $stmt->execute([$pasteId]);
+            workerLog("moderation_check: паста $pasteId APPROVED (легкий режим, OpenAI недоступний: " . $e->getMessage() . ")");
+            return;
+        }
+        // Строгий режим: передаємо помилку далі — retry через Queue::fail
+        throw $e;
+    }
 
     if ($violations === false) {
         // OpenAI не знайшов порушень → approved
