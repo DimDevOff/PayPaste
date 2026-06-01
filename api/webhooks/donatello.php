@@ -29,7 +29,7 @@ $raw_body = file_get_contents('php://input');
 
 // Верифікація заголовка X-Donatello-Token
 $headers = getallheaders();
-$header_token = $headers['X-Donatello-Token'] ?? $headers['X-Token'] ?? $headers['X-Key'] ?? '';
+$header_token = $headers['X-Donatello-Token'] ?? '';
 
 if (!hash_equals(DONATELLO_TOKEN, $header_token)) {
     http_response_code(401);

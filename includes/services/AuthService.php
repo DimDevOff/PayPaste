@@ -119,7 +119,10 @@ class AuthService {
      * @param User $user Користувач
      */
     public static function setRememberCookie(User $user): void {
-        $cookieSecret = COOKIE_SECRET ?: 'Fallback_Secret';
+        if (!defined('COOKIE_SECRET') || COOKIE_SECRET === '') {
+            throw new \RuntimeException('COOKIE_SECRET не налаштовано в config.php');
+        }
+        $cookieSecret = COOKIE_SECRET;
         $token = $user->id . ':' . hash_hmac('sha256', $user->id . $user->password_hash, $cookieSecret);
         $secure = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off');
 
@@ -172,7 +175,10 @@ class AuthService {
             return null;
         }
 
-        $cookieSecret = COOKIE_SECRET ?: 'Fallback_Secret';
+        if (!defined('COOKIE_SECRET') || COOKIE_SECRET === '') {
+            throw new \RuntimeException('COOKIE_SECRET не налаштовано в config.php');
+        }
+        $cookieSecret = COOKIE_SECRET;
         $expected = hash_hmac('sha256', $user->id . $user->password_hash, $cookieSecret);
 
         if (!hash_equals($expected, $hash)) {

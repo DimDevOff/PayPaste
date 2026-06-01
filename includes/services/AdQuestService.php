@@ -289,7 +289,10 @@ class AdQuestService {
     }
 
     private static function secret(): string {
-        return defined('COOKIE_SECRET') && COOKIE_SECRET !== '' ? COOKIE_SECRET : 'paypaste-local-dev-secret';
+        if (!defined('COOKIE_SECRET') || COOKIE_SECRET === '') {
+            throw new \RuntimeException('COOKIE_SECRET не налаштовано в config.php');
+        }
+        return COOKIE_SECRET;
     }
 
     private static function base64UrlEncode(string $data): string {

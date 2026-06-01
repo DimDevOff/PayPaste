@@ -4,6 +4,35 @@
  * Централізує управління сесіями та загальні підключення.
  */
 
+// ─── Production: приховуємо помилки, логуємо в syslog ─────────────────────
+error_reporting(0);
+ini_set('display_errors', '0');
+ini_set('log_errors', '1');
+
+set_exception_handler(function (Throwable $e) {
+    error_log('[PayPaste FATAL] ' . $e->getMessage() . ' in ' . $e->getFile() . ':' . $e->getLine());
+    http_response_code(500);
+    if (php_sapi_name() === 'cli') {
+        fwrite(STDERR, "FATAL: " . $e->getMessage() . "\n");
+        exit(1);
+    }
+    require __DIR__ . '/../templates/500.php';
+    exit;
+});
+
+// ─── HTTPS примусово (тільки для веб-запитів) ────────────────────────────
+if (php_sapi_name() !== 'cli' && !defined('NO_SESSION')) {
+    if (empty($_SERVER['HTTPS']) || strtolower($_SERVER['HTTPS']) === 'off') {
+        // Перевіряємо, чи це не localhost / dev-оточення
+        $host = $_SERVER['HTTP_HOST'] ?? '';
+        if ($host !== 'localhost' && $host !== '127.0.0.1' && !str_ends_with($host, '.local')) {
+            $redirect = 'https://' . $host . $_SERVER['REQUEST_URI'];
+            header('Location: ' . $redirect);
+            exit;
+        }
+    }
+}
+
 require_once __DIR__ . '/../config/db.php';
 require_once __DIR__ . '/security_headers.php';
 require_once __DIR__ . '/models/User.php';
@@ -58,10 +87,14 @@ function getCurrentUser() {
 }
 
 /**
- * Перенаправлення на вказану адресу та вихід.
- * @param string $location
+ * Перенаправлення на вказану локальну адресу.
+ * @param string $location Локальний шлях (напр. 'index.php')
  */
 function redirect($location) {
+    // Захист від open redirect — дозволено лише відносні шляхи
+    if (str_starts_with($location, 'http://') || str_starts_with($location, 'https://') || str_starts_with($location, '//')) {
+        $location = 'index.php';
+    }
     header("Location: $location");
     exit;
 }
