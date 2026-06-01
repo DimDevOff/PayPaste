@@ -94,7 +94,7 @@ class Moderation {
         ]));
         curl_setopt($ch, CURLOPT_HTTPHEADER, [
             'Content-Type: application/json',
-            'Authorization: Bearer *** . OPENAI_API_KEY,
+            'Authorization: Bearer ' . OPENAI_API_KEY,
         ]);
 
         $response = curl_exec($ch);
@@ -152,7 +152,7 @@ class Moderation {
         ]));
         curl_setopt($ch, CURLOPT_HTTPHEADER, [
             'Content-Type: application/json',
-            'Authorization: Bearer *** . OLLAMA_API_KEY,
+            'Authorization: Bearer ' . OLLAMA_API_KEY,
         ]);
 
         $response = curl_exec($ch);
