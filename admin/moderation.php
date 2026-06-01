@@ -167,6 +167,7 @@ $pageStyles  = '
     .moderation-mode-strict { background: var(--panel-danger-bg); border: 1px solid var(--panel-danger-border); color: var(--danger); }
     .moderation-mode-lax    { background: var(--panel-info-bg); border: 1px solid var(--panel-info-border); color: var(--success); }
     .table > thead > tr { background: var(--accent); color: var(--accent-text); }
+';
 require_once __DIR__ . '/layout/header.php';
 ?>
 <h2 class="page-header" style="margin-top:0;">
