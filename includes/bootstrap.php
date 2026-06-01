@@ -20,18 +20,9 @@ set_exception_handler(function (Throwable $e) {
     exit;
 });
 
-// ─── HTTPS примусово (тільки для веб-запитів) ────────────────────────────
-if (php_sapi_name() !== 'cli' && !defined('NO_SESSION')) {
-    if (empty($_SERVER['HTTPS']) || strtolower($_SERVER['HTTPS']) === 'off') {
-        // Перевіряємо, чи це не localhost / dev-оточення
-        $host = $_SERVER['HTTP_HOST'] ?? '';
-        if ($host !== 'localhost' && $host !== '127.0.0.1' && !str_ends_with($host, '.local')) {
-            $redirect = 'https://' . $host . $_SERVER['REQUEST_URI'];
-            header('Location: ' . $redirect);
-            exit;
-        }
-    }
-}
+// ─── HTTPS примусово — ВИМКНЕНО, поки не налаштовано SSL на сервері ──────
+// Редирект HTTP→HTTPS потрібно робити через Nginx, а не через PHP.
+// Приклад Nginx-конфігу: ops/nginx.example.conf (return 301 https://...)
 
 require_once __DIR__ . '/../config/db.php';
 require_once __DIR__ . '/security_headers.php';
