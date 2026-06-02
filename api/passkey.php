@@ -12,7 +12,7 @@ if (session_status() === PHP_SESSION_NONE) { session_start(); }
 require_once __DIR__ . '/../includes/models/User.php';
 require_once __DIR__ . '/../includes/models/Passkey.php';
 require_once __DIR__ . '/../includes/services/AuthService.php';
-require_once __DIR__ . '/../includes/webauthn.php';
+require_once __DIR__ . '/../includes/WebAuthn.php';
 require_once __DIR__ . '/../includes/csrf.php';
 
 header('Content-Type: application/json');
@@ -25,7 +25,7 @@ if (!$action) {
 }
 
 try {
-    $config = getWebAuthnConfig();
+    $config = WebAuthn::getConfig();
     $rp_id = $config['rp_id'];
     $origin = $config['origin'];
 
@@ -40,12 +40,12 @@ try {
             exit;
         }
 
-        $challenge = generateChallenge(32);
+        $challenge = WebAuthn::generateChallenge(32);
         $_SESSION['webauthn_challenge'] = $challenge;
         $_SESSION['webauthn_user_id'] = $user_id;
         $_SESSION['webauthn_nickname'] = $nickname;
 
-        $user_handle = base64url_encode(random_bytes(32));
+        $user_handle = WebAuthn::base64urlEncode(random_bytes(32));
 
         // Опції для WebAuthn
         $options = [
@@ -79,7 +79,7 @@ try {
     case 'register_finish':
         $csrf_token = $_SERVER['HTTP_X_CSRF_TOKEN'] ?? '';
 
-        if (!verify_csrf_api($csrf_token)) {
+        if (!WebAuthn::verifyCsrfApi($csrf_token)) {
             echo json_encode(['success' => false, 'error' => 'Помилка перевірки CSRF']);
             exit;
         }
@@ -107,7 +107,7 @@ try {
 
         error_log("Passkey register_finish: ключі облікових даних=" . json_encode(array_keys($credential)));
 
-        $result = verify_attestation_response($credential, $challenge, $user_id);
+        $result = WebAuthn::verifyAttestationResponse($credential, $challenge, $user_id);
 
         error_log("Passkey register_finish: результат=" . json_encode($result));
 
@@ -136,7 +136,7 @@ try {
 
     // Початок входу: генерація челенджу для аутентифікації
     case 'login_start':
-        $_SESSION['webauthn_challenge'] = generateChallenge(32);
+        $_SESSION['webauthn_challenge'] = WebAuthn::generateChallenge(32);
 
         // Опції для WebAuthn
         $options = [
@@ -181,7 +181,7 @@ try {
             exit;
         }
 
-        $result = verify_assertion_response($credential, $challenge, $rp_id, $passkey);
+        $result = WebAuthn::verifyAssertionResponse($credential, $challenge, $rp_id, $passkey);
 
         if (!$result['success']) {
             echo json_encode(['success' => false, 'error' => htmlspecialchars($result['error'], ENT_QUOTES, 'UTF-8')]);
@@ -217,7 +217,7 @@ try {
     case 'confirm_delete_finish':
         $csrf_token = $_SERVER['HTTP_X_CSRF_TOKEN'] ?? '';
 
-        if (!verify_csrf_api($csrf_token)) {
+        if (!WebAuthn::verifyCsrfApi($csrf_token)) {
             echo json_encode(['success' => false, 'error' => 'Помилка перевірки CSRF']);
             exit;
         }
@@ -249,7 +249,7 @@ try {
             exit;
         }
 
-        $result = verify_assertion_response($credential, $challenge, $rp_id, $passkey);
+        $result = WebAuthn::verifyAssertionResponse($credential, $challenge, $rp_id, $passkey);
 
         if (!$result['success']) {
             echo json_encode(['success' => false, 'error' => htmlspecialchars($result['error'], ENT_QUOTES, 'UTF-8')]);
@@ -276,7 +276,7 @@ try {
     case 'delete':
         $csrf_token = $_SERVER['HTTP_X_CSRF_TOKEN'] ?? '';
 
-        if (!verify_csrf_api($csrf_token)) {
+        if (!WebAuthn::verifyCsrfApi($csrf_token)) {
             echo json_encode(['success' => false, 'error' => 'Помилка перевірки CSRF']);
             exit;
         }
