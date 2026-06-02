@@ -9,8 +9,9 @@
  * 4. Управління списком зареєстрованих ключів (максимум 5 на користувача).
  */
 if (session_status() === PHP_SESSION_NONE) {
-    session_set_cookie_params(['path' => '/']);
+    session_set_cookie_params(['path' => '/', 'secure' => true, 'httponly' => true, 'samesite' => 'Lax']);
     session_start();
+    error_log('passkey: session started, id=' . session_id());
 }
 require_once __DIR__ . '/../includes/models/User.php';
 require_once __DIR__ . '/../includes/models/Passkey.php';
@@ -213,6 +214,7 @@ try {
         AuthService::passkeyLogin($passkey->credential_id);
 
         unset($_SESSION['webauthn_challenge']);
+        error_log('passkey login_finish: session id=' . session_id() . ' user_id=' . ($_SESSION['user_id'] ?? 'NOT SET'));
 
         echo json_encode(['success' => true, 'redirect' => 'index.php']);
         break;

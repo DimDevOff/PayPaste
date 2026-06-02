@@ -70,7 +70,9 @@ function getCurrentUser() {
         if (!isset($_SESSION['_user_cache'])) {
             $user = User::findById($_SESSION['user_id']);
             if ($user) {
-                $user->password_hash = null; // Не зберігаємо хеш пароля в сесії для безпеки
+                $user->password_hash = null;
+            } else {
+                error_log('getCurrentUser: User::findById(' . $_SESSION['user_id'] . ') повернув null');
             }
             $_SESSION['_user_cache'] = $user;
         }
