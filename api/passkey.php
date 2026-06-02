@@ -8,7 +8,10 @@
  * 3. Підтвердження критичних дій (наприклад, видалення акаунта).
  * 4. Управління списком зареєстрованих ключів (максимум 5 на користувача).
  */
-if (session_status() === PHP_SESSION_NONE) { session_start(); }
+if (session_status() === PHP_SESSION_NONE) {
+    session_set_cookie_params(['path' => '/']);
+    session_start();
+}
 require_once __DIR__ . '/../includes/models/User.php';
 require_once __DIR__ . '/../includes/models/Passkey.php';
 require_once __DIR__ . '/../includes/services/AuthService.php';
