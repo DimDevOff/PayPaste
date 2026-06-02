@@ -9,8 +9,10 @@
  * 4. Автоматичну реєстрацію нових користувачів з початковим балансом 100 кредитів.
  * 
  */
+session_set_cookie_params(['path' => '/']);
 session_start();
 require_once __DIR__ . '/../config/db.php';
+require_once __DIR__ . '/../includes/repositories/Repo.php';
 require_once __DIR__ . '/../includes/models/User.php';
 require_once __DIR__ . '/../includes/services/AuthService.php';
 

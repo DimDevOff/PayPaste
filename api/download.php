@@ -4,8 +4,10 @@
  * Перевіряє права доступу користувача перед віддачею файлу.
  */
 
+session_set_cookie_params(['path' => '/']);
 session_start();
 require_once __DIR__ . '/../config/db.php';
+require_once __DIR__ . '/../includes/repositories/Repo.php';
 require_once __DIR__ . '/../includes/models/Paste.php';
 require_once __DIR__ . '/../includes/models/User.php';
 require_once __DIR__ . '/../includes/security_headers.php';

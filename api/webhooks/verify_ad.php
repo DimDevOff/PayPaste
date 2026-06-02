@@ -3,10 +3,12 @@
  * Webhook для підтвердження перегляду реклами (Adsterra Quest)
  * Перевіряє підписаний одноразовий токен і зараховує подію на сервері.
  */
+session_set_cookie_params(['path' => '/']);
 session_start();
 
 header('Content-Type: application/json');
 
+require_once __DIR__ . '/../../includes/repositories/Repo.php';
 require_once __DIR__ . '/../../includes/csrf.php';
 require_once __DIR__ . '/../../includes/services/AdQuestService.php';
 

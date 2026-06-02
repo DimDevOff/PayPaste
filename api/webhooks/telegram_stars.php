@@ -1,4 +1,5 @@
 <?php
+require_once __DIR__ . '/../../includes/repositories/Repo.php';
 require_once __DIR__ . '/../../includes/models/Order.php';
 require_once __DIR__ . '/../../includes/models/User.php';
 require_once __DIR__ . '/../../includes/services/CreditService.php';

@@ -4,6 +4,7 @@
  * Цей файл приймає POST-запити від Donatello, перевіряє їх на справжність
  * та нараховує кредити користувачам на основі суми донату та ID замовлення в коментарі.
  */
+require_once __DIR__ . '/../../includes/repositories/Repo.php';
 require_once __DIR__ . '/../../includes/models/Order.php';
 require_once __DIR__ . '/../../includes/models/User.php';
 require_once __DIR__ . '/../../includes/services/CreditService.php';
