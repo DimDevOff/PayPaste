@@ -1,9 +1,5 @@
 <?php
 require_once __DIR__ . "/check_admin.php"; // Перевірка, що це точно адмін
-require_once __DIR__ . "/../config/db.php";
-require_once __DIR__ . "/../includes/models/Paste.php";
-require_once __DIR__ . "/../includes/services/PasteService.php";
-require_once __DIR__ . "/../includes/csrf.php";
 
 // 1. Перевірка, що метод запиту є POST
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
@@ -38,10 +34,8 @@ if (!preg_match('/^p_[0-9a-fA-F]{16}$/', $paste_id)) {
 }
 
 // 4. Перевірка наявності пасти в базі даних перед видаленням
-$pdo = DB::getInstance()->getPDO();
-$stmt = $pdo->prepare("SELECT id FROM pastes WHERE id = ?");
-$stmt->execute([$paste_id]);
-if (!$stmt->fetch()) {
+$pasteExists = Repo::pastes()->findById($paste_id);
+if (!$pasteExists) {
     $_SESSION['error'] = 'Пасту не знайдено або її вже було видалено.';
     header('Location: pastes.php');
     exit();

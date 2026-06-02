@@ -1,9 +1,5 @@
 <?php
 require_once __DIR__ . "/check_admin.php"; // Перевірка, що це точно адмін
-require_once __DIR__ . "/../config/db.php";
-require_once __DIR__ . "/../includes/models/User.php";
-require_once __DIR__ . "/../includes/services/AuthService.php";
-require_once __DIR__ . "/../includes/csrf.php";
 
 // 1. Перевірка, що метод запиту є POST
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
@@ -45,10 +41,8 @@ if (isset($_SESSION['user_id']) && $_SESSION['user_id'] === $user_id) {
 }
 
 // 5. Перевірка наявності користувача в базі даних перед видаленням
-$pdo = DB::getInstance()->getPDO();
-$stmt = $pdo->prepare("SELECT id FROM users WHERE id = ?");
-$stmt->execute([$user_id]);
-if (!$stmt->fetch()) {
+$userExists = Repo::users()->findById($user_id);
+if (!$userExists) {
     $_SESSION['error'] = 'Користувача не знайдено або його вже було видалено.';
     header('Location: users.php');
     exit();

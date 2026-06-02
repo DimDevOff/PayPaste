@@ -1,21 +1,15 @@
 <?php
 require_once __DIR__ . "/check_admin.php";
-require_once __DIR__ . "/../includes/models/User.php";
-require_once __DIR__ . "/../includes/models/Paste.php";
-require_once __DIR__ . "/../includes/models/Transaction.php";
-require_once __DIR__ . "/../includes/Queue.php";
 
-$totalPastes = Paste::countAll();
-$totalUsers  = User::countAll();
-$totalMoney  = Transaction::sumTopups(); // Сума всіх поповнень кредитів
-$totalTx     = Transaction::count();    // Загальна кількість транзакцій
+$totalPastes = Repo::pastes()->countAll();
+$totalUsers  = Repo::users()->countAll();
+$totalMoney  = Repo::transactions()->sumTopups();
+$totalTx     = Repo::transactions()->count();
 
 $queueMetrics = Queue::getMetrics();
 
 // Кількість паст, що очікують ручної модерації
-$stmtPending = DB::getInstance()->getPDO()->prepare("SELECT COUNT(*) FROM pastes WHERE moderation_status IN ('pending','moderation_failed')");
-$stmtPending->execute();
-$modPending = (int)$stmtPending->fetchColumn();
+$modPending = Repo::pastes()->countModerationPending();
 
 $pageTitle   = 'Панель Адміністратора';
 $currentPage = 'index';

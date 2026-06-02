@@ -391,6 +391,68 @@ class Queue {
         ];
     }
 
+    // ── Адмін: список задач ──
+
+    /**
+     * Отримання списку задач з фільтрацією та пагінацією (для адмін-панелі).
+     *
+     * @return array rows from DB
+     */
+    public static function listJobs(string $statusFilter = 'all', string $typeFilter = 'all', int $page = 1, int $perPage = 25): array {
+        $pdo = DB::getInstance()->getPDO();
+        $where = [];
+        $params = [];
+
+        if ($statusFilter !== 'all') {
+            $where[] = "status = :status";
+            $params[':status'] = $statusFilter;
+        }
+        if ($typeFilter !== 'all') {
+            $where[] = "type = :type";
+            $params[':type'] = $typeFilter;
+        }
+
+        $whereSQL = !empty($where) ? 'WHERE ' . implode(' AND ', $where) : '';
+        $offset = ($page - 1) * $perPage;
+
+        $sql = "SELECT * FROM jobs $whereSQL ORDER BY created_at DESC LIMIT :limit OFFSET :offset";
+        $stmt = $pdo->prepare($sql);
+        foreach ($params as $key => $val) {
+            $stmt->bindValue($key, $val);
+        }
+        $stmt->bindValue(':limit', $perPage, PDO::PARAM_INT);
+        $stmt->bindValue(':offset', $offset, PDO::PARAM_INT);
+        $stmt->execute();
+        return $stmt->fetchAll();
+    }
+
+    /**
+     * Кількість задач з фільтрацією (для адмін-панелі).
+     */
+    public static function countJobs(string $statusFilter = 'all', string $typeFilter = 'all'): int {
+        $pdo = DB::getInstance()->getPDO();
+        $where = [];
+        $params = [];
+
+        if ($statusFilter !== 'all') {
+            $where[] = "status = :status";
+            $params[':status'] = $statusFilter;
+        }
+        if ($typeFilter !== 'all') {
+            $where[] = "type = :type";
+            $params[':type'] = $typeFilter;
+        }
+
+        $whereSQL = !empty($where) ? 'WHERE ' . implode(' AND ', $where) : '';
+
+        if (empty($params)) {
+            return (int)$pdo->query("SELECT COUNT(*) FROM jobs")->fetchColumn();
+        }
+        $stmt = $pdo->prepare("SELECT COUNT(*) FROM jobs $whereSQL");
+        $stmt->execute($params);
+        return (int)$stmt->fetchColumn();
+    }
+
     /**
      * Fallback-обробка для dead-задач: безпечна деградація.
      * Делегує до JobHandlers::handleDeadModerationFallback().

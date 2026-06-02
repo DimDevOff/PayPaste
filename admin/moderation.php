@@ -1,18 +1,12 @@
 <?php
 /**
  * Адмін-сторінка: ручна модерація паст.
- * Показує пасти зі статусами pending та moderation_failed,
- * дозволяє схвалити або відхилити одним кліком.
  */
 require_once __DIR__ . "/check_admin.php";
-require_once __DIR__ . "/../includes/models/Paste.php";
-include_once __DIR__ . "/../includes/models/User.php";
-require_once __DIR__ . "/../includes/csrf.php";
-require_once __DIR__ . "/../includes/models/Setting.php";
 
-$pdo = DB::getInstance()->getPDO();
-
-// Обробка POST-дій (схвалити / відхилити / змінити режим модерації)
+// ═══════════════════════════════════════════════════
+//  1. ОБРОБКА POST-ЗАПИТІВ (controller)
+// ═══════════════════════════════════════════════════
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     verify_csrf();
 
@@ -34,12 +28,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $pasteId = $_POST['paste_id'] ?? '';
 
     if ($pasteId && in_array($action, ['approve', 'reject'], true)) {
-        $paste = Paste::findById($pasteId);
+        $paste = Repo::pastes()->findById($pasteId);
         if ($paste) {
             if ($action === 'approve') {
                 $paste->moderation_status = 'approved';
                 $paste->moderation_result = null;
-                $paste->update();
+                Repo::pastes()->update($paste);
                 AuditLog::log($_SESSION['user_id'], 'approve_moderation', $paste->id);
                 $_SESSION['success'] = "Пасту {$paste->id} схвалено.";
             } elseif ($action === 'reject') {
@@ -48,85 +42,45 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $paste->moderation_result = $reason
                     ? json_encode(['reason' => 'manual_rejection', 'detail' => $reason], JSON_UNESCAPED_UNICODE)
                     : json_encode(['reason' => 'manual_rejection', 'detail' => 'Відхилено адміністратором вручну'], JSON_UNESCAPED_UNICODE);
-                $paste->update();
+                Repo::pastes()->update($paste);
                 AuditLog::log($_SESSION['user_id'], 'reject_moderation', $paste->id);
                 $_SESSION['success'] = "Пасту {$paste->id} відхилено.";
             }
         }
     }
 
-    // Після дії — повертаємо на ту ж сторінку
+    // Захищений редирект
     $redirect = $_POST['redirect'] ?? 'moderation.php';
-
-    // Захист від open redirect: дозволяємо тільки відносні шляхи без scheme/host
     $parsed = parse_url($redirect);
     if (isset($parsed['scheme']) || isset($parsed['host'])) {
-        // Абсолютний URL або має схему/хост — заборонено, повертаємо на дефолт
         $redirect = 'moderation.php';
     } else {
-        // Видаляємо path traversal (../) з відносного шляху
-        do {
-            $redirect = str_replace('../', '', $redirect, $count);
-        } while ($count > 0);
-        // Також видаляємо спроби обходу через ..\
-        do {
-            $redirect = str_replace('..\\', '', $redirect, $count);
-        } while ($count > 0);
-        // Прибираємо символи переводу рядка (header injection prevention)
+        do { $redirect = str_replace(['../', '..\\'], '', $redirect, $count); } while ($count > 0);
         $redirect = str_replace(["\r", "\n"], '', $redirect);
-        // Якщо після очищення нічого не лишилось — дефолт
-        if ($redirect === '' || $redirect === '/') {
-            $redirect = 'moderation.php';
-        }
+        if ($redirect === '' || $redirect === '/') $redirect = 'moderation.php';
     }
-
     header("Location: $redirect");
     exit;
 }
 
-// Параметри фільтрації та пагінації
-$statusFilter = $_GET['status'] ?? 'needs_review'; // needs_review = pending + moderation_failed
+// ═══════════════════════════════════════════════════
+//  2. ПІДГОТОВКА ДАНИХ (через репозиторій)
+// ═══════════════════════════════════════════════════
+$statusFilter = $_GET['status'] ?? 'needs_review';
 $perPage      = 20;
 $currentPage  = max(1, (int)($_GET['page'] ?? 1));
 $offset       = ($currentPage - 1) * $perPage;
 
-// Побудова WHERE-умови
-$where = ["p.moderation_status IN ('pending', 'moderation_failed')"];
-$params = [];
-
-if ($statusFilter === 'pending') {
-    $where = ["p.moderation_status = 'pending'"];
-} elseif ($statusFilter === 'moderation_failed') {
-    $where = ["p.moderation_status = 'moderation_failed'"];
-}
-// 'needs_review' — обидва статуси (дефолт)
-
-$whereSQL = implode(' AND ', $where);
-
-// Підрахунок
-$countSQL = "SELECT COUNT(*) FROM pastes p WHERE $whereSQL";
-$stmt = $pdo->prepare($countSQL);
-$stmt->execute();
-$totalCount = (int)$stmt->fetchColumn();
-$totalPages = max(1, (int)ceil($totalCount / $perPage));
+$totalCount  = Repo::pastes()->countModerationPastes($statusFilter);
+$totalPages  = max(1, (int)ceil($totalCount / $perPage));
 $currentPage = min($currentPage, $totalPages);
 
-// Отримання паст
-$pastesSQL = "SELECT p.* FROM pastes p WHERE $whereSQL ORDER BY p.created_at ASC LIMIT ? OFFSET ?";
-$stmt = $pdo->prepare($pastesSQL);
-$stmt->execute([$perPage, $offset]);
-$pastes = $stmt->fetchAll();
+$pastes = Repo::pastes()->getModerationPastes($statusFilter, $perPage, $offset);
 
 // Лічильники для швидких фільтрів
-$stmtPending = $pdo->prepare("SELECT COUNT(*) FROM pastes WHERE moderation_status = 'pending'");
-$stmtPending->execute();
-$pendingCount = (int)$stmtPending->fetchColumn();
-
-$stmtFailed = $pdo->prepare("SELECT COUNT(*) FROM pastes WHERE moderation_status = 'moderation_failed'");
-$stmtFailed->execute();
-$failedCount = (int)$stmtFailed->fetchColumn();
-
-$needsReview = $pendingCount + $failedCount;
+$pendingCount = Repo::pastes()->countModerationByStatus('pending');
+$failedCount  = Repo::pastes()->countModerationByStatus('moderation_failed');
+$needsReview  = $pendingCount + $failedCount;
 
 $strictMode = Setting::isModerationStrict();
 

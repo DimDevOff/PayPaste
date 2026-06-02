@@ -3,49 +3,17 @@
  * Адмін-сторінка: моніторинг черги фонових задач.
  */
 require_once __DIR__ . "/check_admin.php";
-include_once __DIR__ . "/../includes/Queue.php";
 
 $metrics = Queue::getMetrics();
-$pdo = DB::getInstance()->getPDO();
 
 // Список задач за статусами
 $statusFilter = $_GET['status'] ?? 'all';
 $typeFilter = $_GET['type'] ?? 'all';
 $page = max(1, (int)($_GET['page'] ?? 1));
 $perPage = 25;
-$offset = ($page - 1) * $perPage;
 
-$where = [];
-$params = [];
-
-if ($statusFilter !== 'all') {
-    $where[] = "status = :status";
-    $params[':status'] = $statusFilter;
-}
-if ($typeFilter !== 'all') {
-    $where[] = "type = :type";
-    $params[':type'] = $typeFilter;
-}
-
-$whereSQL = !empty($where) ? 'WHERE ' . implode(' AND ', $where) : '';
-
-// Підрахунок
-$countSQL = "SELECT COUNT(*) FROM jobs $whereSQL";
-$stmt = $pdo->prepare($countSQL);
-$stmt->execute($params);
-$totalJobs = (int)$stmt->fetchColumn();
-
-// Отримання задач
-$jobsSQL = "SELECT * FROM jobs $whereSQL ORDER BY created_at DESC LIMIT :limit OFFSET :offset";
-$stmt = $pdo->prepare($jobsSQL);
-foreach ($params as $key => $val) {
-    $stmt->bindValue($key, $val);
-}
-$stmt->bindValue(':limit', $perPage, PDO::PARAM_INT);
-$stmt->bindValue(':offset', $offset, PDO::PARAM_INT);
-$stmt->execute();
-$jobs = $stmt->fetchAll();
-
+$totalJobs = Queue::countJobs($statusFilter, $typeFilter);
+$jobs = Queue::listJobs($statusFilter, $typeFilter, $page, $perPage);
 $totalPages = max(1, ceil($totalJobs / $perPage));
 
 // Типи задач для фільтра

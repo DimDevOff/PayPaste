@@ -309,4 +309,63 @@ class PasteRepository {
         $stmt->execute();
         return $stmt->fetchAll();
     }
+
+    // ── Адмін: модерація ──
+
+    /**
+     * Кількість паст, що очікують ручної модерації.
+     */
+    public function countModerationPending(): int {
+        $stmt = $this->pdo->prepare(
+            "SELECT COUNT(*) FROM pastes WHERE moderation_status IN ('pending','moderation_failed')"
+        );
+        $stmt->execute();
+        return (int)$stmt->fetchColumn();
+    }
+
+    /**
+     * Кількість паст за конкретним статусом модерації.
+     */
+    public function countModerationByStatus(string $status): int {
+        $stmt = $this->pdo->prepare(
+            "SELECT COUNT(*) FROM pastes WHERE moderation_status = ?"
+        );
+        $stmt->execute([$status]);
+        return (int)$stmt->fetchColumn();
+    }
+
+    /**
+     * Отримання паст для модерації з фільтром та пагінацією.
+     *
+     * @param string $statusFilter 'needs_review' (pending+moderation_failed), 'pending', або 'moderation_failed'
+     * @return array rows from DB
+     */
+    public function getModerationPastes(string $statusFilter = 'needs_review', int $limit = 20, int $offset = 0): array {
+        $where = match ($statusFilter) {
+            'pending'           => "p.moderation_status = 'pending'",
+            'moderation_failed' => "p.moderation_status = 'moderation_failed'",
+            default             => "p.moderation_status IN ('pending', 'moderation_failed')",
+        };
+
+        $stmt = $this->pdo->prepare(
+            "SELECT p.* FROM pastes p WHERE $where ORDER BY p.created_at ASC LIMIT ? OFFSET ?"
+        );
+        $stmt->execute([$limit, $offset]);
+        return $stmt->fetchAll();
+    }
+
+    /**
+     * Кількість паст для модерації з фільтром.
+     */
+    public function countModerationPastes(string $statusFilter = 'needs_review'): int {
+        $where = match ($statusFilter) {
+            'pending'           => "p.moderation_status = 'pending'",
+            'moderation_failed' => "p.moderation_status = 'moderation_failed'",
+            default             => "p.moderation_status IN ('pending', 'moderation_failed')",
+        };
+
+        $stmt = $this->pdo->prepare("SELECT COUNT(*) FROM pastes p WHERE $where");
+        $stmt->execute();
+        return (int)$stmt->fetchColumn();
+    }
 }
