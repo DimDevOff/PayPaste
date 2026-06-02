@@ -3,20 +3,15 @@
  * Клас WebAuthn (FIDO2) — без зовнішніх залежностей.
  *
  * Містить усю логіку: CBOR парсинг, COSE→PEM, верифікацію атестації та асерції.
- * Раніше був набором глобальних функцій у webauthn.php.
  */
 require_once __DIR__ . '/../config/config.php';
 
 class WebAuthn {
 
-    // ── Утиліти: Base64URL ──
-
-    /** Кодує дані у Base64URL (без +/ та =) */
     public static function base64urlEncode(string $data): string {
         return rtrim(strtr(base64_encode($data), '+/', '-_'), '=');
     }
 
-    /** Декодує дані з Base64URL */
     public static function base64urlDecode(string $data): string {
         $remainder = strlen($data) % 4;
         if ($remainder) {
@@ -25,27 +20,17 @@ class WebAuthn {
         return base64_decode(strtr($data, '-_', '+/'));
     }
 
-    // ── Challenge ──
-
-    /** Генерує випадковий челендж */
     public static function generateChallenge(int $length = 32): string {
         return self::base64urlEncode(random_bytes($length));
     }
 
-    // ── CSRF для API ──
-
-    /** Спрощена перевірка CSRF для API-запитів */
     public static function verifyCsrfApi(string $token): bool {
         return isset($_SESSION['csrf_token']) && hash_equals($_SESSION['csrf_token'], $token);
     }
 
-    // ── WebAuthn-конфіг ──
-
-    /** Отримує налаштування WebAuthn з .env або дефолтних значень */
     public static function getConfig(): array {
         $app_url = defined('APP_URL') && APP_URL ? APP_URL : 'https://YOUR_DOMAIN';
         $rp_id = defined('WEBAUTHN_RP_ID') && WEBAUTHN_RP_ID ? WEBAUTHN_RP_ID : parse_url($app_url, PHP_URL_HOST);
-
         return [
             'rp_id'   => $rp_id,
             'rp_name' => 'PayPaste',
@@ -53,21 +38,15 @@ class WebAuthn {
         ];
     }
 
-    // ── CBOR Decoder ──
-
-    /** Декодує CBOR (Concise Binary Object Representation) */
     public static function cborDecode(string $data, &$offset = 0) {
         if ($offset >= strlen($data)) return null;
-
         $byte  = ord($data[$offset]);
         $major = ($byte >> 5) & 0x07;
         $minor = $byte & 0x1F;
         $offset++;
-
         $value = null;
-        if ($minor < 24) {
-            $value = $minor;
-        } elseif ($minor === 24) {
+        if ($minor < 24) $value = $minor;
+        elseif ($minor === 24) {
             if ($offset >= strlen($data)) return null;
             $value = ord($data[$offset]);
             $offset++;
@@ -85,9 +64,7 @@ class WebAuthn {
             $lo = unpack('N', substr($data, $offset + 4, 4))[1];
             $value = $hi * 4294967296 + $lo;
             $offset += 8;
-        } elseif ($minor === 31) {
-            return null;
-        }
+        } elseif ($minor === 31) return null;
 
         if ($major === 0) return $value;
         if ($major === 1) return -1 - $value;
@@ -117,7 +94,7 @@ class WebAuthn {
             }
             return $map;
         }
-        if ($major === 6) { return self::cborDecode($data, $offset); }
+        if ($major === 6) return self::cborDecode($data, $offset);
         if ($major === 7) {
             if ($value === 20) return false;
             if ($value === 21) return true;
@@ -130,95 +107,55 @@ class WebAuthn {
         return null;
     }
 
-    // ── COSE → PEM ──
-
-    /** Конвертує COSE-ключ у PEM-формат */
     public static function coseToPem(array $coseKey): ?string {
         if (!isset($coseKey[1]) || $coseKey[1] !== 2) {
-            error_log("WebAuthn: COSE ключ не EC2: " . json_encode($coseKey));
+            error_log("WebAuthn: COSE ключ не EC2");
             return null;
         }
-
         $x = $coseKey[-2] ?? null;
         $y = $coseKey[-3] ?? null;
-
-        if ($x === null || $y === null) {
-            error_log("WebAuthn: Відсутні X або Y в COSE ключі");
-            return null;
-        }
+        if ($x === null || $y === null) return null;
 
         $x_bin = is_string($x) && strlen($x) === 32 ? $x : self::base64urlDecode($x);
         $y_bin = is_string($y) && strlen($y) === 32 ? $y : self::base64urlDecode($y);
-
-        if (strlen($x_bin) !== 32 || strlen($y_bin) !== 32) {
-            error_log("WebAuthn: Некоректна довжина координат X=" . strlen($x_bin) . " Y=" . strlen($y_bin));
-            return null;
-        }
+        if (strlen($x_bin) !== 32 || strlen($y_bin) !== 32) return null;
 
         $der_prefix = hex2bin('3059301306072a8648ce3d020106082a8648ce3d03010703420004');
-        if ($der_prefix === false) {
-            error_log("WebAuthn: помилка hex2bin префікса");
-            return null;
-        }
-
-        $der_binary = $der_prefix . $x_bin . $y_bin;
+        if ($der_prefix === false) return null;
         $pem  = "-----BEGIN PUBLIC KEY-----\n";
-        $pem .= chunk_split(base64_encode($der_binary), 64, "\n");
+        $pem .= chunk_split(base64_encode($der_prefix . $x_bin . $y_bin), 64, "\n");
         $pem .= "-----END PUBLIC KEY-----";
         return $pem;
     }
 
-    // ── Декодування COSE ключа ──
-
-    /** Декодує COSE-ключ з бінарних даних */
     public static function decodeCoseKey(string $pubkeyBytes): array {
         $pos = 0;
         $cose = self::cborDecode($pubkeyBytes, $pos);
-        if (!$cose || !is_array($cose)) {
-            error_log("WebAuthn: Помилка декодування COSE");
-            return [];
-        }
-        return $cose;
+        return (!$cose || !is_array($cose)) ? [] : $cose;
     }
 
-    // ── Верифікація атестації (реєстрація) ──
-
-    /** Верифікує відповідь атестації (navigator.credentials.create) */
     public static function verifyAttestationResponse(array $response, string $challenge, string $userId): array {
         $config = self::getConfig();
         $origin = $config['origin'];
-
-        // 1. Декодуємо clientDataJSON
         $clientDataJsonBytes = self::base64urlDecode($response['clientDataJSON']);
         $clientData = json_decode($clientDataJsonBytes, true);
 
-        if (!$clientData || !isset($clientData['type']) || $clientData['type'] !== 'webauthn.create') {
-            error_log("WebAuthn: Некоректний тип clientData");
+        if (!$clientData || !isset($clientData['type']) || $clientData['type'] !== 'webauthn.create')
             return ['success' => false, 'error' => 'Некоректний тип clientData'];
-        }
-        if (!isset($clientData['challenge']) || $clientData['challenge'] !== $challenge) {
-            error_log("WebAuthn: Невідповідність челенджу");
+        if (!isset($clientData['challenge']) || $clientData['challenge'] !== $challenge)
             return ['success' => false, 'error' => 'Невідповідність челенджу'];
-        }
-        if (!isset($clientData['origin']) || rtrim($clientData['origin'], '/') !== rtrim($origin, '/')) {
-            error_log("WebAuthn: Невідповідність origin");
+        if (!isset($clientData['origin']) || rtrim($clientData['origin'], '/') !== rtrim($origin, '/'))
             return ['success' => false, 'error' => 'Невідповідність origin'];
-        }
 
-        // 2. Декодуємо attestationObject (CBOR)
         $attestationObjectBytes = self::base64urlDecode($response['attestationObject']);
         $offset = 0;
         $attestation = self::cborDecode($attestationObjectBytes, $offset);
-
-        if (!$attestation || !isset($attestation['authData'])) {
+        if (!$attestation || !isset($attestation['authData']))
             return ['success' => false, 'error' => 'Некоректний об\'єкт атестації'];
-        }
 
-        // 3. Парсимо authenticator data
         $authenticatorBytes = $attestation['authData'];
-        if (strlen($authenticatorBytes) < 37) {
+        if (strlen($authenticatorBytes) < 37)
             return ['success' => false, 'error' => 'Некоректні дані автентифікатора'];
-        }
 
         $signCount = unpack('V', substr($authenticatorBytes, 1, 4))[1];
         $hasAttestedCredential = (ord($authenticatorBytes[0]) & 0x40) !== 0;
@@ -231,68 +168,47 @@ class WebAuthn {
             $pubkeyOffset = 55 + $credIdLen;
         }
 
-        if ($pubkeyOffset >= strlen($authenticatorBytes)) {
+        if ($pubkeyOffset >= strlen($authenticatorBytes))
             return ['success' => false, 'error' => 'Некоректні дані автентифікатора'];
-        }
 
-        // 4. Декодуємо публічний ключ
-        $pubkeyBytes = substr($authenticatorBytes, $pubkeyOffset);
-        $coseKey = self::decodeCoseKey($pubkeyBytes);
-        if (empty($coseKey)) {
+        $coseKey = self::decodeCoseKey(substr($authenticatorBytes, $pubkeyOffset));
+        if (empty($coseKey))
             return ['success' => false, 'error' => 'Помилка декодування публічного ключа'];
-        }
 
         $publicKeyPem = self::coseToPem($coseKey);
-        if (!$publicKeyPem) {
+        if (!$publicKeyPem)
             return ['success' => false, 'error' => 'Помилка конвертації публічного ключа'];
-        }
-
-        $credentialId = $response['id'] ?? null;
-        if ($hasAttestedCredential) {
-            $aaguid = bin2hex($aaguid);
-        }
 
         return [
             'success'        => true,
-            'credential_id'  => $credentialId,
+            'credential_id'  => $response['id'] ?? null,
             'public_key_pem' => $publicKeyPem,
             'counter'        => $signCount,
-            'aaguid'         => $aaguid,
+            'aaguid'         => $hasAttestedCredential ? bin2hex($aaguid) : $aaguid,
             'transports'     => $response['transports'] ?? [],
         ];
     }
 
-    // ── Верифікація асерції (вхід) ──
-
-    /** Верифікує асерцію (navigator.credentials.get) */
     public static function verifyAssertionResponse(array $response, string $challenge, string $rpId, object $passkey): array {
         $config = self::getConfig();
         $origin = $config['origin'];
-
-        // 1. Декодуємо clientDataJSON
         $clientDataJsonBytes = self::base64urlDecode($response['clientDataJSON']);
         $clientData = json_decode($clientDataJsonBytes, true);
 
-        if (!$clientData || !isset($clientData['type']) || $clientData['type'] !== 'webauthn.get') {
+        if (!$clientData || !isset($clientData['type']) || $clientData['type'] !== 'webauthn.get')
             return ['success' => false, 'error' => 'Некоректний тип clientData'];
-        }
-        if (!isset($clientData['challenge']) || $clientData['challenge'] !== $challenge) {
+        if (!isset($clientData['challenge']) || $clientData['challenge'] !== $challenge)
             return ['success' => false, 'error' => 'Невідповідність челенджу'];
-        }
-        if (!isset($clientData['origin']) || rtrim($clientData['origin'], '/') !== rtrim($origin, '/')) {
+        if (!isset($clientData['origin']) || rtrim($clientData['origin'], '/') !== rtrim($origin, '/'))
             return ['success' => false, 'error' => 'Невідповідність origin'];
-        }
 
-        // 2. Отримуємо дані автентифікатора
         $authenticatorData = self::base64urlDecode($response['authenticatorData']);
-        if (strlen($authenticatorData) < 37) {
+        if (strlen($authenticatorData) < 37)
             return ['success' => false, 'error' => 'Некоректна довжина даних автентифікатора'];
-        }
 
         $flags = ord($authenticatorData[0]);
-        if (!($flags & 0x01)) {
+        if (!($flags & 0x01))
             return ['success' => false, 'error' => 'Користувач не присутній'];
-        }
 
         $signCount = unpack('V', substr($authenticatorData, 1, 4))[1];
         $storedCounter = (int)$passkey->counter;
@@ -301,29 +217,19 @@ class WebAuthn {
         if ($signCount !== 0 || $storedCounter !== 0) {
             if ($signCount <= $storedCounter && $storedCounter > 0) {
                 $counterAnomaly = true;
-                error_log("WebAuthn: АНОМАЛІЯ ЛІЧИЛЬНИКА — stored={$storedCounter} new={$signCount}");
+                error_log("WebAuthn: АНОМАЛІЯ ЛІЧИЛЬНИКА stored={$storedCounter} new={$signCount}");
             }
         }
 
-        // 3. Перевірка підпису
         $signature = self::base64urlDecode($response['signature']);
         $clientDataHash = hash('sha256', $clientDataJsonBytes, true);
-        $signedData = $authenticatorData . $clientDataHash;
-
         $publicKey = openssl_pkey_get_public($passkey->public_key_pem);
-        if (!$publicKey) {
+        if (!$publicKey)
             return ['success' => false, 'error' => 'Некоректний публічний ключ'];
-        }
 
-        $verify = openssl_verify($signedData, $signature, $publicKey, OPENSSL_ALGO_SHA256);
-        if ($verify !== 1) {
+        if (openssl_verify($authenticatorData . $clientDataHash, $signature, $publicKey, OPENSSL_ALGO_SHA256) !== 1)
             return ['success' => false, 'error' => 'Помилка перевірки підпису'];
-        }
 
-        return [
-            'success'          => true,
-            'new_counter'      => $signCount,
-            'counter_anomaly'  => $counterAnomaly,
-        ];
+        return ['success' => true, 'new_counter' => $signCount, 'counter_anomaly' => $counterAnomaly];
     }
 }
