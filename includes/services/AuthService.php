@@ -111,6 +111,11 @@ class AuthService {
         $_SESSION['user_id'] = $user->id;
         $_SESSION['role'] = $user->role;
         unset($_SESSION['old_input']);
+
+        // Явне збереження сесії — гарантує що дані записані на диск
+        session_write_close();
+        // Знову відкриваємо — для подальших змін в цьому запиті (якщо є)
+        session_start();
     }
 
     /**
