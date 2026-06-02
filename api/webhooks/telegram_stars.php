@@ -2,6 +2,7 @@
 require_once __DIR__ . '/../../includes/models/Order.php';
 require_once __DIR__ . '/../../includes/models/User.php';
 require_once __DIR__ . '/../../includes/services/CreditService.php';
+require_once __DIR__ . '/../../includes/services/PricingService.php';
 
 // Верифікація webhook-запиту: перевіряємо secret_token від Telegram
 $secret = $_SERVER['HTTP_X_TELEGRAM_BOT_API_SECRET_TOKEN'] ?? '';
@@ -51,19 +52,7 @@ if (isset($update['message']['text'])) {
         $order_id = str_replace('/start ', '', $text);
         
         // Відправляємо повідомлення з Inline кнопками для вибору тарифу
-        $keyboard = [
-            'inline_keyboard' => [
-                [
-                    ['text' => '🥉 Базовий - 50 ⭐ (100 кре.)', 'callback_data' => 'tariff_50_' . $order_id]
-                ],
-                [
-                    ['text' => '🥈 Стандартний - 200 ⭐ (500 кре.)', 'callback_data' => 'tariff_200_' . $order_id]
-                ],
-                [
-                    ['text' => '🥇 Преміум - 500 ⭐ (1500 кре.)', 'callback_data' => 'tariff_500_' . $order_id]
-                ]
-            ]
-        ];
+        $keyboard = PricingService::getStarsInlineKeyboard($order_id);
 
         tgRequest('sendMessage', [
             'chat_id' => $chat_id,
@@ -83,18 +72,9 @@ if (isset($update['callback_query'])) {
         $stars_amount = (int)$matches[1];
         $order_id = $matches[2];
 
-        $title = "Рандомний тариф";
-        $description = "Поповнення кредитів";
-        if ($stars_amount == 50) {
-            $title = "Базовий пакет";
-            $description = "100 кредитів на ваш аккаунт Trashy Pastebin";
-        } elseif ($stars_amount == 200) {
-            $title = "Стандартний пакет";
-            $description = "500 кредитів на ваш аккаунт Trashy Pastebin";
-        } elseif ($stars_amount == 500) {
-            $title = "Преміум пакет";
-            $description = "1500 кредитів на ваш аккаунт Trashy Pastebin";
-        }
+        $tariff = PricingService::tariffForStars($stars_amount);
+        $title = $tariff ? $tariff['label'] . ' пакет' : "Рандомний тариф";
+        $description = $tariff ? $tariff['description'] : "Поповнення кредитів";
 
         tgRequest('sendInvoice', [
             'chat_id' => $chat_id,
@@ -132,14 +112,7 @@ if (isset($update['message']['successful_payment'])) {
     list($order_id, $stars) = explode('|', $payload);
     $stars = (int)$stars;
 
-    $credits = 0;
-    if ($stars == 50) {
-        $credits = 100;
-    } elseif ($stars == 200) {
-        $credits = 500;
-    } elseif ($stars >= 500) {
-        $credits = 1500;
-    }
+    $credits = PricingService::creditsForStars((int)$stars);
 
     $order = Order::findById($order_id);
     if ($order && $order->status === 'pending') {

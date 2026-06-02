@@ -11,41 +11,34 @@
             </div>
         </div>
 
+<?php
+$tariffs = PricingService::getDisplayTariffs();
+?>
         <!-- Тарифи -->
         <div class="row" style="margin-bottom: 30px;">
+            <?php foreach ($tariffs as $i => $t):
+                $panelClass = match ($i) {
+                    0 => 'panel-info',
+                    1 => 'panel-success',
+                    2 => 'panel-warning',
+                    default => 'panel-default'
+                };
+                $badge = ($i === 1) ? '<span class="label label-danger" style="position:absolute; top:-10px; right:-10px;">Популярний!</span>' : '';
+            ?>
             <div class="col-sm-4">
-                <div class="panel panel-info text-center">
-                    <div class="panel-heading"><h4 style="margin:0;">🥉 Базовий</h4></div>
+                <div class="panel <?= $panelClass ?> text-center<?= $i === 1 ? ' border: 2px solid' : '' ?>">
+                    <div class="panel-heading"<?= $badge ? ' style="position:relative;"' : '' ?>>
+                        <h4 style="margin:0;"><?= ['🥉', '🥈', '🥇'][$i] ?? '' ?> <?= htmlspecialchars($t['label']) ?></h4>
+                        <?= $badge ?>
+                    </div>
                     <div class="panel-body">
-                        <h2 style="color: var(--accent); margin:5px 0;">100 кредитів</h2>
-                        <p class="text-muted" style="font-size:24px; font-weight:bold;">25 ₴</p>
-                        <small class="text-muted">або 50 ⭐ Telegram Stars</small>
+                        <h2 style="color: var(--accent); margin:5px 0;"><?= number_format($t['credits']) ?> кредитів</h2>
+                        <p class="text-muted" style="font-size:24px; font-weight:bold;"><?= htmlspecialchars($t['price_uah']) ?> ₴</p>
+                        <small class="text-muted">або <?= $t['price_stars'] ?> ⭐ Telegram Stars</small>
                     </div>
                 </div>
             </div>
-            <div class="col-sm-4">
-                <div class="panel panel-success text-center" style="border-width: 2px;">
-                    <div class="panel-heading" style="position:relative;">
-                        <h4 style="margin:0;">🥈 Стандартний</h4>
-                        <span class="label label-danger" style="position:absolute; top:-10px; right:-10px;">Популярний!</span>
-                    </div>
-                    <div class="panel-body">
-                        <h2 style="color: var(--accent); margin:5px 0;">500 кредитів</h2>
-                        <p class="text-muted" style="font-size:24px; font-weight:bold;">100 ₴</p>
-                        <small class="text-muted">або 200 ⭐ Telegram Stars</small>
-                    </div>
-                </div>
-            </div>
-            <div class="col-sm-4">
-                <div class="panel panel-warning text-center">
-                    <div class="panel-heading"><h4 style="margin:0;">🥇 Преміум</h4></div>
-                    <div class="panel-body">
-                        <h2 style="color: var(--accent); margin:5px 0;">1500 кредитів</h2>
-                        <p class="text-muted" style="font-size:24px; font-weight:bold;">250 ₴</p>
-                        <small class="text-muted">або 500 ⭐ Telegram Stars</small>
-                    </div>
-                </div>
-            </div>
+            <?php endforeach; ?>
         </div>
 
         <!-- Способи оплати -->

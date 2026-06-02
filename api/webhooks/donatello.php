@@ -7,6 +7,7 @@
 require_once __DIR__ . '/../../includes/models/Order.php';
 require_once __DIR__ . '/../../includes/models/User.php';
 require_once __DIR__ . '/../../includes/services/CreditService.php';
+require_once __DIR__ . '/../../includes/services/PricingService.php';
 require_once __DIR__ . '/../../includes/RateLimiter.php';
 
 // IP-based rate limiting: не більше 30 запитів на хвилину з однієї IP
@@ -87,22 +88,8 @@ function process_donate($donate) {
         $order = Order::findById($order_id);
         if ($order && $order->status === 'pending') {
             
-            // Розрахунок кількості кредитів на основі суми в UAH
-            // Тарифна сітка:
-            // 25 UAH  = 100 кредитів
-            // 100 UAH = 500 кредитів
-            // 250 UAH = 1500 кредитів
-            $credits = 0;
-            if ($amount >= 250) {
-                $credits = 1500;
-            } elseif ($amount >= 100) {
-                $credits = 500;
-            } elseif ($amount >= 25) {
-                $credits = 100;
-            } else {
-                // Формула для довільних сум (4 кредити за 1 UAH)
-                $credits = floor($amount * 4); 
-            }
+            // Розрахунок кількості кредитів через PricingService
+            $credits = PricingService::creditsForDonatello($amount);
 
             // Нарахування кредитів користувачу через CreditService
             $user = User::findById($order->user_id);
