@@ -27,6 +27,7 @@ set_exception_handler(function (Throwable $e) {
 require_once __DIR__ . '/../config/db.php';
 require_once __DIR__ . '/security_headers.php';
 require_once __DIR__ . '/repositories/Repo.php';
+require_once __DIR__ . '/JobHandlers.php';
 require_once __DIR__ . '/models/User.php';
 require_once __DIR__ . '/models/Paste.php';
 require_once __DIR__ . '/models/AuditLog.php';
@@ -119,21 +120,19 @@ if (php_sapi_name() !== 'cli' && mt_rand(1, 100) <= $inlineProbability) {
         $jobs = Queue::pop(1, null, [Queue::TYPE_MODERATION_CHECK, Queue::TYPE_MODERATION_REWRITE]); // Взяти лише 1 задачу, крім важких AI-задач (модерація та переписування)
         if (!empty($jobs)) {
             $job = $jobs[0];
-            require_once __DIR__ . '/Moderation.php';
-            require_once __DIR__ . '/mailer.php';
 
             $handlers = [
-                Queue::TYPE_MODERATION_CHECK   => 'inlineModerationCheck',
-                Queue::TYPE_MODERATION_REWRITE  => 'inlineModerationRewrite',
-                Queue::TYPE_EMAIL_VERIFY       => 'inlineEmailVerify',
-                Queue::TYPE_EMAIL_CHANGED     => 'inlineEmailChanged',
-                Queue::TYPE_EMAIL_CUSTOM      => 'inlineEmailCustom',
+                Queue::TYPE_MODERATION_CHECK   => [JobHandlers::class, 'handleModerationCheck'],
+                Queue::TYPE_MODERATION_REWRITE  => [JobHandlers::class, 'handleModerationRewrite'],
+                Queue::TYPE_EMAIL_VERIFY       => [JobHandlers::class, 'handleEmailVerify'],
+                Queue::TYPE_EMAIL_CHANGED     => [JobHandlers::class, 'handleEmailChanged'],
+                Queue::TYPE_EMAIL_CUSTOM      => [JobHandlers::class, 'handleEmailCustom'],
             ];
 
             $type = $job['type'];
             if (isset($handlers[$type])) {
                 try {
-                    call_user_func($handlers[$type], $job['payload']);
+                    call_user_func($handlers[$type], $job['payload'], 'error_log');
                     Queue::complete($job['id']);
                 } catch (\Throwable $e) {
                     Queue::fail($job['id'], get_class($e) . ': ' . $e->getMessage());
@@ -144,77 +143,4 @@ if (php_sapi_name() !== 'cli' && mt_rand(1, 100) <= $inlineProbability) {
         // Лінива обробка не повинна ламати основний запит
         error_log('Inline worker помилка: ' . $e->getMessage());
     }
-}
-
-/**
- * Inline-обробники для лінивої черги.
- * Дублюють логіку з cron/worker.php, але без логування у файл.
- */
-function inlineModerationCheck(array $payload): void {
-    $pasteId = $payload['paste_id'] ?? null;
-    $content = $payload['content'] ?? '';
-    if (!$pasteId) return;
-
-    $pdo = DB::getInstance()->getPDO();
-    $stmt = $pdo->prepare("SELECT id, moderation_status FROM pastes WHERE id = ?");
-    $stmt->execute([$pasteId]);
-    $paste = $stmt->fetch();
-    if (!$paste || $paste['moderation_status'] !== 'pending') return;
-
-    $violations = Moderation::checkExternal($content);
-    if ($violations === false) {
-        $pdo->prepare("UPDATE pastes SET moderation_status = 'approved' WHERE id = ?")->execute([$pasteId]);
-    } else {
-        $pdo->prepare("UPDATE pastes SET moderation_status = 'rejected', moderation_result = ? WHERE id = ?")
-            ->execute([json_encode($violations, JSON_UNESCAPED_UNICODE), $pasteId]);
-    }
-}
-
-function inlineModerationRewrite(array $payload): void {
-    $pasteId = $payload['paste_id'] ?? null;
-    if (!$pasteId) return;
-
-    $pdo = DB::getInstance()->getPDO();
-    $stmt = $pdo->prepare("SELECT id, content FROM pastes WHERE id = ? AND is_pending_rewrite = 1");
-    $stmt->execute([$pasteId]);
-    $paste = $stmt->fetch();
-    if (!$paste) return;
-
-    $rewritten = Moderation::rewrite($paste['content']);
-    $pdo->prepare("UPDATE pastes SET content = ?, is_pending_rewrite = 0, moderation_status = 'approved' WHERE id = ?")
-        ->execute([$rewritten, $pasteId]);
-
-    $pasteObj = Paste::findById($pasteId);
-    if ($pasteObj) {
-        $pasteObj->syncTags();
-    }
-}
-
-function inlineEmailVerify(array $payload): void {
-    $to   = $payload['to'] ?? '';
-    $code = $payload['code'] ?? '';
-    if (empty($to) || empty($code)) return;
-
-    $template = file_get_contents(__DIR__ . '/../templates/email_verify.html');
-    $html = str_replace('{{CODE}}', htmlspecialchars($code), $template);
-    Mailer::sendDirect($to, 'Підтвердження пошти — PayPaste', $html);
-}
-
-function inlineEmailChanged(array $payload): void {
-    $oldEmail = $payload['old_email'] ?? '';
-    $newEmail = $payload['new_email'] ?? '';
-    if (empty($oldEmail) || empty($newEmail)) return;
-
-    $template = file_get_contents(__DIR__ . '/../templates/email_changed.html');
-    $html = str_replace('{{NEW_EMAIL}}', htmlspecialchars($newEmail), $template);
-    Mailer::sendDirect($oldEmail, 'Зміна email-адреси — PayPaste', $html);
-}
-
-function inlineEmailCustom(array $payload): void {
-    $to      = $payload['to'] ?? '';
-    $subject = $payload['subject'] ?? '';
-    $html    = $payload['html'] ?? '';
-    if (empty($to) || empty($subject)) return;
-
-    Mailer::sendDirect($to, $subject, $html);
 }

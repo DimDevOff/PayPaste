@@ -23,8 +23,7 @@ define('NO_SESSION', true);
 
 require_once __DIR__ . '/../includes/bootstrap.php';
 require_once __DIR__ . '/../includes/Queue.php';
-require_once __DIR__ . '/../includes/Moderation.php';
-require_once __DIR__ . '/../includes/mailer.php';
+require_once __DIR__ . '/../includes/JobHandlers.php';
 
 set_time_limit(300); // 5 хвилин на батч
 ini_set('max_execution_time', '300');
@@ -72,239 +71,13 @@ function workerLog(string $msg): void {
     }
 }
 
-// Обробники задач
-
-/**
- * Обробка задачі модерації (OpenAI Moderation API).
- * Оновлює moderation_status пасти залежно від результату.
- */
-function handleModerationCheck(array $payload): void {
-    $pasteId = $payload['paste_id'] ?? null;
-    $content = $payload['content'] ?? '';
-
-    if (!$pasteId) {
-        throw new \InvalidArgumentException('Відсутній paste_id у payload');
-    }
-
-    $pdo = DB::getInstance()->getPDO();
-
-    // Перевіряємо, що паста ще існує
-    $stmt = $pdo->prepare("SELECT id, moderation_status FROM pastes WHERE id = ?");
-    $stmt->execute([$pasteId]);
-    $paste = $stmt->fetch();
-
-    if (!$paste) {
-        workerLog("moderation_check: пасту $pasteId не знайдено (можливо видалено) — пропускаємо");
-        return;
-    }
-
-    // Перевіряємо, чи не оброблено вже (ідемпотентність)
-    if ($paste['moderation_status'] !== 'pending') {
-        workerLog("moderation_check: паста $pasteId вже має статус '{$paste['moderation_status']}' — пропускаємо");
-        return;
-    }
-
-    // Перевіряємо через OpenAI (без локальної перевірки — вона вже пройшла синхронно)
-    try {
-        $violations = Moderation::checkExternal($content);
-    } catch (\Throwable $e) {
-        // OpenAI недоступний (не відхилення, а сервісна помилка)
-        if (!Moderation::isStrictMode()) {
-            // Легкий режим: локальна перевірка достатня — публікуємо автоматично
-            $stmt = $pdo->prepare("UPDATE pastes SET moderation_status = 'approved' WHERE id = ?");
-            $stmt->execute([$pasteId]);
-            workerLog("moderation_check: паста $pasteId APPROVED (легкий режим, OpenAI недоступний: " . $e->getMessage() . ")");
-            return;
-        }
-        // Строгий режим: передаємо помилку далі — retry через Queue::fail
-        throw $e;
-    }
-
-    if ($violations === false) {
-        // OpenAI не знайшов порушень → approved
-        $stmt = $pdo->prepare("UPDATE pastes SET moderation_status = 'approved' WHERE id = ?");
-        $stmt->execute([$pasteId]);
-        workerLog("moderation_check: паста $pasteId APPROVED (OpenAI чисто)");
-    } else {
-        // Знайдено порушення → rejected, зберігаємо причини
-        $stmt = $pdo->prepare("UPDATE pastes SET moderation_status = 'rejected', moderation_result = ? WHERE id = ?");
-        $stmt->execute([json_encode($violations, JSON_UNESCAPED_UNICODE), $pasteId]);
-        workerLog("moderation_check: паста $pasteId REJECTED: " . implode(', ', $violations));
-    }
-}
-
-/**
- * Обробка задачі AI-перефразування (Ollama).
- */
-function handleModerationRewrite(array $payload): void {
-    $pasteId = $payload['paste_id'] ?? null;
-    $content = $payload['content'] ?? '';
-
-    if (!$pasteId) {
-        throw new \InvalidArgumentException('Відсутній paste_id у payload');
-    }
-
-    $pdo = DB::getInstance()->getPDO();
-
-    $stmt = $pdo->prepare("SELECT id, content FROM pastes WHERE id = ? AND is_pending_rewrite = 1");
-    $stmt->execute([$pasteId]);
-    $paste = $stmt->fetch();
-
-    if (!$paste) {
-        workerLog("moderation_rewrite: пасту $pasteId не знайдено або вже оброблено — пропускаємо");
-        return;
-    }
-
-    // Перефразування через Ollama (використовуємо контент з БД, актуальніший)
-    $rewritten = Moderation::rewrite($paste['content']);
-
-    // Повторна модерація результату AI-переписування — не довіряємо автогенерованому
-    // контенту без перевірки, оскільки prompt injection може призвести до небажаного результату.
-    $localViolations = Moderation::localCheck($rewritten);
-    if ($localViolations) {
-        // Локальна перевірка знайшла порушення — відхиляємо переписаний текст
-        $updateStmt = $pdo->prepare("
-            UPDATE pastes
-            SET is_pending_rewrite = 0, moderation_status = 'rejected', moderation_result = ?
-            WHERE id = ?
-        ");
-        $updateStmt->execute([json_encode($localViolations, JSON_UNESCAPED_UNICODE), $pasteId]);
-        workerLog("moderation_rewrite: паста $pasteId REJECTED після переписування (локальна перевірка): " . implode(', ', $localViolations));
-        return;
-    }
-
-    // Зовнішня перевірка переписаного тексту через OpenAI
-    try {
-        $externalViolations = Moderation::checkExternal($rewritten);
-    } catch (\Throwable $e) {
-        // Якщо зовнішня перевірка недоступна — зберігаємо переписаний текст
-        // і ставимо у чергу на стандартну модерацію (moderation_check)
-        $updateStmt = $pdo->prepare("
-            UPDATE pastes
-            SET content = ?, is_pending_rewrite = 0, moderation_status = 'pending'
-            WHERE id = ?
-        ");
-        $updateStmt->execute([$rewritten, $pasteId]);
-
-        try {
-            Queue::push(
-                Queue::TYPE_MODERATION_CHECK,
-                [
-                    'paste_id' => $pasteId,
-                    'content'  => $rewritten
-                ],
-                'mod_check:' . $pasteId
-            );
-            workerLog("moderation_rewrite: паста $pasteId переписана, зовнішня перевірка недоступна — поставлено у чергу moderation_check");
-        } catch (\Throwable $pushErr) {
-            workerLog("moderation_rewrite: паста $pasteId переписана, але не вдалося поставити moderation_check у чергу: " . $pushErr->getMessage());
-        }
-        return;
-    }
-
-    if ($externalViolations) {
-        // Зовнішня перевірка знайшла порушення — відхиляємо
-        $updateStmt = $pdo->prepare("
-            UPDATE pastes
-            SET is_pending_rewrite = 0, moderation_status = 'rejected', moderation_result = ?
-            WHERE id = ?
-        ");
-        $updateStmt->execute([json_encode($externalViolations, JSON_UNESCAPED_UNICODE), $pasteId]);
-        workerLog("moderation_rewrite: паста $pasteId REJECTED після переписування (OpenAI): " . implode(', ', $externalViolations));
-        return;
-    }
-
-    // Усі перевірки пройдені — схвалюємо переписаний контент
-    $updateStmt = $pdo->prepare("
-        UPDATE pastes
-        SET content = ?, is_pending_rewrite = 0, moderation_status = 'approved'
-        WHERE id = ?
-    ");
-    $updateStmt->execute([$rewritten, $pasteId]);
-
-    // Оновлюємо теги
-    $pasteObj = Paste::findById($pasteId);
-    if ($pasteObj) {
-        $pasteObj->syncTags();
-    }
-
-    workerLog("moderation_rewrite: паста $pasteId перефразована, пройшла повторну модерацію — approved");
-}
-
-/**
- * Обробка задачі відправки email верифікації.
- */
-function handleEmailVerify(array $payload): void {
-    $to   = $payload['to'] ?? '';
-    $code = $payload['code'] ?? '';
-
-    if (empty($to) || empty($code)) {
-        throw new \InvalidArgumentException('Відсутній to/code у payload email_verify');
-    }
-
-    $template = file_get_contents(__DIR__ . '/../templates/email_verify.html');
-    $html = str_replace('{{CODE}}', htmlspecialchars($code), $template);
-
-    $result = Mailer::sendDirect($to, 'Підтвердження пошти — PayPaste', $html);
-
-    if (!$result) {
-        throw new \RuntimeException("Не вдалося відправити верифікаційний лист на $to");
-    }
-
-    workerLog("email_verify: лист надіслано на $to");
-}
-
-/**
- * Обробка задачі повідомлення про зміну email.
- */
-function handleEmailChanged(array $payload): void {
-    $oldEmail = $payload['old_email'] ?? '';
-    $newEmail = $payload['new_email'] ?? '';
-
-    if (empty($oldEmail) || empty($newEmail)) {
-        throw new \InvalidArgumentException('Відсутній old_email/new_email у payload');
-    }
-
-    $template = file_get_contents(__DIR__ . '/../templates/email_changed.html');
-    $html = str_replace('{{NEW_EMAIL}}', htmlspecialchars($newEmail), $template);
-
-    $result = Mailer::sendDirect($oldEmail, 'Зміна email-адреси — PayPaste', $html);
-
-    if (!$result) {
-        throw new \RuntimeException("Не вдалося відправити повідомлення про зміну email на $oldEmail");
-    }
-
-    workerLog("email_changed: повідомлення надіслано на $oldEmail");
-}
-
-/**
- * Обробка довільного email-повідомлення.
- */
-function handleEmailCustom(array $payload): void {
-    $to      = $payload['to'] ?? '';
-    $subject = $payload['subject'] ?? '';
-    $html    = $payload['html'] ?? '';
-
-    if (empty($to) || empty($subject)) {
-        throw new \InvalidArgumentException('Відсутній to/subject у payload email_custom');
-    }
-
-    $result = Mailer::sendDirect($to, $subject, $html);
-
-    if (!$result) {
-        throw new \RuntimeException("Не вдалося відправити лист на $to");
-    }
-
-    workerLog("email_custom: лист надіслано на $to");
-}
-
 // Мапінг типів задач на обробники
 $handlers = [
-    Queue::TYPE_MODERATION_CHECK   => 'handleModerationCheck',
-    Queue::TYPE_MODERATION_REWRITE => 'handleModerationRewrite',
-    Queue::TYPE_EMAIL_VERIFY       => 'handleEmailVerify',
-    Queue::TYPE_EMAIL_CHANGED     => 'handleEmailChanged',
-    Queue::TYPE_EMAIL_CUSTOM      => 'handleEmailCustom',
+    Queue::TYPE_MODERATION_CHECK   => [JobHandlers::class, 'handleModerationCheck'],
+    Queue::TYPE_MODERATION_REWRITE => [JobHandlers::class, 'handleModerationRewrite'],
+    Queue::TYPE_EMAIL_VERIFY       => [JobHandlers::class, 'handleEmailVerify'],
+    Queue::TYPE_EMAIL_CHANGED     => [JobHandlers::class, 'handleEmailChanged'],
+    Queue::TYPE_EMAIL_CUSTOM      => [JobHandlers::class, 'handleEmailCustom'],
 ];
 
 // Головний цикл обробки
@@ -340,7 +113,7 @@ do {
         $handler = $handlers[$type];
 
         try {
-            call_user_func($handler, $job['payload']);
+            call_user_func($handler, $job['payload'], 'workerLog');
             Queue::complete($jobId);
             workerLog("Завершено $type [$jobId]");
         } catch (\Throwable $e) {
