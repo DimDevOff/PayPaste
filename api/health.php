@@ -35,7 +35,7 @@ try {
     $pdo = DB::getInstance()->getPDO();
     $stmt = $pdo->query('SELECT 1 AS alive');
     $result = $stmt->fetch();
-    $checks['database'] = $result && $result['alive'] === '1' ? 'ok' : 'error';
+    $checks['database'] = $result && $result['alive'] == '1' ? 'ok' : 'error';
 } catch (\Throwable $e) {
     $checks['database'] = 'error';
     $checks['database_error'] = $e->getMessage();
