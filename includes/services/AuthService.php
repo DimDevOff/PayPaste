@@ -106,16 +106,14 @@ class AuthService {
      */
     public static function setSession(User $user): void {
         // Регенерація session_id для захисту від session fixation
-        session_regenerate_id(true);
+        // ПРИМІТКА: session_regenerate_id може не працювати на всіх конфігураціях PHP
+        // (session.save_handler не 'files', permissions тощо)
+        @session_regenerate_id(true);
 
         $_SESSION['user_id'] = $user->id;
         $_SESSION['role'] = $user->role;
         unset($_SESSION['old_input']);
-
-        // Явне збереження сесії — гарантує що дані записані на диск
-        session_write_close();
-        // Знову відкриваємо — для подальших змін в цьому запиті (якщо є)
-        session_start();
+        unset($_SESSION['_user_cache']); // скинути кеш користувача
     }
 
     /**
