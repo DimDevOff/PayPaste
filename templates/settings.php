@@ -3,16 +3,6 @@ if (!isset($_SESSION['user_id'])) {
     header("Location: login.php");
     exit;
 }
-require_once __DIR__ . '/../includes/models/User.php';
-require_once __DIR__ . '/../includes/models/Paste.php';
-require_once __DIR__ . '/../includes/models/Passkey.php';
-$user = User::findById($_SESSION['user_id']);
-if (!$user) {
-    echo "Користувача не знайдено.";
-    exit;
-}
-$myPastes = Paste::findByUserId($_SESSION['user_id']);
-$myPasskeys = Passkey::findByUserId($_SESSION['user_id']);
 ?>
 <div class="row">
     <div class="col-xs-12 col-sm-10 col-sm-offset-1 col-md-6 col-md-offset-3">

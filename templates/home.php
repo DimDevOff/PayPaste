@@ -9,10 +9,6 @@
             <?php endif; ?>
         </h2>
         
-        <?php 
-        $cat = $_GET['category'] ?? 'all'; 
-        $tag = $_GET['tag'] ?? '';
-        ?>
         <div style="margin-bottom: 15px;">
             <div class="btn-group">
                 <a href="?category=all<?= $tag ? '&tag='.urlencode($tag) : '' ?>" class="btn btn-default <?= $cat === 'all' ? 'active' : '' ?>">Всі</a>
@@ -25,8 +21,6 @@
 
         <div class="list-group">
             <?php 
-               require_once __DIR__ . '/../includes/models/Paste.php';
-               $pastes = Paste::findAllPublic(20, $cat, $tag);
                foreach($pastes as $p):
             ?>
             <div class="list-group-item">
@@ -43,11 +37,11 @@
                 </a>
                 
                 <div class="paste-tags-list" style="margin-top: 5px;">
-                    <?php 
-                        $p_tags = $p->getTagsByPopularity();
-                        $visible_tags = array_slice($p_tags, 0, 3);
-                        $hidden_tags = array_slice($p_tags, 3);
-                        $has_more = count($p_tags) > 3;
+                    <?php
+                        $pt_info = $paste_tags[$p->id] ?? ['visible' => [], 'hidden' => [], 'has_more' => false];
+                        $visible_tags = $pt_info['visible'];
+                        $hidden_tags = $pt_info['hidden'];
+                        $has_more = $pt_info['has_more'];
 
                         foreach($visible_tags as $vt): 
                     ?>
@@ -89,11 +83,10 @@
             <div class="panel-heading" style="font-weight: bold; font-family: 'Comic Sans MS', cursive;">🔥 Популярні теги</div>
             <div class="panel-body">
                 <?php 
-                    $popularTags = Paste::getPopularTags(15);
                     if ($popularTags):
                         foreach ($popularTags as $t):
                 ?>
-                    <a href="index.php?tag=<?= urlencode($t['tag']) ?>" style="text-decoration: none;">
+                    <a href="index.php?tag=<?= urlencode($t['tag']) ?>">
                         <span class="badge" style="background: <?= htmlspecialchars(Paste::getTagColor($t['tag'])) ?>; margin-bottom: 5px;">#<?= htmlspecialchars($t['tag']) ?> (<?= $t['count'] ?>)</span>
                     </a>
                 <?php 

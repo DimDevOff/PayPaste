@@ -173,9 +173,8 @@
                     <div style="margin-top: 15px;">
                         <strong>Теги:</strong>
                         <?php 
-                            $tags = $paste->getTags();
-                            if ($tags):
-                                foreach ($tags as $t):
+                            if ($pasteTags):
+                                foreach ($pasteTags as $t):
                         ?>
                             <a href="index.php?tag=<?= urlencode($t) ?>" class="btn btn-xs btn-default" style="margin-right: 5px; background: <?= htmlspecialchars(Paste::getTagColor($t)) ?>; color: #fff; border: 1px solid #000; font-family: 'Comic Sans MS', cursive;">#<?= htmlspecialchars($t) ?></a>
                         <?php 

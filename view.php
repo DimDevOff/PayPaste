@@ -101,10 +101,14 @@ if ($paste) {
 
     // Встановлюємо флаг для шаблону
     $is_locked = PasteService::isLocked($paste, $user) && !$has_ad_access && !$requires_quest;
+
+    // ── Підготовка даних для шаблону (винесено з templates/paste_view.php) ──
+    $pasteTags = $paste->getTags();
 } else {
     $is_locked = false;
     $requires_quest = false;
     $page_title = "Пасту не знайдено";
+    $pasteTags = [];
 }
 
 // Завантаження всіх View і головного шаблону перегляду пасти
