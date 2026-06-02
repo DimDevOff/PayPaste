@@ -12,6 +12,7 @@ if (session_status() === PHP_SESSION_NONE) { session_start(); }
 require_once __DIR__ . '/../includes/models/User.php';
 require_once __DIR__ . '/../includes/models/Passkey.php';
 require_once __DIR__ . '/../includes/services/AuthService.php';
+require_once __DIR__ . '/../includes/repositories/Repo.php';
 require_once __DIR__ . '/../includes/webauthn.php';
 require_once __DIR__ . '/../includes/csrf.php';
 
