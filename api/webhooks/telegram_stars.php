@@ -34,13 +34,9 @@ if (!$update) {
 function tgRequest($method, $data = []) {
     global $bot_token;
     $url = "https://api.telegram.org/bot$bot_token/$method";
-    $ch = curl_init($url);
-    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-    curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($data));
-    curl_setopt($ch, CURLOPT_HTTPHEADER, ['Content-Type: application/json']);
-    $response = curl_exec($ch);
-    curl_close($ch);
-    return json_decode($response, true);
+    $http = new \HttpClient();
+    $result = $http->postJson($url, $data);
+    return json_decode($result['body'], true);
 }
 
 // 1. Обробка стартового повідомлення (/start order_xxx)

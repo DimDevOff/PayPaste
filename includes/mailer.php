@@ -29,37 +29,20 @@ class Mailer {
         }
 
         $apiKey = RESEND_API_KEY;
-        $payload = json_encode([
+        $payload = [
             'from'    => MAIL_FROM,
             'to'      => [$to],
             'subject' => $subject,
             'html'    => $html
-        ]);
+        ];
 
-        $ch = curl_init('https://api.resend.com/emails');
-        curl_setopt_array($ch, [
-            CURLOPT_RETURNTRANSFER => true,
-            CURLOPT_POST           => true,
-            CURLOPT_POSTFIELDS     => $payload,
-            CURLOPT_TIMEOUT        => 30, // Таймаут 30 секунд
-            CURLOPT_HTTPHEADER     => [
-                'Authorization: Bearer ' . RESEND_API_KEY,
-                'Content-Type: application/json'
-            ]
-        ]);
-        
-        $response = curl_exec($ch);
-        $status   = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-        $curlError = curl_error($ch);
-        curl_close($ch);
-
-        if ($curlError) {
-            throw new \RuntimeException("Resend cURL помилка: $curlError");
-        }
-
-        if ($status < 200 || $status >= 300) {
-            throw new \RuntimeException("Resend API повернув HTTP $status: $response");
-        }
+        $http = new HttpClient();
+        $result = $http->postJsonExpectSuccess(
+            'https://api.resend.com/emails',
+            $payload,
+            ['Authorization: Bearer ' . RESEND_API_KEY],
+            30
+        );
 
         return true;
     }
