@@ -1,8 +1,9 @@
 <?php
-require_once __DIR__ . '/../../config/db.php';
-
 /**
- * Модель для роботи з пастами (текстовими фрагментами).
+ * Клас Paste — Доменна модель пасти.
+ *
+ * Містить лише дані та бізнес-логіку.
+ * Персистентність (SQL) винесено в PasteRepository.
  */
 class Paste {
     public $id;
@@ -19,10 +20,21 @@ class Paste {
     public $moderation_result;
     public $language;
 
-    /**
-     * Конструктор пасти.
-     */
-    public function __construct($title, $content, $user_id = null, $is_paid = false, $view_cost = 0, $is_private = false, $id = null, $created_at = null, $expires_at = null, $is_pending_rewrite = false, $moderation_status = 'pending', $moderation_result = null, $language = 'plaintext') {
+    public function __construct(
+        $title,
+        $content,
+        $user_id = null,
+        $is_paid = false,
+        $view_cost = 0,
+        $is_private = false,
+        $id = null,
+        $created_at = null,
+        $expires_at = null,
+        $is_pending_rewrite = false,
+        $moderation_status = 'pending',
+        $moderation_result = null,
+        $language = 'plaintext'
+    ) {
         $this->title = trim($title);
         $this->content = trim($content);
         $this->user_id = $user_id;
@@ -38,350 +50,80 @@ class Paste {
         $this->language = $language ?: 'plaintext';
     }
 
-    /**
-     * Створення об'єкта Paste з рядка бази даних.
-     */
-    private static function instantiateFromRow($row) {
-        if (!$row) return null;
-        return new self(
-            $row['title'], $row['content'], $row['user_id'], $row['is_paid'],
-            $row['view_cost'], $row['is_private'], $row['id'], $row['created_at'],
-            $row['expires_at'], $row['is_pending_rewrite'],
-            $row['moderation_status'] ?? 'pending',
-            $row['moderation_result'] ?? null,
-            $row['language'] ?? 'plaintext'
-        );
-    }
+    // ── Бізнес-логіка ──
 
-    /**
-     * Перевірка чи закінчився термін дії пасти.
-     */
-    public function isExpired() {
+    /** Перевіряє, чи закінчився термін дії пасти. */
+    public function isExpired(): bool {
         if ($this->expires_at === null) return false;
         return strtotime($this->expires_at) <= time();
     }
 
-    /**
-     * Збереження пасти в базу даних (Insert або Update).
-     */
-    public function save() {
-        $pdo = DB::getInstance()->getPDO();
-        $stmt = $pdo->prepare("
-            INSERT INTO pastes (id, title, content, user_id, is_paid, is_private, view_cost, created_at, expires_at, is_pending_rewrite, moderation_status, moderation_result, language)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-            ON DUPLICATE KEY UPDATE
-                title = VALUES(title),
-                content = VALUES(content),
-                user_id = VALUES(user_id),
-                is_paid = VALUES(is_paid),
-                is_private = VALUES(is_private),
-                view_cost = VALUES(view_cost),
-                expires_at = VALUES(expires_at),
-                is_pending_rewrite = VALUES(is_pending_rewrite),
-                moderation_status = VALUES(moderation_status),
-                moderation_result = VALUES(moderation_result),
-                language = VALUES(language)
-        ");
-        $stmt->execute([
-            $this->id,
-            $this->title,
-            $this->content,
-            $this->user_id,
-            $this->is_paid ? 1 : 0,
-            $this->is_private ? 1 : 0,
-            $this->view_cost,
-            $this->created_at,
-            $this->expires_at,
-            $this->is_pending_rewrite ? 1 : 0,
-            $this->moderation_status,
-            $this->moderation_result,
-            $this->language
-        ]);
+    /** Генерація стабільного кольору для тегу на основі його назви. */
+    public static function getTagColor(string $tag): string {
+        return '#' . substr(md5($tag), 0, 6);
     }
 
-    /**
-     * Оновлення пасти адміністратором.
-     */
-    public function update() {
-        $pdo = DB::getInstance()->getPDO();
-        $stmt = $pdo->prepare("
-            UPDATE pastes 
-            SET title = ?, content = ?, is_paid = ?, is_private = ?, view_cost = ?, 
-                expires_at = ?, language = ?, is_pending_rewrite = ?, 
-                moderation_status = ?, moderation_result = ?
-            WHERE id = ?
-        ");
-        $stmt->execute([
-            $this->title,
-            $this->content,
-            $this->is_paid ? 1 : 0,
-            $this->is_private ? 1 : 0,
-            $this->view_cost,
-            $this->expires_at,
-            $this->language,
-            $this->is_pending_rewrite ? 1 : 0,
-            $this->moderation_status,
-            $this->moderation_result,
-            $this->id
-        ]);
-        
-        return true;
-    }
-
-    /**
-     * Статичний метод для генерації стабільного кольору на основі назви тегу.
-     */
-    public static function getTagColor($tag) {
-        $hash = md5($tag);
-        // Беремо перші 6 символів хешу для кольору
-        return '#' . substr($hash, 0, 6);
-    }
-
-    /**
-     * Метод для очищення тексту від тегів #тег.
-     */
-    public static function stripTags($content) {
-        // Вирізаємо #тег і один пробіл після нього (якщо є)
+    /** Видаляє #теги з контенту. */
+    public static function stripTags(string $content): string {
         return preg_replace('/#[\w\x{0400}-\x{04FF}]+\s?/u', '', $content);
     }
 
-    /**
-     * Повертає масив тегів пасти, відсортований за глобальною популярністю (кількістю використань на сайті).
-     */
-    public function getTagsByPopularity() {
-        $db = DB::getInstance()->getPDO();
-        $stmt = $db->prepare("
-            SELECT t1.tag 
-            FROM paste_tags t1
-            JOIN (
-                SELECT tag, COUNT(*) as global_count 
-                FROM paste_tags 
-                GROUP BY tag
-            ) t2 ON t1.tag = t2.tag
-            WHERE t1.paste_id = :pid
-            ORDER BY t2.global_count DESC, t1.tag ASC
-        ");
-        $stmt->execute(['pid' => $this->id]);
-        return $stmt->fetchAll(PDO::FETCH_COLUMN);
+    // ── Персистентність (делегує до Repository) ──
+
+    /** @deprecated Використовуйте Repo::pastes()->save($paste) */
+    public function save(): void {
+        Repo::pastes()->save($this);
     }
 
-    /**
-     * Синхронізація тегів пасти. Парсить теги з контенту та зберігає в БД.
-     */
-    public function syncTags($tags_input = '') {
-        $pdo = DB::getInstance()->getPDO();
-        
-        // Отримуємо теги з вводу (розділені комою або пробілом)
-        $tags = preg_split('/[,\s]+/', $tags_input, -1, PREG_SPLIT_NO_EMPTY);
-        
-        // Очищення: прибираємо символ # якщо він є, переводимо в нижній регістр
-        $final_tags = array_map(function($tag) {
-            return mb_strtolower(trim(ltrim($tag, '#')));
-        }, $tags);
-        
-        $final_tags = array_unique(array_filter($final_tags));
-
-        // Видаляємо старі теги
-        $stmt = $pdo->prepare("DELETE FROM paste_tags WHERE paste_id = ?");
-        $stmt->execute([$this->id]);
-
-        // Додаємо нові теги
-        if (!empty($final_tags)) {
-            $sql = "INSERT INTO paste_tags (paste_id, tag) VALUES ";
-            $placeholders = [];
-            $values = [];
-            foreach ($final_tags as $tag) {
-                if (mb_strlen($tag) > 50) $tag = mb_substr($tag, 0, 50);
-                $placeholders[] = "(?, ?)";
-                $values[] = $this->id;
-                $values[] = $tag;
-            }
-            $sql .= implode(', ', $placeholders);
-            $stmt = $pdo->prepare($sql);
-            $stmt->execute($values);
-        }
+    /** @deprecated Використовуйте Repo::pastes()->update($paste) */
+    public function update(): void {
+        Repo::pastes()->update($this);
     }
 
-    /**
-     * Отримання списку тегів для пасти.
-     */
-    public function getTags() {
-        $pdo = DB::getInstance()->getPDO();
-        $stmt = $pdo->prepare("SELECT tag FROM paste_tags WHERE paste_id = ?");
-        $stmt->execute([$this->id]);
-        return $stmt->fetchAll(PDO::FETCH_COLUMN);
+    /** @deprecated Використовуйте Repo::pastes()->getTags($this->id) */
+    public function getTags(): array {
+        return Repo::pastes()->getTags($this->id);
     }
 
-    /**
-     * Отримання популярних тегів.
-     */
-    public static function getPopularTags($limit = 10) {
-        $pdo = DB::getInstance()->getPDO();
-        $stmt = $pdo->prepare("
-            SELECT tag, COUNT(*) as count 
-            FROM paste_tags 
-            GROUP BY tag 
-            ORDER BY count DESC 
-            LIMIT :limit
-        ");
-        $stmt->bindValue(':limit', (int)$limit, PDO::PARAM_INT);
-        $stmt->execute();
-        return $stmt->fetchAll();
+    /** @deprecated Використовуйте Repo::pastes()->getTagsByPopularity($this->id) */
+    public function getTagsByPopularity(): array {
+        return Repo::pastes()->getTagsByPopularity($this->id);
     }
 
-    /**
-     * Пошук пасти за її унікальним ID. З ледачим видаленням.
-     */
-    public static function findById($id) {
-        $pdo = DB::getInstance()->getPDO();
-        $stmt = $pdo->prepare("SELECT * FROM pastes WHERE id = ?");
-        $stmt->execute([$id]);
-        $row = $stmt->fetch();
-        
-        if (!$row) return null;
-        
-        $paste = self::instantiateFromRow($row);
-        
-        if ($paste->isExpired()) {
-            return null;
-        }
-        
-        return $paste;
-    }
-    
-    /**
-     * Отримання списку всіх публічних та активних паст.
-     * @param int $limit Максимальна кількість записів
-     * @param string $category Категорія паст ('all', 'paid', 'free', 'user', 'anonymous')
-     * @param string $tag Тег для фільтрації
-     * @return Paste[]
-     */
-    public static function findAllPublic($limit = 20, $category = 'all', $tag = '') {
-        $pdo = DB::getInstance()->getPDO();
-        $sql = "SELECT p.* FROM pastes p";
-        
-        if ($tag !== '') {
-            $sql .= " INNER JOIN paste_tags pt ON p.id = pt.paste_id";
-        }
-        
-        $sql .= " WHERE p.is_private = 0 AND p.is_pending_rewrite = 0 AND p.moderation_status = 'approved' AND (p.expires_at IS NULL OR p.expires_at > NOW())";
-        
-        $params = [];
-        
-        if ($tag !== '') {
-            $sql .= " AND pt.tag = :tag";
-            $params[':tag'] = mb_strtolower($tag);
-        }
-        
-        switch ($category) {
-            case 'paid':
-                $sql .= " AND p.is_paid = 1";
-                break;
-            case 'free':
-                $sql .= " AND p.is_paid = 0";
-                break;
-            case 'user':
-                $sql .= " AND p.user_id IS NOT NULL";
-                break;
-            case 'anonymous':
-                $sql .= " AND p.user_id IS NULL";
-                break;
-        }
-        
-        $sql .= " ORDER BY p.created_at DESC LIMIT :limit";
-        
-        $stmt = $pdo->prepare($sql);
-        foreach ($params as $key => $val) {
-            $stmt->bindValue($key, $val);
-        }
-        $stmt->bindValue(':limit', (int)$limit, PDO::PARAM_INT);
-        $stmt->execute();
-        
-        $result = [];
-        while ($row = $stmt->fetch()) {
-            $result[] = self::instantiateFromRow($row);
-        }
-        return $result;
+    /** @deprecated Використовуйте Repo::pastes()->syncTags($this->id, $tagsInput) */
+    public function syncTags(string $tagsInput = ''): void {
+        Repo::pastes()->syncTags($this->id, $tagsInput);
     }
 
-    /**
-     * Отримання всіх паст конкретного користувача.
-     */
-    public static function findByUserId($user_id) {
-        $pdo = DB::getInstance()->getPDO();
-        $stmt = $pdo->prepare("SELECT * FROM pastes WHERE user_id = ? AND (expires_at IS NULL OR expires_at > NOW()) ORDER BY created_at DESC");
-        $stmt->execute([$user_id]);
-        $result = [];
-        while ($row = $stmt->fetch()) {
-            $result[] = self::instantiateFromRow($row);
-        }
-        return $result;
+    // ── Статичні методи для зворотної сумісності ──
+
+    /** @deprecated */
+    public static function findById($id): ?self {
+        return Repo::pastes()->findById($id);
     }
 
-    /**
-     * Підрахунок загальної кількості паст у системі.
-     */
-    public static function countAll($search = '', $tag = '') {
-        $pdo = DB::getInstance()->getPDO();
-        $sql = "SELECT COUNT(*) FROM pastes p";
-        
-        if ($tag !== '') {
-            $sql .= " INNER JOIN paste_tags pt ON p.id = pt.paste_id";
-        }
-        
-        $sql .= " WHERE p.is_pending_rewrite = 0 AND p.moderation_status = 'approved' AND (p.expires_at IS NULL OR p.expires_at > NOW())";
-        
-        $params = [];
-        if ($search !== '') {
-            $sql .= " AND (p.title LIKE :search OR p.content LIKE :search)";
-            $params[':search'] = '%' . $search . '%';
-        }
-        
-        if ($tag !== '') {
-            $sql .= " AND pt.tag = :tag";
-            $params[':tag'] = mb_strtolower($tag);
-        }
-        
-        if (empty($params)) {
-            $stmt = $pdo->prepare($sql);
-            $stmt->execute();
-            return $stmt->fetchColumn();
-        }
-        
-        $stmt = $pdo->prepare($sql);
-        $stmt->execute($params);
-        return $stmt->fetchColumn();
+    /** @deprecated */
+    public static function findAllPublic($limit = 20, $category = 'all', $tag = ''): array {
+        return Repo::pastes()->findAllPublic($limit, $category, $tag);
     }
 
-    /**
-     * Отримання масиву всіх паст (для адмін-панелі) з підтримкою пагінації.
-     * @param int $limit
-     * @param int $offset
-     * @return array
-     */
-    public static function getAllPastes($limit = 25, $offset = 0, $search = '') {
-        $pdo = DB::getInstance()->getPDO();
-        // В адмінці показуємо всі, але можемо приховати протерміновані, або просто лишити як є.
-        $sql = "SELECT * FROM pastes WHERE (expires_at IS NULL OR expires_at > NOW())";
-        $params = [];
-
-        if ($search !== '') {
-            $sql .= " AND (title LIKE :search_title OR content LIKE :search_content)";
-            $params[':search_title'] = '%' . $search . '%';
-            $params[':search_content'] = '%' . $search . '%';
-        }
-
-        $sql .= " ORDER BY created_at DESC LIMIT :limit OFFSET :offset";
-
-        $stmt = $pdo->prepare($sql);
-        foreach ($params as $key => $val) {
-            $stmt->bindValue($key, $val);
-        }
-        $stmt->bindValue(':limit', (int)$limit, PDO::PARAM_INT);
-        $stmt->bindValue(':offset', (int)$offset, PDO::PARAM_INT);
-        $stmt->execute();
-        return $stmt->fetchAll();
+    /** @deprecated */
+    public static function findByUserId($user_id): array {
+        return Repo::pastes()->findByUserId($user_id);
     }
 
+    /** @deprecated */
+    public static function countAll($search = '', $tag = ''): int {
+        return Repo::pastes()->countAll($search, $tag);
+    }
+
+    /** @deprecated */
+    public static function getAllPastes($limit = 25, $offset = 0, $search = ''): array {
+        return Repo::pastes()->getAllPastes($limit, $offset, $search);
+    }
+
+    /** @deprecated */
+    public static function getPopularTags($limit = 10): array {
+        return Repo::pastes()->getPopularTags($limit);
+    }
 }
-

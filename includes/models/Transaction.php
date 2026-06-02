@@ -1,8 +1,9 @@
 <?php
-require_once __DIR__ . '/../../config/db.php';
-
 /**
- * Модель для роботи з фінансовими транзакціями (витрати та поповнення).
+ * Клас Transaction — Доменна модель фінансової транзакції.
+ *
+ * Містить лише дані.
+ * Персистентність винесено в TransactionRepository.
  */
 class Transaction {
     public $id;
@@ -16,11 +17,8 @@ class Transaction {
     public $idempotency_key;
     public $created_at;
 
-    /**
-     * Конструктор транзакції.
-     */
     public function __construct($data = []) {
-        $this->id = $data['id'] ?? null; // ID може бути null для нової вставки
+        $this->id = $data['id'] ?? null;
         $this->user_id = $data['user_id'] ?? null;
         $this->amount = $data['amount'] ?? 0;
         $this->type = $data['type'] ?? 'topup';
@@ -32,96 +30,37 @@ class Transaction {
         $this->created_at = $data['created_at'] ?? date('Y-m-d H:i:s');
     }
 
-    /**
-     * Збереження транзакції в базу даних.
-     */
-    public function save() {
-        $pdo = DB::getInstance()->getPDO();
-        if ($this->id !== null && is_numeric($this->id)) {
-            $stmt = $pdo->prepare("
-                UPDATE transactions SET
-                    user_id = ?, amount = ?, type = ?, service = ?, related_paste_id = ?, related_order_id = ?, description = ?, idempotency_key = ?
-                WHERE id = ?
-            ");
-            $stmt->execute([$this->user_id, $this->amount, $this->type, $this->service, $this->related_paste_id, $this->related_order_id, $this->description, $this->idempotency_key, $this->id]);
-        } else {
-            $stmt = $pdo->prepare("
-                INSERT INTO transactions (user_id, amount, type, service, related_paste_id, related_order_id, description, idempotency_key, created_at)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-            ");
-            $stmt->execute([$this->user_id, $this->amount, $this->type, $this->service, $this->related_paste_id, $this->related_order_id, $this->description, $this->idempotency_key, $this->created_at]);
-            $this->id = $pdo->lastInsertId();
-        }
+    // ── Персистентність (делегує) ──
+
+    /** @deprecated Використовуйте Repo::transactions()->save($tx) */
+    public function save(): void {
+        Repo::transactions()->save($this);
     }
 
-    /**
-     * Підрахунок загальної кількості транзакцій.
-     */
-    public static function countAll(string $type = ''): int {
-        return self::count($type);
+    // ── Статичні методи для зворотної сумісності ──
+
+    /** @deprecated */
+    public static function create($user_id, $amount, $type, $service = null, $paste_id = null, $order_id = null, $description = null): self {
+        return Repo::transactions()->create($user_id, $amount, $type, $service, $paste_id, $order_id, $description);
     }
 
-    /**
-     * Отримання всіх транзакцій з JOIN по користувачах (з пагінацією).
-     */
+    /** @deprecated */
     public static function getAll(int $limit = 50, int $offset = 0, string $type = ''): array {
-        $pdo = DB::getInstance()->getPDO();
-        $sql = '
-            SELECT t.*, u.nickname, u.email
-            FROM transactions t
-            LEFT JOIN users u ON t.user_id = u.id
-        ';
-        $params = [];
-        if ($type !== '') {
-            $sql .= ' WHERE t.type = ?';
-            $params[] = $type;
-        }
-        $sql .= ' ORDER BY t.created_at DESC LIMIT ? OFFSET ?';
-        $params[] = $limit;
-        $params[] = $offset;
-        $stmt = $pdo->prepare($sql);
-        $stmt->execute($params);
-        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+        return Repo::transactions()->getAll($limit, $offset, $type);
     }
 
-    /**
-     * Сума всіх поповнень (topup) — реальний заробіток системи.
-     */
-    public static function sumTopups(): int {
-        $pdo = DB::getInstance()->getPDO();
-        $stmt = $pdo->prepare('SELECT COALESCE(SUM(amount), 0) FROM transactions WHERE type = ? AND amount > 0');
-        $stmt->execute(['topup']);
-        return (int) $stmt->fetchColumn();
-    }
-
-    /**
-     * Підрахунок транзакцій за допомогою окремого запиту (без помилок).
-     */
+    /** @deprecated */
     public static function count(string $type = ''): int {
-        $pdo = DB::getInstance()->getPDO();
-        if ($type !== '') {
-            $stmt = $pdo->prepare('SELECT COUNT(*) FROM transactions WHERE type = ?');
-            $stmt->execute([$type]);
-        } else {
-            $stmt = $pdo->query('SELECT COUNT(*) FROM transactions');
-        }
-        return (int) $stmt->fetchColumn();
+        return Repo::transactions()->count($type);
     }
 
-    /**
-     * Статичний хелпер для швидкого створення транзакції
-     */
-    public static function create($user_id, $amount, $type, $service = null, $paste_id = null, $order_id = null, $description = null) {
-        $t = new self([
-            'user_id' => $user_id,
-            'amount' => $amount,
-            'type' => $type,
-            'service' => $service,
-            'related_paste_id' => $paste_id,
-            'related_order_id' => $order_id,
-            'description' => $description
-        ]);
-        $t->save();
-        return $t;
+    /** @deprecated */
+    public static function countAll(string $type = ''): int {
+        return Repo::transactions()->countAll($type);
+    }
+
+    /** @deprecated */
+    public static function sumTopups(): int {
+        return Repo::transactions()->sumTopups();
     }
 }

@@ -1,30 +1,45 @@
 <?php
-require_once __DIR__ . '/../../config/db.php';
-
 /**
- * Клас User — Модель для роботи з користувачами
- * Відповідає за авторизацію, профілі, баланс кредитів та доступ до паст
+ * Клас User — Доменна модель користувача.
+ *
+ * Містить лише дані та бізнес-логіку.
+ * Персистентність (SQL) винесено в UserRepository.
+ *
+ * Для зворотної сумісності статичні методи делегують до Repo::users().
+ * Новий код має використовувати Repo::users()->findById($id) напряму.
  */
 class User {
-    public $id;               // Унікальний ID користувача (формат u_...)
-    public $email;            // Електронна пошта
-    public $telegram_id;      // ID Telegram (для OAuth та сповіщень)
-    public $github_id;        // ID GitHub (для OAuth)
-    public $password_hash;    // Хеш пароля
-    public $nickname;         // Нікнейм користувача
-    public $credits;          // Поточний баланс кредитів
-    public $unlocked_pastes;  // Масив ID паст, до яких користувач купив доступ
-    public $role;             // Роль користувача (user, admin)
-    public $theme;            // Обрана кольорова тема інтерфейсу
-    public $api_key;          // Ключ для доступу до API
-    public $email_verified;   // Статус верифікації
-    public $verification_code; // Код
-    public $verification_expires_at; // Час життя коду
+    public $id;
+    public $email;
+    public $telegram_id;
+    public $github_id;
+    public $password_hash;
+    public $nickname;
+    public $credits;
+    public $unlocked_pastes;
+    public $role;
+    public $theme;
+    public $api_key;
+    public $email_verified;
+    public $verification_code;
+    public $verification_expires_at;
 
-    /**
-     * Конструктор моделі користувача
-     */
-    public function __construct($email, $password_hash, $nickname = 'Anon', $credits = 100, $unlocked_pastes = [], $role = 'user', $id = null, $telegram_id = null, $github_id = null, $theme = 'retro', $api_key = null, $email_verified = 0, $verification_code = null, $verification_expires_at = null) {
+    public function __construct(
+        $email,
+        $password_hash,
+        $nickname = 'Anon',
+        $credits = 100,
+        $unlocked_pastes = [],
+        $role = 'user',
+        $id = null,
+        $telegram_id = null,
+        $github_id = null,
+        $theme = 'retro',
+        $api_key = null,
+        $email_verified = 0,
+        $verification_code = null,
+        $verification_expires_at = null
+    ) {
         $this->email = $email;
         $this->password_hash = $password_hash;
         $this->nickname = trim($nickname);
@@ -41,196 +56,55 @@ class User {
         $this->verification_expires_at = $verification_expires_at;
     }
 
-    /**
-     * Завантажує список розблокованих паст для користувача з БД
-     */
-    private static function loadUnlockedPastes($user_id) {
-        $pdo = DB::getInstance()->getPDO();
-        $stmt = $pdo->prepare("SELECT paste_id FROM unlocked_pastes WHERE user_id = ?");
-        $stmt->execute([$user_id]);
-        return $stmt->fetchAll(PDO::FETCH_COLUMN);
-    }
+    // ── Бізнес-логіка ──
 
-    /**
-     * Створює екземпляр User з рядка бази даних
-     */
-    private static function instantiateFromRow($row) {
-        if (!$row) return null;
-        $unlocked = self::loadUnlockedPastes($row['id']);
-        
-        $theme = $row['theme'] ?? 'retro';
-        $allowed = ['retro', 'dark', 'terminal', 'light', 'github', 'retro-green'];
-        if (!in_array($theme, $allowed)) {
-            $theme = 'retro';
-        }
-        
-        return new self($row['email'], $row['password_hash'], $row['nickname'], $row['credits'], $unlocked, $row['role'], $row['id'], $row['telegram_id'], $row['github_id'], $theme, $row['api_key'] ?? null, $row['email_verified'] ?? 0, $row['verification_code'] ?? null, $row['verification_expires_at'] ?? null);
-    }
-
-    /**
-     * Зберігає або оновлює дані користувача в БД
-     */
-    public function save() {
-        $pdo = DB::getInstance()->getPDO();
-        
-        // Якщо хеш порожній (наприклад, об'єкт із кешу сесії), дістаємо його з БД
-        if (empty($this->password_hash)) {
-            $stmt = $pdo->prepare("SELECT password_hash FROM users WHERE id = ?");
-            $stmt->execute([$this->id]);
-            $hash = $stmt->fetchColumn();
-            if ($hash) {
-                $this->password_hash = $hash;
-            }
-        }
-
-        $stmt = $pdo->prepare("
-            INSERT INTO users (id, email, telegram_id, github_id, password_hash, nickname, credits, role, theme, api_key, email_verified, verification_code, verification_expires_at)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-            ON DUPLICATE KEY UPDATE
-                email = VALUES(email),
-                telegram_id = VALUES(telegram_id),
-                github_id = VALUES(github_id),
-                password_hash = IF(VALUES(password_hash) IS NOT NULL AND VALUES(password_hash) != '', VALUES(password_hash), password_hash),
-                nickname = VALUES(nickname),
-                credits = VALUES(credits),
-                role = VALUES(role),
-                theme = VALUES(theme),
-                api_key = VALUES(api_key),
-                email_verified = VALUES(email_verified),
-                verification_code = VALUES(verification_code),
-                verification_expires_at = VALUES(verification_expires_at)
-        ");
-        $stmt->execute([
-            $this->id,
-            $this->email,
-            $this->telegram_id,
-            $this->github_id,
-            $this->password_hash,
-            $this->nickname,
-            $this->credits,
-            $this->role,
-            $this->theme,
-            $this->api_key,
-            $this->email_verified,
-            $this->verification_code,
-            $this->verification_expires_at
-        ]);
-        
-        // Оновлюємо розблоковані пасти
-        $currentUnlocked = self::loadUnlockedPastes($this->id);
-        $toInsert = array_diff($this->unlocked_pastes, $currentUnlocked);
-        if (!empty($toInsert)) {
-            $insertStmt = $pdo->prepare("INSERT IGNORE INTO unlocked_pastes (user_id, paste_id) VALUES (?, ?)");
-            foreach ($toInsert as $pasteId) {
-                $insertStmt->execute([$this->id, $pasteId]);
-            }
-        }
-        
-        // Оновлюємо кеш сесії, якщо це поточний користувач
-        if (isset($_SESSION['user_id']) && $_SESSION['user_id'] === $this->id) {
-            $cacheUser = clone $this;
-            $cacheUser->password_hash = null; // Видаляємо хеш перед кешуванням в сесію
-            $_SESSION['_user_cache'] = $cacheUser;
-        }
-    }
-
-    /**
-     * Пошук користувача за email
-     */
-    public static function findByEmail($email) {
-        $pdo = DB::getInstance()->getPDO();
-        $stmt = $pdo->prepare("SELECT * FROM users WHERE email = ?");
-        $stmt->execute([$email]);
-        return self::instantiateFromRow($stmt->fetch());
-    }
-    
-    /**
-     * Пошук користувача за внутрішнім ID
-     */
-    public static function findById($id) {
-        $pdo = DB::getInstance()->getPDO();
-        $stmt = $pdo->prepare("SELECT * FROM users WHERE id = ?");
-        $stmt->execute([$id]);
-        return self::instantiateFromRow($stmt->fetch());
-    }
-
-    /**
-     * Пошук користувача за Telegram ID
-     */
-    public static function findByTelegramId($telegram_id) {
-        $pdo = DB::getInstance()->getPDO();
-        $stmt = $pdo->prepare("SELECT * FROM users WHERE telegram_id = ?");
-        $stmt->execute([$telegram_id]);
-        return self::instantiateFromRow($stmt->fetch());
-    }
-
-    /**
-     * Пошук користувача за GitHub ID
-     */
-    public static function findByGithubId($github_id) {
-        $pdo = DB::getInstance()->getPDO();
-        $stmt = $pdo->prepare("SELECT * FROM users WHERE github_id = ?");
-        $stmt->execute([$github_id]);
-        return self::instantiateFromRow($stmt->fetch());
-    }
-
-    /**
-     * Перевірка, чи має користувач доступ до конкретної пасти
-     */
-    public function hasUnlocked($paste_id) {
+    /** Перевіряє, чи має користувач доступ до конкретної пасти. */
+    public function hasUnlocked(string $paste_id): bool {
         return in_array($paste_id, $this->unlocked_pastes);
     }
 
-    /**
-     * Підрахунок загальної кількості користувачів (для адмін-панелі)
-     */
-    public static function countAll($search = '') {
-        $pdo = DB::getInstance()->getPDO();
-        if ($search !== '') {
-            $stmt = $pdo->prepare("SELECT COUNT(*) FROM users WHERE email LIKE ? OR nickname LIKE ?");
-            $stmt->execute(['%' . $search . '%', '%' . $search . '%']);
-            return $stmt->fetchColumn();
-        }
-        return $pdo->query("SELECT COUNT(*) FROM users")->fetchColumn();
+    // ── Персистентність (делегує до Repository) ──
+
+    /** @deprecated Використовуйте Repo::users()->save($user) */
+    public function save(): void {
+        Repo::users()->save($this);
     }
 
-    /**
-     * Отримання списку всіх користувачів з підтримкою пагінації.
-     * @param int $limit
-     * @param int $offset
-     * @return array
-     */
-    public static function getAll($limit = 25, $offset = 0, $search = '') {
-        $pdo = DB::getInstance()->getPDO();
-        $sql = "SELECT * FROM users";
-        $params = [];
-        
-        if ($search !== '') {
-            $sql .= " WHERE email LIKE :search_email OR nickname LIKE :search_nickname";
-            $params[':search_email'] = '%' . $search . '%';
-            $params[':search_nickname'] = '%' . $search . '%';
-        }
-        
-        $sql .= " ORDER BY id DESC LIMIT :limit OFFSET :offset";
-        
-        $stmt = $pdo->prepare($sql);
-        foreach ($params as $key => $val) {
-            $stmt->bindValue($key, $val);
-        }
-        $stmt->bindValue(':limit', (int)$limit, PDO::PARAM_INT);
-        $stmt->bindValue(':offset', (int)$offset, PDO::PARAM_INT);
-        $stmt->execute();
-        return $stmt->fetchAll();
+    // ── Статичні методи для зворотної сумісності ──
+    // @deprecated Використовуйте Repo::users() напряму.
+
+    /** @deprecated */
+    public static function findById($id): ?self {
+        return Repo::users()->findById($id);
     }
 
-    /**
-     * Пошук користувача за API-ключем
-     */
-    public static function findByApiKey($api_key) {
-        if (!$api_key) return null;
-        $pdo = DB::getInstance()->getPDO();
-        $stmt = $pdo->prepare("SELECT * FROM users WHERE api_key = ?");
-        $stmt->execute([$api_key]);
-        return self::instantiateFromRow($stmt->fetch());
+    /** @deprecated */
+    public static function findByEmail($email): ?self {
+        return Repo::users()->findByEmail($email);
+    }
+
+    /** @deprecated */
+    public static function findByTelegramId($telegram_id): ?self {
+        return Repo::users()->findByTelegramId($telegram_id);
+    }
+
+    /** @deprecated */
+    public static function findByGithubId($github_id): ?self {
+        return Repo::users()->findByGithubId($github_id);
+    }
+
+    /** @deprecated */
+    public static function findByApiKey($api_key): ?self {
+        return Repo::users()->findByApiKey($api_key);
+    }
+
+    /** @deprecated */
+    public static function countAll($search = ''): int {
+        return Repo::users()->countAll($search);
+    }
+
+    /** @deprecated */
+    public static function getAll($limit = 25, $offset = 0, $search = ''): array {
+        return Repo::users()->getAll($limit, $offset, $search);
     }
 }
