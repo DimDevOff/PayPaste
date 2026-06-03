@@ -123,7 +123,7 @@ class Moderation {
      * Перевірити, чи ввімкнено строгий режим модерації.
      */
     public static function isStrictMode(): bool {
-        require_once __DIR__ . '/../models/Setting.php';
+        require_once __DIR__ . '/models/Setting.php';
         return Setting::isModerationStrict();
     }
 }
