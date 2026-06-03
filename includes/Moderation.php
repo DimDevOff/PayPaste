@@ -1,5 +1,6 @@
 <?php
 require_once __DIR__ . '/../config/config.php';
+require_once __DIR__ . '/HttpClient.php';
 
 /**
  * Клас Moderation — перевірка контенту через відкриті API.

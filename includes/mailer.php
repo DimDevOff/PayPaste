@@ -10,6 +10,7 @@
  */
 require_once __DIR__ . '/../config/config.php';
 require_once __DIR__ . '/RateLimiter.php';
+require_once __DIR__ . '/HttpClient.php';
 
 class Mailer {
     
