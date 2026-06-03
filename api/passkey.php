@@ -201,13 +201,15 @@ try {
                 "WebAuthn: Вхід з аномальним лічильником, user_id={$passkey->user_id}"
                 . " credential_id={$passkey->credential_id}"
             );
-            // Передаємо клієнту попередження — фронтенд може показати повідомлення
+            // Все одно логінимо — аномалія не блокує вхід, лише попереджає
+            AuthService::passkeyLogin($passkey->credential_id);
+            unset($_SESSION['webauthn_challenge']);
+            error_log('passkey login_finish (anomaly): session id=' . session_id() . ' user_id=' . ($_SESSION['user_id'] ?? 'NOT SET'));
             echo json_encode([
                 'success' => true,
                 'redirect' => 'index.php',
                 'warning' => 'Виявлено аномалію автентифікатора. Рекомендуємо перереєструвати passkey.'
             ]);
-            unset($_SESSION['webauthn_challenge']);
             break;
         }
 

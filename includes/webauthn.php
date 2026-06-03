@@ -215,7 +215,7 @@ class WebAuthn {
         $counterAnomaly = false;
 
         if ($signCount !== 0 || $storedCounter !== 0) {
-            if ($signCount <= $storedCounter && $storedCounter > 0) {
+            if ($signCount < $storedCounter && $storedCounter > 0) {
                 $counterAnomaly = true;
                 error_log("WebAuthn: АНОМАЛІЯ ЛІЧИЛЬНИКА stored={$storedCounter} new={$signCount}");
             }
