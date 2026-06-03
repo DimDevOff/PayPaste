@@ -28,7 +28,7 @@
             </h3>
         </div>
         <div class="panel-body">
-            <?php if($paste->is_pending_rewrite): ?>
+            <?php if($paste->is_pending_rewrite && !$is_author && !$is_admin): ?>
                 <div class="alert alert-info text-center" style="border: 2px solid var(--link-color); padding: 40px; background: var(--bg-secondary);">
                     <h2 class="blink-text" style="color: var(--accent);">🛠️ ШІ ПРАЦЮЄ...</h2>
                     <p style="font-size: 1.2em;">Ця паста зараз проходить автоматичне перефразування моделлю ШІ.</p>
@@ -39,7 +39,7 @@
                     <hr>
                     <p class="text-muted"><small>Ваші налаштування приватності та ціни будуть застосовані автоматично після завершення.</small></p>
                 </div>
-            <?php elseif(isset($paste->moderation_status) && $paste->moderation_status === 'pending'): ?>
+            <?php elseif(isset($paste->moderation_status) && $paste->moderation_status === 'pending' && !$is_author && !$is_admin): ?>
                 <div class="alert alert-warning text-center" style="border: 2px dashed var(--accent); padding: 40px; background: var(--bg-secondary);">
                     <h2 class="blink-text" style="color: var(--link-color);">🔍 МОДЕРАЦІЯ...</h2>
                     <p style="font-size: 1.2em;">Ця паста проходить автоматичну перевірку модерації.</p>
@@ -50,7 +50,7 @@
                     <hr>
                     <p class="text-muted"><small>Якщо паста не пройде модерацію, ви зможете відредагувати текст або скористатися AI-переписуванням.</small></p>
                 </div>
-            <?php elseif(isset($paste->moderation_status) && $paste->moderation_status === 'rejected'): ?>
+            <?php elseif(isset($paste->moderation_status) && $paste->moderation_status === 'rejected' && !$is_author && !$is_admin): ?>
                 <div class="alert alert-danger text-center" style="border: 2px solid var(--panel-danger-border); padding: 30px; background: var(--bg-secondary);">
                     <h3 style="color: var(--danger);">❌ МОДЕРАЦІЯ ВІДХИЛЕНА</h3>
                     <p style="font-size: 1.1em;">Ваша паста не пройшла автоматичну перевірку модерації.</p>
