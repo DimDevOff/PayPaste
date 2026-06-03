@@ -9,7 +9,7 @@
  * 4. Управління списком зареєстрованих ключів (максимум 5 на користувача).
  */
 if (session_status() === PHP_SESSION_NONE) {
-    session_set_cookie_params(['path' => '/', 'secure' => true, 'httponly' => true, 'samesite' => 'Lax']);
+    session_set_cookie_params(['path' => '/', 'httponly' => true, 'samesite' => 'Lax']);
     session_start();
     error_log('passkey: session started, id=' . session_id());
 }
