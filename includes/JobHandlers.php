@@ -60,15 +60,10 @@ class JobHandlers {
         try {
             $violations = Moderation::checkExternal($content);
         } catch (\Throwable $e) {
-            // OpenAI недоступний
-            if (!Moderation::isStrictMode()) {
-                // Легкий режим: публікуємо автоматично
-                $pdo->prepare("UPDATE pastes SET moderation_status = 'approved' WHERE id = ?")->execute([$pasteId]);
-                $log("moderation_check: паста $pasteId APPROVED (легкий режим, OpenAI недоступний: " . $e->getMessage() . ")");
-                return;
-            }
-            // Строгий режим: retry
-            throw $e;
+            // OpenAI недоступний — публікуємо автоматично (локальної перевірки достатньо)
+            $pdo->prepare("UPDATE pastes SET moderation_status = 'approved' WHERE id = ?")->execute([$pasteId]);
+            $log("moderation_check: паста $pasteId APPROVED (OpenAI недоступний: " . $e->getMessage() . ")");
+            return;
         }
 
         if ($violations === false) {
@@ -256,85 +251,34 @@ class JobHandlers {
      */
     public static function handleDeadModerationFallback(string $jobId, string $type, array $payload): void {
         $pdo = DB::getInstance()->getPDO();
-        $strictMode = Moderation::isStrictMode();
 
         if ($type === Queue::TYPE_MODERATION_CHECK) {
             $pasteId = $payload['paste_id'] ?? null;
             if (!$pasteId) return;
 
-            if ($strictMode) {
-                $lastError = null;
-                $stmtErr = $pdo->prepare("SELECT last_error FROM jobs WHERE id = ?");
-                $stmtErr->execute([$jobId]);
-                $errRow = $stmtErr->fetch();
-                if ($errRow && $errRow['last_error']) {
-                    $lastError = $errRow['last_error'];
-                }
-
-                $result = json_encode([
-                    'reason' => 'moderation_service_unavailable',
-                    'detail' => 'Зовнішній сервіс модерації недоступний після вичерпання всіх спроб',
-                    'job_error' => $lastError
-                ], JSON_UNESCAPED_UNICODE);
-
-                $stmt = $pdo->prepare("
-                    UPDATE pastes 
-                    SET moderation_status = 'moderation_failed', moderation_result = ?
-                    WHERE id = ? AND moderation_status = 'pending'
-                ");
-                $stmt->execute([$result, $pasteId]);
-                if ($stmt->rowCount() > 0) {
-                    error_log("Queue fallback: пасту $pasteId переводимо у moderation_failed (OpenAI недоступний після всіх спроб)");
-                }
-            } else {
-                $stmt = $pdo->prepare("
-                    UPDATE pastes 
-                    SET moderation_status = 'approved', moderation_result = NULL
-                    WHERE id = ? AND moderation_status = 'pending'
-                ");
-                $stmt->execute([$pasteId]);
-                if ($stmt->rowCount() > 0) {
-                    error_log("Queue fallback: пасту $pasteId авто-схвалено у approved (легкий режим)");
-                }
+            // OpenAI недоступний після всіх спроб — публікуємо автоматично
+            $stmt = $pdo->prepare("
+                UPDATE pastes 
+                SET moderation_status = 'approved', moderation_result = NULL
+                WHERE id = ? AND moderation_status = 'pending'
+            ");
+            $stmt->execute([$pasteId]);
+            if ($stmt->rowCount() > 0) {
+                error_log("Queue fallback: пасту $pasteId авто-схвалено у approved (OpenAI недоступний після всіх спроб)");
             }
         } elseif ($type === Queue::TYPE_MODERATION_REWRITE) {
             $pasteId = $payload['paste_id'] ?? null;
             if (!$pasteId) return;
 
-            if ($strictMode) {
-                $lastError = null;
-                $stmtErr = $pdo->prepare("SELECT last_error FROM jobs WHERE id = ?");
-                $stmtErr->execute([$jobId]);
-                $errRow = $stmtErr->fetch();
-                if ($errRow && $errRow['last_error']) {
-                    $lastError = $errRow['last_error'];
-                }
-
-                $result = json_encode([
-                    'reason' => 'rewrite_service_unavailable',
-                    'detail' => 'Сервіс AI-переписування недоступний після вичерпання всіх спроб',
-                    'job_error' => $lastError
-                ], JSON_UNESCAPED_UNICODE);
-
-                $stmt = $pdo->prepare("
-                    UPDATE pastes 
-                    SET is_pending_rewrite = 0, moderation_status = 'moderation_failed', moderation_result = ?
-                    WHERE id = ? AND is_pending_rewrite = 1
-                ");
-                $stmt->execute([$result, $pasteId]);
-                if ($stmt->rowCount() > 0) {
-                    error_log("Queue fallback: пасту $pasteId переводимо у moderation_failed (Ollama недоступний)");
-                }
-            } else {
-                $stmt = $pdo->prepare("
-                    UPDATE pastes 
-                    SET is_pending_rewrite = 0, moderation_status = 'approved', moderation_result = NULL
-                    WHERE id = ? AND is_pending_rewrite = 1
-                ");
-                $stmt->execute([$pasteId]);
-                if ($stmt->rowCount() > 0) {
-                    error_log("Queue fallback: пасту $pasteId оригінал авто-схвалено у approved (легкий режим)");
-                }
+            // Ollama недоступний після всіх спроб — публікуємо оригінал
+            $stmt = $pdo->prepare("
+                UPDATE pastes 
+                SET is_pending_rewrite = 0, moderation_status = 'approved', moderation_result = NULL
+                WHERE id = ? AND is_pending_rewrite = 1
+            ");
+            $stmt->execute([$pasteId]);
+            if ($stmt->rowCount() > 0) {
+                error_log("Queue fallback: пасту $pasteId оригінал авто-схвалено у approved (Ollama недоступний)");
             }
         }
     }
