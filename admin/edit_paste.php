@@ -108,7 +108,7 @@ require_once __DIR__ . '/layout/header.php';
                     <div id="view_cost_container" style="<?= $paste->is_paid ? 'display:block;' : 'display:none;' ?> margin-top: 10px;">
                         <label>Ціна за перегляд (в кредитах):</label>
                         <div class="col-xs-12 col-sm-4" style="padding-left:0;">
-                            <input type="number" class="form-control" name="view_cost" id="view_cost" min="1" value="<?= htmlspecialchars((string)($paste->view_cost ?? '0')) ?>" <?= $paste->is_paid ? 'required' : '' ?>>
+                            <input type="number" class="form-control" name="view_cost" id="view_cost" value="<?= htmlspecialchars((string)($paste->view_cost ?? '0')) ?>" <?= $paste->is_paid ? 'min="1" required' : '' ?>>
                         </div>
                         <div class="clearfix"></div>
                     </div>
@@ -159,9 +159,11 @@ document.addEventListener('DOMContentLoaded', function() {
         if (this.checked) {
             viewCostContainer.style.display = 'block';
             viewCostInput.setAttribute('required', 'required');
+            viewCostInput.setAttribute('min', '1');
         } else {
             viewCostContainer.style.display = 'none';
             viewCostInput.removeAttribute('required');
+            viewCostInput.removeAttribute('min');
         }
     });
 });
