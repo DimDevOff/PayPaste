@@ -63,14 +63,12 @@ class PasteController { // Клас контролера паст
         unset($_SESSION['flagged_categories']);
 
         try {
-            // Усі нові пасти починають як 'pending' — навіть rewrite-пасти,
-            // бо їхній контент ще не перевірений зовнішньою модерацією.
-            // Rewrite-пасти блокуються через is_pending_rewrite, а не moderation_status.
-            $moderationStatus = 'pending';
+            // Перевіряємо режим модерації: легкий → одразу approved, строгий → pending + черга
+            $strictMode = Moderation::isStrictMode();
+            $moderationStatus = $strictMode ? 'pending' : 'approved';
 
-            // Для rewrite-паст — окрема черга (moderation_rewrite виконує і переписування, і перевірку)
-            // Для звичайних паст — стандартна перевірка через OpenAI
-            $needsAsyncModeration = !$is_pending_rewrite;
+            // У легкому режимі зовнішня модерація не потрібна
+            $needsAsyncModeration = $strictMode && !$is_pending_rewrite;
             $needsAsyncRewrite = $is_pending_rewrite;
 
             $paste = PasteService::create($data, $user_id, $is_pending_rewrite, $moderationStatus);
@@ -105,6 +103,8 @@ class PasteController { // Клас контролера паст
                 $_SESSION['success'] = "Пасту створено! AI переписує текст, після чого вона пройде перевірку модерації.";
             } elseif ($needsAsyncModeration) {
                 $_SESSION['success'] = "Пасту створено! Вона проходить перевірку модерації та незабаром стане доступною.";
+            } else {
+                $_SESSION['success'] = "Пасту створено та опубліковано!";
             }
 
             header("Location: view.php?id=" . $paste->id);
