@@ -57,32 +57,32 @@ class UserRepository {
     public function findById(string $id): ?User {
         $stmt = $this->pdo->prepare("SELECT * FROM users WHERE id = ?");
         $stmt->execute([$id]);
-        return $this->instantiateFromRow($stmt->fetch());
+        return $this->instantiateFromRow($stmt->fetch() ?: null);
     }
 
     public function findByEmail(string $email): ?User {
         $stmt = $this->pdo->prepare("SELECT * FROM users WHERE email = ?");
         $stmt->execute([$email]);
-        return $this->instantiateFromRow($stmt->fetch());
+        return $this->instantiateFromRow($stmt->fetch() ?: null);
     }
 
     public function findByTelegramId(string $telegram_id): ?User {
         $stmt = $this->pdo->prepare("SELECT * FROM users WHERE telegram_id = ?");
         $stmt->execute([$telegram_id]);
-        return $this->instantiateFromRow($stmt->fetch());
+        return $this->instantiateFromRow($stmt->fetch() ?: null);
     }
 
     public function findByGithubId(string $github_id): ?User {
         $stmt = $this->pdo->prepare("SELECT * FROM users WHERE github_id = ?");
         $stmt->execute([$github_id]);
-        return $this->instantiateFromRow($stmt->fetch());
+        return $this->instantiateFromRow($stmt->fetch() ?: null);
     }
 
     public function findByApiKey(string $api_key): ?User {
         if (!$api_key) return null;
         $stmt = $this->pdo->prepare("SELECT * FROM users WHERE api_key = ?");
         $stmt->execute([$api_key]);
-        return $this->instantiateFromRow($stmt->fetch());
+        return $this->instantiateFromRow($stmt->fetch() ?: null);
     }
 
     // ── Збереження ──
