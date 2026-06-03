@@ -26,8 +26,8 @@ if (!is_string($user_id)) {
     exit();
 }
 
-// Перевірка суворого формату ID користувача: префікс u_ та 13 hex символів
-if (!preg_match('/^u_[0-9a-fA-F]{13}$/', $user_id)) {
+// Перевірка суворого формату ID користувача: префікс u_ та 8-32 hex символів
+if (!preg_match('/^u_[0-9a-fA-F]{8,32}$/', $user_id)) {
     $_SESSION['error'] = 'Невалідний ідентифікатор користувача.';
     header('Location: users.php');
     exit();
