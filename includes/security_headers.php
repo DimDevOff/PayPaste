@@ -102,5 +102,8 @@ if (!defined('SECURITY_HEADERS_SENT')) {
  * Хелпер: повертає CSP nonce для використання у шаблонах.
  */
 function csp_nonce(): string {
+    if (!defined('CSP_NONCE') || CSP_NONCE === '') {
+        return base64_encode(random_bytes(16));
+    }
     return CSP_NONCE;
 }
