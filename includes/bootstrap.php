@@ -31,6 +31,8 @@ require_once __DIR__ . '/JobHandlers.php';
 require_once __DIR__ . '/models/User.php';
 require_once __DIR__ . '/models/Paste.php';
 require_once __DIR__ . '/models/AuditLog.php';
+require_once __DIR__ . '/models/Setting.php';
+require_once __DIR__ . '/services/PasteService.php';
 require_once __DIR__ . '/Queue.php';
 
 // Сесії та CSRF потрібні лише для веб-запитів (не для CLI worker-а)
