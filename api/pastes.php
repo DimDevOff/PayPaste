@@ -91,23 +91,29 @@ function handlePost($user) {
     ];
     
     try {
-        // Локальна перевірка модерації (швидка)
+        // Локальна перевірка модерації (швидка) — завжди
         require_once __DIR__ . '/../includes/Moderation.php';
         $localViolations = Moderation::localCheck($data['content']);
         if ($localViolations) {
             json_response(['error' => 'Контент не пройшов локальну перевірку модерації', 'violations' => $localViolations], 400);
         }
 
-        // Паста створюється зі статусом 'pending', зовнішня модерація йде через чергу
-        $paste = PasteService::create($data, $user->id, false, 'pending');
+        // Режим модерації: строгий → черга OpenAI; легкий → одразу approved
+        $strictMode = Moderation::isStrictMode();
 
-        // Постановка задачі модерації у чергу
-        require_once __DIR__ . '/../includes/Queue.php';
-        Queue::push(
-            Queue::TYPE_MODERATION_CHECK,
-            ['paste_id' => $paste->id, 'content' => $data['content']],
-            'mod_check:' . $paste->id
-        );
+        if ($strictMode) {
+            // Строгий режим: паста в pending, зовнішня модерація через чергу
+            $paste = PasteService::create($data, $user->id, false, 'pending');
+            require_once __DIR__ . '/../includes/Queue.php';
+            Queue::push(
+                Queue::TYPE_MODERATION_CHECK,
+                ['paste_id' => $paste->id, 'content' => $data['content']],
+                'mod_check:' . $paste->id
+            );
+        } else {
+            // Легкий режим: локальна перевірка пройдена → одразу approved
+            $paste = PasteService::create($data, $user->id, false, 'approved');
+        }
         
         // Стягуємо плату за API запит ТІЛЬКИ після успішного створення
         charge_api_request($user);
