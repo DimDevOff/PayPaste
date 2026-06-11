@@ -42,8 +42,8 @@ $lastPubId = $lastPubId ? trim($lastPubId) : null;
 // ─── Запит до API Donatello ────────────────────────────────────
 $http = new HttpClient();
 try {
-    $result = $http->getJson(DONATELLO_API_DONATES, [
-        'X-Donatello-Token: ' . DONATELLO_TOKEN
+    $result = $http->getJson(DONATELLO_API_DONATES . '?page=0&size=20', [
+        'X-Token: ' . DONATELLO_TOKEN
     ], 30);
     $data = json_decode($result['body'], true);
 } catch (\Throwable $e) {
@@ -54,21 +54,25 @@ try {
 }
 
 if (empty($data['success']) || !isset($data['content'])) {
-    error_log('[DonatelloPoller] Неочікувана відповідь API: ' . substr($result['body'], 0, 500));
-    flock($lock_fp, LOCK_UN);
-    fclose($lock_fp);
-    exit(1);
+    // Donatello повертає ключі з великої літери (Success, Content)
+    if (empty($data['Success']) && empty($data['success'])) {
+        error_log('[DonatelloPoller] Неочікувана відповідь API: ' . substr($result['body'], 0, 500));
+        flock($lock_fp, LOCK_UN);
+        fclose($lock_fp);
+        exit(1);
+    }
 }
 
-// ─── Обробка донатів ───────────────────────────────────────────
-$donates = $data['content'];
+// Donatello використовує camelCase ключі
+$donates = $data['content'] ?? $data['Content'] ?? [];
 $newLastPubId = $lastPubId;
 $processedCount = 0;
 
 // Donatello повертає донати від найновіших до найстаріших.
 // Обробляємо тільки нові (яких ще не бачили).
 foreach ($donates as $donate) {
-    $pubId = $donate['pubId'] ?? ($donate['pub_id'] ?? '');
+    // Donatello camelCase: PubID, ClientName, Message, Amount (string!), Currency
+    $pubId = $donate['PubID'] ?? $donate['pubId'] ?? $donate['pub_id'] ?? '';
 
     // Зупиняємось, коли дійшли до вже обробленого
     if ($lastPubId && $pubId === $lastPubId) {
@@ -80,8 +84,8 @@ foreach ($donates as $donate) {
         $newLastPubId = $pubId;
     }
 
-    $message = $donate['message'] ?? '';
-    $amount = (float)($donate['amount'] ?? 0);
+    $message = $donate['Message'] ?? $donate['message'] ?? '';
+    $amount = (float)($donate['Amount'] ?? $donate['amount'] ?? 0);
 
     if (empty($message) || $amount <= 0) {
         continue;
