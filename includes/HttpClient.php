@@ -108,4 +108,43 @@ class HttpClient {
         }
         return $data;
     }
+
+    /**
+     * Виконати GET-запит.
+     *
+     * @param string $url     URL ендпоінта
+     * @param array  $headers Додаткові HTTP-заголовки
+     * @param int    $timeout Таймаут у секундах
+     * @return array{body: string, http_code: int}
+     * @throws \RuntimeException
+     */
+    public function getJson(string $url, array $headers = [], int $timeout = 30): array {
+        $ch = curl_init($url);
+        curl_setopt_array($ch, [
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_TIMEOUT        => $timeout,
+            CURLOPT_CONNECTTIMEOUT => 10,
+            CURLOPT_HTTPHEADER     => $headers,
+        ]);
+
+        $body     = curl_exec($ch);
+        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        $curlErr  = curl_error($ch);
+        curl_close($ch);
+
+        if ($curlErr) {
+            throw new \RuntimeException("HTTP-запит до $url: cURL помилка: $curlErr");
+        }
+
+        if ($httpCode < 200 || $httpCode >= 300) {
+            throw new \RuntimeException(
+                "API $url повернув HTTP {$httpCode}: {$body}"
+            );
+        }
+
+        return [
+            'body'      => $body,
+            'http_code' => $httpCode,
+        ];
+    }
 }
