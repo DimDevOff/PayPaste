@@ -8,10 +8,11 @@ if (!$user) {
     exit;
 }
 
-// Генерація ID замовлення та створення замовлення лише при натисканні кнопки оплати
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $order_id = 'order_' . bin2hex(random_bytes(8));
+// Генерація ID замовлення при кожному завантаженні сторінки (GET + POST)
+$order_id = 'order_' . bin2hex(random_bytes(8));
 
+// При POST-запиті (натискання кнопки оплати) — зберігаємо замовлення в БД
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     require_once __DIR__ . '/includes/models/Order.php';
     $order = new Order([
         'id' => $order_id,
