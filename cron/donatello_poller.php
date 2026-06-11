@@ -9,6 +9,8 @@
  * Або через systemd timer / cron кожні 60 секунд.
  */
 
+require_once __DIR__ . '/../config/config.php';
+require_once __DIR__ . '/../config/db.php';
 require_once __DIR__ . '/../includes/repositories/Repo.php';
 require_once __DIR__ . '/../includes/models/Order.php';
 require_once __DIR__ . '/../includes/models/User.php';
