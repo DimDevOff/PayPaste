@@ -9,8 +9,8 @@ require_once __DIR__ . '/../includes/services/CreditService.php';
  * Перевіряє JWT токен і знімає плату за запит (1 кредит).
  */
 function authenticate_api() {
-    $headers = getallheaders();
-    $authHeader = $headers['Authorization'] ?? $headers['authorization'] ?? '';
+    // nginx-сумісне читання заголовків (getallheaders недоступна на nginx)
+    $authHeader = $_SERVER['HTTP_AUTHORIZATION'] ?? $_SERVER['REDIRECT_HTTP_AUTHORIZATION'] ?? '';
     
     if (!str_starts_with($authHeader, 'Bearer ')) {
         json_response(['error' => 'Відсутній або некоректний Authorization заголовок (очікується Bearer <token>)'], 401);

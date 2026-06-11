@@ -29,9 +29,8 @@ if (!defined('DONATELLO_TOKEN') || empty(DONATELLO_TOKEN)) {
 // Отримання сирих даних запиту (читаємо ОДИН раз — php://input не можна читати повторно)
 $raw_body = file_get_contents('php://input');
 
-// Верифікація заголовка X-Donatello-Token
-$headers = getallheaders();
-$header_token = $headers['X-Donatello-Token'] ?? '';
+// Верифікація заголовка X-Donatello-Token (через $_SERVER — nginx-сумісно)
+$header_token = $_SERVER['HTTP_X_DONATELLO_TOKEN'] ?? '';
 
 if (!hash_equals(DONATELLO_TOKEN, $header_token)) {
     http_response_code(401);
@@ -40,7 +39,7 @@ if (!hash_equals(DONATELLO_TOKEN, $header_token)) {
 }
 
 // HMAC-SHA256 верифікація підпису тіла запиту
-$header_signature = $headers['X-Donatello-Signature'] ?? '';
+$header_signature = $_SERVER['HTTP_X_DONATELLO_SIGNATURE'] ?? '';
 $expected_signature = hash_hmac('sha256', $raw_body, DONATELLO_TOKEN);
 
 if (!hash_equals($expected_signature, $header_signature)) {
