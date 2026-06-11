@@ -17,6 +17,7 @@
 - Локальна + зовнішня AI-модерація
 - AI-переписування контенту у фоновому режимі
 - MySQL-backed черга задач (`jobs`) з retry/backoff
+- Репозиторії, сервіси та command-обгортки для бізнес-логіки в `includes/`
 - Адмін-панель
 
 ## Встановлення
@@ -93,7 +94,7 @@ php cron/worker.php --type=email_verify
 ## Структура
 
 ```text
-admin/                  # адмінкаги
+admin/                  # адмінка
 api/                    # API, OAuth, webhooks
 assets/                 # css/js/img
 config/                 # config.php, config.example.php, SQL schema
@@ -101,10 +102,14 @@ cron/                   # worker, cleanup, wrappers
 includes/
   controllers/          # Auth/Paste/Settings/Verify
   models/               # User/Paste/Order/Transaction/Passkey
+  repositories/         # Repo layer для SQL-запитів
   services/             # бізнес-логіка (credits, paste, auth)
   Queue.php             # MySQL queue
   Moderation.php        # local + external moderation
   mailer.php            # enqueue/direct email
+  HttpClient.php        # HTTP helper
+  JobHandlers.php       # handlers для черги
+  security_headers.php  # security headers
 templates/              # html шаблони
 data/uploads/           # файли користувачів
 ```

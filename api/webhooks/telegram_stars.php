@@ -4,6 +4,7 @@ require_once __DIR__ . '/../../includes/models/Order.php';
 require_once __DIR__ . '/../../includes/models/User.php';
 require_once __DIR__ . '/../../includes/services/CreditService.php';
 require_once __DIR__ . '/../../includes/services/PricingService.php';
+require_once __DIR__ . '/../../includes/HttpClient.php';
 
 // Верифікація webhook-запиту: перевіряємо secret_token від Telegram
 $secret = $_SERVER['HTTP_X_TELEGRAM_BOT_API_SECRET_TOKEN'] ?? '';
